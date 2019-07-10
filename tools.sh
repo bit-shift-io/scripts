@@ -81,14 +81,13 @@ EOF
 
     # mount the repo so we can easily access files
     # this only works until the filesystem is unmounted (sleep?)
-    echo $MNT
-    sudo mkdir -p $MNT
-    sudo chown s:s $MNT
-    borg mount -o allow_other $REPO $MNT
+    #sudo mkdir -p $MNT
+    #sudo chown s:s $MNT
+    #borg mount -o allow_other $REPO $MNT
 
     # output some log data
-    borg info $REPO --last 1 > $DEST_ROOT/borg-info.txt
-    borg list $REPO > $DEST_ROOT/borg-list.txt
+    borg info $REPO --last 1 | sudo tee $DEST_ROOT/borg-info.txt
+    borg list $REPO | sudo tee $DEST_ROOT/borg-list.txt
 
     echo "done!"
 }
