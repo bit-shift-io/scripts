@@ -48,7 +48,6 @@ function fn_backup_borg {
     DEST_ROOT="/mnt/backup"
     REPO="$DEST_ROOT/borg-backup"
     MNT="$DEST_ROOT/borg-mnt"
-    MNT="/mnt/borg"
 
     # unmount
     borg umount $MNT
@@ -77,18 +76,19 @@ EOF
     # add dirs to reop
     borg create --stats --progress --exclude-from $DEST_ROOT/borg-exclude.txt --exclude-caches $REPO::'{hostname}-{now}' /home
 
-    # prune older than 
+    # prune older than
     borg prune -v --list --keep-daily=3 --keep-weekly=2 --keep-monthly=2 $REPO
 
     # mount the repo so we can easily access files
+    # this only works until the filesystem is unmounted (sleep?)
     echo $MNT
     sudo mkdir -p $MNT
     sudo chown s:s $MNT
-    borg mount $REPO $MNT -o allow_other
+    borg mount -o allow_other $REPO $MNT
 
-    # power down drive
-    # todo: find by device name
-    #sudo hdparm -y /dev/sdb1
+    # output some log data
+    borg info $REPO --last 1 > $DEST_ROOT/borg-info.txt
+    borg list $REPO > $DEST_ROOT/borg-list.txt
 
     echo "done!"
 }

@@ -22,7 +22,7 @@ function main {
     reset
     case $ans in  
         1) fn_smb ;;
-        2) fn_mount_backup ; fn_backup_service ;;
+        2) fn_backup_service ;;
         3) fn_cec ;;
         4) fn_mpd ;;
         5) fn_update_service ;;
@@ -31,44 +31,6 @@ function main {
     done
 }
 
-
-function fn_mount_backup {
-    # https://blog.tomecek.net/post/automount-with-systemd/
-    
-# mount
-sudo tee /etc/systemd/system/mnt-backup.mount > /dev/null << EOL 
-    [Unit]
-    Description=backup mount
-
-    [Mount]
-    What=LABEL=backup
-    Where=/mnt/backup/
-    Options=noauto,nofail
-    TimeoutSec=2
-    ForceUnmount=true
-
-    [Install]
-    WantedBy=multi-user.target
-EOL
-
-# autmount
-sudo tee /etc/systemd/system/mnt-backup.automount > /dev/null << EOL   
-    [Unit]
-    Description=backup mount
-
-    [Automount]
-    Where=/mnt/backup/
-    TimeoutIdleSec=60
-
-    [Install]
-    WantedBy=multi-user.target
-EOL
-
-    sudo systemctl daemon-reload
-    sudo systemctl enable mnt-backup.automount
-    sudo systemctl start mnt-backup.automount
-
-}
 
 
 function fn_backup_service {
@@ -103,7 +65,7 @@ EOL
     sudo systemctl enable tool-backup-borg.timer
 
     # list timers
-    #systemctl list-timers
+    systemctl list-timers
 
     notify-send "Backup Schedule" "Booked in!"
 }
