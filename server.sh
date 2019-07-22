@@ -67,7 +67,7 @@ EOL
 
     sudo systemctl daemon-reload
     sudo systemctl enable mnt-backup.automount
-    sudo systemctl start mnt-backup.automount
+    sudo systemctl restart mnt-backup.automount
 
 }
 
@@ -80,7 +80,7 @@ sudo tee /etc/systemd/system/tool-backup-borg.service > /dev/null << EOL
     Description=Backup Service
 
     [Service]
-    ExecStart=/home/s/Scripts/tools.sh fn_backup_borg
+    ExecStart=/home/s/scripts/tools.sh fn_backup_borg
 EOL
 
 sudo tee /etc/systemd/system/tool-backup-borg.timer > /dev/null << EOL 
@@ -97,7 +97,7 @@ sudo tee /etc/systemd/system/tool-backup-borg.timer > /dev/null << EOL
 EOL
 
     # Start timer, as root
-    sudo systemctl start tool-backup-borg.timer
+    sudo systemctl restart tool-backup-borg.timer
 
     # Enable timer to start at boot
     sudo systemctl enable tool-backup-borg.timer
