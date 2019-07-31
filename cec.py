@@ -22,8 +22,12 @@ def has_inhibit():
     
 
 def runCommand(command):
-    ba = subprocess.check_output(command, shell=True)
-    return ba.decode("utf-8")
+    result = ""
+    try:
+        result = subprocess.check_output(command, shell=True).decode("utf-8")
+    except subprocess.CalledProcessError as e:
+        log(e.output.decode("utf-8"))
+    return result
 
 
 def is_monitor_on():
