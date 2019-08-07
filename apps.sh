@@ -53,13 +53,11 @@ function fn_settings {
 
     # add to top of mirror list and update
     # http://repo.manjaro.org/
-    sudo pacman-mirrors -c all # remove custom
-    #sudo pacman-mirrors --country Australia
+    #sudo pacman-mirrors -c all # remove custom
+    sudo pacman-mirrors --country Australia,New_Zealand,Singapore
     
     # update database
     sudo pacman -Syy
-    
-    fn_aur_helper
 
     echo 'install complete'
     notify-send 'Config Settings' 'Install completed'
@@ -84,20 +82,20 @@ function fn_base_apps {
     # remove old stuff
     #use pactree qt4 - to list packages dependancies
     echo 'Removing packages...'
-    for pkg in yakuake xterm manjaro-hello octopi-notifier-frameworks octopi-cachecleaner octopi-repoeditor octopi calligra kget
+    for pkg in xterm manjaro-hello octopi-notifier-frameworks octopi-cachecleaner octopi-repoeditor octopi calligra kget
     do
         yay -Rs --noconfirm $pkg
     done
 
     # install software
     echo 'Installing packages...'
-    for pkg in openssh falkon syncthing redshift plasma-wayland-session plasma5-applets-redshift-control python-xdg xorg-xrandr udftools cantata plasma-browser-integration qbittorrent qjournal libreoffice
+    for pkg in openssh falkon syncthing plasma-wayland-session python-xdg xorg-xrandr udftools cantata plasma-browser-integration qbittorrent libreoffice firefox yakuake
     do
         yay -S --noconfirm --needed $pkg
     done
     
     echo 'Installing dev apps...'
-    for pkg in visual-studio-code-bin guitar smartgit blender audacity krita obs-studio
+    for pkg in visual-studio-code-bin guitar blender audacity krita obs-studio inkscape
     do
         yay -S --noconfirm --needed $pkg
     done
