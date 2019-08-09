@@ -48,7 +48,7 @@ function fn_swap {
     echo "How much swap in GB (eg 16 = 16GB): "
     read swap_size
     
-    sudo fallocate -l {$swap_size}G $local_path
+    sudo fallocate -l ${swap_size}G $local_path
     #sudo dd if=/dev/zero of=$local_path bs=1M count=8000
     #sudo chown root:root /swapfile
     sudo chmod 0600 $local_path
