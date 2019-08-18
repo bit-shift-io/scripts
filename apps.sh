@@ -89,7 +89,7 @@ function fn_base_apps {
 
     # install software
     echo 'Installing packages...'
-    for pkg in openssh falkon syncthing plasma-wayland-session python-xdg xorg-xrandr udftools cantata plasma-browser-integration qbittorrent libreoffice firefox yakuake
+    for pkg in openssh falkon syncthing plasma-wayland-session python-xdg xorg-xrandr udftools cantata plasma-browser-integration qbittorrent libreoffice firefox yakuake discover
     do
         yay -S --noconfirm --needed $pkg
     done
