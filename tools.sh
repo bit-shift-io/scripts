@@ -21,6 +21,7 @@ function main {
     7) Windows boot usb
     8) Borg Backup
     9) Gdrive Backup
+    d) Duplicate database entry fix
     *) Any key to exit
     :" ans;
     reset
@@ -34,11 +35,34 @@ function main {
         7) fn_windows_usb ;;
         8) fn_backup_borg ;;
         9) fn_backup_gdrive ;;
+        d) fn_duplicate_database_entry ;;
         *) $SHELL ;;
     esac
     done
 }
 
+function fn_duplicate_database_entry {
+    # https://mayankjohri.wordpress.com/2014/10/06/tips-arch-linux-how-to-resolve-error-duplicated-database-entry-error-message/
+    pac_dir="/var/lib/pacman/local"
+    file_list=(${pac_dir}/*) # file to array
+    last_package=""
+    last_file=""
+
+    # loop each file
+    for file in ${file_list[@]}; do
+        # get package name - first hyphen with a number after it
+        package=$(echo "${file}" | sed 's/-[0-9].*//')
+
+        # delete old file as it should be sorted alphabetically
+        if [ "${package}" == "${last_package}" ]; then
+            echo "delete: ${last_file}"
+            sudo rm -rf ${last_file}
+        fi
+
+        last_package=${package}
+        last_file=${file}
+    done
+}
 
 function fn_backup_borg {
     # RUN AS ROOT!
