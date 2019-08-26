@@ -82,14 +82,14 @@ function fn_base_apps {
     # remove old stuff
     #use pactree qt4 - to list packages dependancies
     echo 'Removing packages...'
-    for pkg in xterm manjaro-hello octopi-notifier-frameworks octopi-cachecleaner octopi-repoeditor octopi calligra kget
+    for pkg in xterm manjaro-hello pamac-gtk octopi-notifier-frameworks octopi-cachecleaner octopi-repoeditor octopi calligra kget yakuake
     do
         yay -Rs --noconfirm $pkg
     done
 
     # install software
     echo 'Installing packages...'
-    for pkg in openssh falkon syncthing plasma-wayland-session python-xdg xorg-xrandr udftools cantata plasma-browser-integration qbittorrent libreoffice firefox yakuake discover
+    for pkg in openssh pamac-qt falkon syncthing plasma-wayland-session python-xdg xorg-xrandr udftools cantata plasma-browser-integration qbittorrent libreoffice firefox discover
     do
         yay -S --noconfirm --needed $pkg
     done
@@ -105,15 +105,7 @@ function fn_base_apps {
     # sound-juicer smartgit riot-desktop openwmail-bin 
     # netbeans virtualbox vidcutter xnviewmp avidemux trojita handbrake kube
     # nheko
-    
-    # fix redshift append
-sudo tee -a /etc/geoclue/geoclue.conf > /dev/null << EOL
 
-[redshift]
-allowed=true
-system=false
-users=
-EOL
 
     # enable ssh
     sudo systemctl enable sshd.service
