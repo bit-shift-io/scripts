@@ -27,7 +27,7 @@ function main {
         3) fn_intel_gpu ;;        
         4) fn_amd_gpu ;;
         5) fn_virtual_box ;;
-        7) fn_virtual_box_guest ;;
+        6) fn_virtual_box_guest ;;
         *) $SHELL ;;
     esac
     done
@@ -129,12 +129,15 @@ function fn_virtual_box {
 
 function fn_virtual_box_guest {
     kernel=$(echo "linux$(uname -r | awk -F "." '{print $1$2}')")
-    sudo pacman -S linux$kernel-headers
-    yay -S --noconfirm linux$kernel-virtualbox-guest-modules
-    yay -S --noconfirm virtualbox-guest-utils
+    yay -S --noconfirm --needed $kernel-headers
+    yay -S --noconfirm --needed $kernel-virtualbox-guest-modules
+    yay -S --noconfirm --needed virtualbox-guest-utils
+    
     sudo mkdir /media
+    sudo chown -R $USER:users /media
+    
     sudo modprobe vboxdrv
-    sudo usermod -aG vboxusers $USER
+    sudo usermod -aG vboxsf $USER
     sudo systemctl enable vboxservice
 }
 
