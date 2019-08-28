@@ -132,16 +132,69 @@ function fn_virtual_box_guest {
     yay -S --noconfirm --needed $kernel-headers
     yay -S --noconfirm --needed $kernel-virtualbox-guest-modules
     yay -S --noconfirm --needed virtualbox-guest-utils
+    #yay -S --noconfirm --needed virtualbox-guest-dkms
+    yay -S --noconfirm --needed xf86-video-vmware
     
-    sudo mkdir /media
-    sudo chown -R $USER:users /media
+    echo "Found kernel: ${kernel}"
+    # automount broken, roll our own bellow!
+    #sudo mkdir /media
+    #sudo chown -R $USER:vboxsf /media
+    #sudo chmod -R 755 /media
     
-    sudo modprobe vboxdrv
+    sudo modprobe -a vboxguest vboxsf vboxvideo
     sudo usermod -aG vboxsf $USER
     sudo systemctl enable vboxservice
+    
+    shares=$(sudo VBoxControl sharedfolder list | grep -Po "(?<=[0-9]{2} - ).*(?= \[id)")
+    echo ""
+    echo "Create automounts for:"
+    echo "$shares"
+    
+    for share in ${shares[@]}; do
+        create_vbox_mount ${share}
+    done
 }
 
 
+function create_vbox_mount {
+    sudo mkdir -p /mnt/vbox/${1}
+    sudo chown -R $USER:vboxsf /mnt/vbox/${1}
+    
+# mount
+sudo tee /etc/systemd/system/mnt-vbox-${1}.mount > /dev/null << EOL 
+    [Unit]
+    Description=vbox share
+
+    [Mount]
+    # vbox share name
+    What=${1}
+    Where=/mnt/vbox/${1}
+    Options=noauto,nofail
+    TimeoutSec=2
+    ForceUnmount=true
+    Type=vboxsf
+
+    [Install]
+    WantedBy=multi-user.target
+EOL
+
+# autmount
+sudo tee /etc/systemd/system/mnt-vbox-${1}.automount > /dev/null << EOL   
+    [Unit]
+    Description=vbox share
+
+    [Automount]
+    Where=/mnt/vbox/${1}
+    TimeoutIdleSec=60
+
+    [Install]
+    WantedBy=multi-user.target
+EOL
+
+    sudo systemctl daemon-reload
+    sudo systemctl enable mnt-vbox-${1}.automount
+    sudo systemctl restart mnt-vbox-${1}.automount
+}
 
 # pass all args
 main "$@"
