@@ -75,7 +75,7 @@ function fn_backup_service {
     sudo pacman --noconfirm -S borg python-llfuse
 
     # daily backup
-sudo tee /etc/systemd/system/tool-backup-borg.service > /dev/null << EOL
+sudo tee /etc/systemd/system/tool-backup.service > /dev/null << EOL
     [Unit]
     Description=Backup Service
 
@@ -83,7 +83,7 @@ sudo tee /etc/systemd/system/tool-backup-borg.service > /dev/null << EOL
     ExecStart=/home/s/scripts/tools.sh fn_backup_borg
 EOL
 
-sudo tee /etc/systemd/system/tool-backup-borg.timer > /dev/null << EOL 
+sudo tee /etc/systemd/system/tool-backup.timer > /dev/null << EOL 
     [Unit]
     Description=Daily backup
 

@@ -22,6 +22,7 @@ function main {
     8) Borg Backup
     9) Gdrive Backup
     d) Duplicate database entry fix
+    n) Test Network Routes
     *) Any key to exit
     :" ans;
     reset
@@ -36,6 +37,7 @@ function main {
         8) fn_backup_borg ;;
         9) fn_backup_gdrive ;;
         d) fn_duplicate_database_entry ;;
+        n) fn_network_test ;;
         *) $SHELL ;;
     esac
     done
@@ -61,6 +63,28 @@ function fn_duplicate_database_entry {
 
         last_package=${package}
         last_file=${file}
+    done
+}
+
+function fn_network_test {
+    routes=(
+        "192.168.1.3,router",
+        "10.104.4.101,roof-espy",
+        "10.104.2.68,espy-gibbz",
+        "10.104.2.66,espy-gateway",
+        "10.104.0.227,gateway",
+        "10.106.16.11,prospect",
+    )
+
+    for route in "${routes[@]}"; do
+        split=(${route//,/ })
+        
+        result=$(ping -c1 ${split[0]} | grep -c 'Unreachable')
+        if [ ${result} -eq "1" ]; then
+            echo "${split[1]} ${split[0]} unreachable"
+        else
+            echo "${split[1]} ${split[0]} ok"
+        fi
     done
 }
 
