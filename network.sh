@@ -14,10 +14,12 @@ function main {
     read -n 1 -p "
     1) Restore defaults
     2) Network bridge
-    3) DHCP & DNS
+    3) Network Info
     4) Wifi AP
     5) USB Tether
     6) Bluetooth Tether
+    8) DHCP & DNS (Enable)
+    9) DHCP & DNS (Disable)
     0) NAT Gateway
     *) Any key to exit
     :" ans;
@@ -25,10 +27,12 @@ function main {
     case $ans in
         1) fn_restore_network ;;
         2) fn_network_bridge ;;
-        3) fn_dns_dhcp ;;
+        3) fn_network_info ;;
         4) fn_wireless_ap ;;
         5) fn_usb_tether ;;
         6) fn_bluetooth_tether ;;
+        8) fn_enable_dns_dhcp ;;
+        9) fn_disable_dns_dhcp ;;
         0) fn_nat_gateway ;;
         *) $SHELL ;;
     esac
@@ -49,6 +53,11 @@ function main {
 
 # links
 # http://xmodulo.com/switch-from-networkmanager-to-systemd-networkd.html
+
+function fn_network_info {
+    ip r
+    networkctl status
+}
 
 function fn_restore_network {
     # any files you create, add here for deletion
@@ -131,9 +140,11 @@ EOL
 function fn_enable_systemd_network {
     sudo systemctl daemon-reload
 
+    # stop network manager
     sudo systemctl stop NetworkManager
     sudo systemctl mask NetworkManager
 
+    # enable systemd
     sudo systemctl unmask systemd-networkd
     sudo systemctl enable systemd-networkd
     sudo systemctl restart systemd-networkd
@@ -141,6 +152,10 @@ function fn_enable_systemd_network {
     sudo systemctl unmask systemd-resolved
     sudo systemctl enable systemd-resolved
     sudo systemctl restart systemd-resolved
+
+    # disable dhcp client for static ip
+    sudo systemctl mask dhcpcd
+
     sudo rm /etc/resolv.conf
     sudo ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
 }
@@ -235,7 +250,7 @@ sudo tee /etc/systemd/network/bridge.network > /dev/null << EOL
     [Network]
     #DHCP=ipv4
     Address=192.168.1.2/24
-    DNS=192.168.1.2
+    DNS=192.168.1.3
     Gateway=192.168.1.3
     IPForward=yes
 EOL
@@ -327,11 +342,36 @@ EOL
 
 
 
-function fn_dns_dhcp {
+function fn_disable_dns_dhcp {
+
+sudo tee /etc/resolv.conf > /dev/null << EOL
+    nameserver 192.168.1.3
+EOL
+
+
+sudo tee /etc/dnsmasq.conf > /dev/null << EOL
+EOL
+
+
+sudo tee /etc/hosts > /dev/null << EOL
+    127.0.0.1       localhost
+    192.168.1.2     s
+    192.168.1.3     router
+EOL
+
+
+    # dhcp/dns enabled
+    sudo systemctl stop dnsmasq
+    sudo systemctl disable dnsmasq
+
+    fn_enable_systemd_network   
+}
+
+function fn_enable_dns_dhcp {
     # https://www.linux.com/learn/dnsmasq-easy-lan-name-services
     # https://www.linux.com/learn/intro-to-linux/2018/2/dns-and-dhcp-dnsmasq
     
-    sudo pacman --noconfirm -S dnsmasq
+    sudo pacman --noconfirm --needed -S dnsmasq
     
     # adblock
     # https://www.middling.uk/blog/2015/09/ad-blocking-using-dns-and-privoxy-with-squid-for-caching/
@@ -398,10 +438,9 @@ sudo tee /etc/hosts > /dev/null << EOL
 EOL
 
 
+    # dhcp/dns enabled
     sudo systemctl enable dnsmasq
     sudo systemctl restart dnsmasq
-
-    systemctl mask dhcpcd
 
     fn_enable_systemd_network   
 }
