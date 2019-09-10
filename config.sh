@@ -116,24 +116,34 @@ function fn_network_mount {
 
     echo "Enter smb password: "
     read smb_password  
-        
+    
+    # server
     local_path="/mnt/s"
     remote_path="//192.168.1.2/s"
+    add_mount $local_path $remote_path $smb_username $smb_password false
 
-    add_mount $local_path $remote_path $smb_username $smb_password
-
-
+    # pacman cache
     local_path="/var/cache/pacman/pkg"
     remote_path="//192.168.1.2/pacman"
+    add_mount $local_path $remote_path $smb_username $smb_password false
 
-    add_mount $local_path $remote_path $smb_username $smb_password
-        
+    # wine cache
+    # specify true for local user
+    local_path="$HOME/wine/cache"
+    remote_path="//192.168.1.2/s/wine/cache"
+    add_mount $local_path $remote_path $smb_username $smb_password true
+
     # create ssh key
     cat /dev/zero | ssh-keygen -q -N ""
     ssh-copy-id s@192.168.1.2
 
+    # display list of mounts
+    systemctl list-units --type=automount
+    systemctl list-units --type=mount
+
     notify-send 'Mount' 'Mount Completed'
 }
+
 
 
 function add_mount {
@@ -141,7 +151,15 @@ function add_mount {
     remote_path=$2
     smb_username=$3
     smb_password=$4
- 
+    local_user=$5
+
+    id=""
+    if $local_user; then
+        uid=$(id -u)
+        gid=$(id -g)
+        id="uid=${uid},gid=${gid},"
+    fi
+
     #  ${string/regexp/replacement}
     smb_path_name="${local_path////-}"
     smb_path_name="${smb_path_name:1:${#smb_path_name}}" # remove first, and last -2 to remove end ${smb_path_name:1:${#smb_path_name}-2}
@@ -158,7 +176,7 @@ sudo tee /etc/systemd/system/$smb_path_name.mount > /dev/null << EOL
     [Mount]
     What=$remote_path
     Where=$local_path
-    Options=username=$smb_username,password=$smb_password,rw,_netdev,x-systemd.automount
+    Options=${id}username=${smb_username},password=${smb_password},rw,_netdev,x-systemd.automount
     Type=cifs
     TimeoutSec=2
     ForceUnmount=true

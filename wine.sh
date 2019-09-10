@@ -50,25 +50,35 @@ function fn_setup_steam {
     $SHELL
 }
 
-function fn_wine_64 {
-    # to install a game in windows steam under wine:
-    # wine steam steam://install/appid
-    # dont use wine-mono if using .net
-    for pkg in wine-mono wine-staging winetricks
+
+function fn_install_wine {
+    # symlink winetricks to wine
+    rm -rf $HOME/.cache/winetricks
+    rm -rf $HOME/.cache/wine
+    ln -s $HOME/wine/cache $HOME/.cache/winetricks
+    ln -s $HOME/wine/cache $HOME/.cache/wine
+
+    for pkg in wine-mono wine winetricks
     do
         yay -Rs --noconfirm $pkg
     done
     
     # install software - wine-staging
-    for pkg in wine winetricks lib32-libldap lib32-gnutls lib32-mpg123 lib32-openal openal lib32-libgpg-error lib32-sqlite lib32-libpulse vulkan-radeon lib32-vulkan-radeon lib32-vulkan-icd-loader
+    for pkg in wine-staging winetricks lib32-libldap lib32-gnutls lib32-mpg123 lib32-openal openal lib32-libgpg-error lib32-sqlite lib32-libpulse vulkan-radeon lib32-vulkan-radeon lib32-vulkan-icd-loader
     do
         yay -S --noconfirm --needed $pkg
     done
-    
+}
+
+function fn_wine_64 {
+    # to install a game in windows steam under wine:
+    # wine steam steam://install/appid
+    # dont use wine-mono if using .net
+    fn_install_wine
     printf "\ncreating prefix...\n\n"
     
     # create 64bit wine
-    WINE_DIR=$HOME/.wine64
+    WINE_DIR=$HOME/wine/wine64
     ln -s $WINE_DIR $HOME/.wine
     WINEARCH=win64 WINEPREFIX=$HOME/.wine wine wineboot -u
     export WINEPREFIX
@@ -96,7 +106,7 @@ function fn_wine_64 {
 
     # essentials
     # seperate lines if one fails the next will continue
-    WINEPREFIX=$WINE_DIR winetricks -q directx9
+    WINEPREFIX=$WINE_DIR winetricks -q d3dx9_43
     WINEPREFIX=$WINE_DIR winetricks -q directplay
     WINEPREFIX=$WINE_DIR winetricks -q corefonts
     WINEPREFIX=$WINE_DIR winetricks -q dxvk
@@ -107,7 +117,6 @@ function fn_wine_64 {
 
     # crusader 2
     WINEPREFIX=$WINE_DIR winetricks -q comctl32 
-    WINEPREFIX=$WINE_DIR winetricks -q d3dx9_43 
     WINEPREFIX=$WINE_DIR winetricks -q d3dcompiler_43 
     WINEPREFIX=$WINE_DIR winetricks -q vcrun2010
     
@@ -159,11 +168,17 @@ function fn_wine_64 {
 function fn_wine_32 {
     # how to install dotnet:
     # https://ubuntuforums.org/showthread.php?t=2283185
+    
+    fn_install_wine
 
-    # wine32
-    # need 32bit for accordance and logos
-    WINE_DIR=$HOME/.wine32
-    WINEARCH=win32 WINEPREFIX=$WINE_DIR wine wineboot
+    # create 32bit wine
+    WINE_DIR=$HOME/wine/wine32
+    ln -s $WINE_DIR $HOME/.wine
+    WINEARCH=win32 WINEPREFIX=$HOME/.wine wine wineboot -u
+    export WINEPREFIX
+
+    # set to windows 7 default
+    WINEPREFIX=$WINE_DIR winetricks win7
 
     # remap user directories
     ID=$(id -nu)
@@ -179,38 +194,46 @@ function fn_wine_32 {
     mkdir "$WINE_DIR/drive_c/users/$ID/My Music"
     mkdir "$WINE_DIR/drive_c/users/$ID/My Videos"
 
+    # needs to be installed first
+    # moonbase alpha
+    # sol survivor
+    # magicka
+    # wh40k 
+    WINEPREFIX=$WINE_DIR winetricks -q dotnet20
+    WINEPREFIX=$WINE_DIR winetricks -q dotnet35
+    WINEPREFIX=$WINE_DIR winetricks -q dotnet40
+    WINEPREFIX=$WINE_DIR winetricks -q dotnet45
+    WINEPREFIX=$WINE_DIR winetricks -q dotnet46
+
     # essentials
-    WINEPREFIX=$WINE_DIR winetricks -q directx9_39 
+    WINEPREFIX=$WINE_DIR winetricks -q d3dx9_43
     WINEPREFIX=$WINE_DIR winetricks -q directplay
     WINEPREFIX=$WINE_DIR winetricks -q corefonts
-     
-    # for accordance and logos
-    #winetricks -q dotnet46 
-
+ 
     # gdi plus? (https://raw.githubusercontent.com/corbindavenport/creative-cloud-linux/master/creativecloud.sh)
     # winetricks gdiplus
     # atmlib
 
-    # moonbase alpha
-    #WINEPREFIX=$WINE_DIR winetricks -q dotnet35
 
-    # homeworld remastered
-    #WINEPREFIX=$WINE_DIR winetricks -q dotnet40
-    
+    # magika
+    WINEPREFIX=$WINE_DIR winetricks -q xna31
+    WINEPREFIX=$WINE_DIR winetricks -q xinput
+    WINEPREFIX=$WINE_DIR winetricks -q vcrun2008
+
     # open dialog to set settings
-    WINEPREFIX=$WINE_DIR winecfg
-    
-    ln -s ~/.wine32 ~/.wine
-    
+    #WINEPREFIX=$WINE_DIR winecfg
     
     echo 'install complete'
     notify-send 'Applications' 'Install completed'
 }
 
+
 function fn_switch_wine_prefix {
 
     WINE_TARGET=$(readlink -f ~/.wine)
-    
+    WINE = $HOME/.wine
+    WINE_32 = $HOME/wine/wine32
+    WINE_64 = $HOME/wine/wine64
     rm ~/.wine
     
     echo "target: ", $WINE_TARGET
@@ -218,11 +241,11 @@ function fn_switch_wine_prefix {
     TITLE=""
     MSG=""
     if [[ "${WINE_TARGET}" == *wine64 ]]; then
-        ln -s ~/.wine32 ~/.wine
+        ln -s $WINE_32 $WINE
         MSG="Changed from win64 to wine32"
         TITLE="Wine32 Active"
     else
-        ln -s ~/.wine64 ~/.wine
+        ln -s $WINE_64 $WINE
         MSG="Changed from win32 to wine64"
         TITLE="Wine64 Active"
     fi
@@ -231,6 +254,7 @@ function fn_switch_wine_prefix {
     echo $MSG
     notify-send "${TITLE}" "${MSG}"
 }
+
 
 function fn_kill_wine {
     # https://askubuntu.com/questions/52341/how-to-kill-wine-processes-when-they-crash-or-are-going-to-crash
