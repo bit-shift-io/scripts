@@ -54,7 +54,7 @@ function fn_settings {
     # add to top of mirror list and update
     # http://repo.manjaro.org/
     #sudo pacman-mirrors -c all # remove custom
-    sudo pacman-mirrors --country Australia,New_Zealand,Singapore
+    sudo pacman-mirrors --country Australia,New_Zealand,United_States
     
     # update database
     sudo pacman -Syy
@@ -129,13 +129,14 @@ function fn_virtual_box {
 
 function fn_virtual_box_guest {
     kernel=$(echo "linux$(uname -r | awk -F "." '{print $1$2}')")
+    echo "kernel: ${kernel}"
     yay -S --noconfirm --needed $kernel-headers
-    yay -S --noconfirm --needed $kernel-virtualbox-guest-modules
-    yay -S --noconfirm --needed virtualbox-guest-utils
-    #yay -S --noconfirm --needed virtualbox-guest-dkms
+    #yay -S --noconfirm --needed $kernel-virtualbox-guest-modules
+    #yay -S --noconfirm --needed virtualbox-guest-dkms # shouldnt need guest-modules with this
     yay -S --noconfirm --needed xf86-video-vmware
+    yay -S --needed virtualbox-guest-utils # user input required, installs guest-modules also
     
-    echo "Found kernel: ${kernel}"
+    echo "kernel: ${kernel}"
     # automount broken, roll our own bellow!
     #sudo mkdir /media
     #sudo chown -R $USER:vboxsf /media
