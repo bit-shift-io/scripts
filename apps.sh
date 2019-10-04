@@ -105,6 +105,7 @@ function fn_base_apps {
     # sound-juicer smartgit riot-desktop openwmail-bin 
     # netbeans virtualbox vidcutter xnviewmp avidemux trojita handbrake kube
     # nheko
+    # nitroshare
 
 
     # enable ssh
