@@ -79,6 +79,7 @@ function fn_wine_64 {
     
     # create 64bit wine
     WINE_DIR=$HOME/wine/wine64
+    unlink $HOME/.wine
     ln -s $WINE_DIR $HOME/.wine
     WINEARCH=win64 WINEPREFIX=$HOME/.wine wine wineboot -u
     export WINEPREFIX
@@ -173,6 +174,7 @@ function fn_wine_32 {
 
     # create 32bit wine
     WINE_DIR=$HOME/wine/wine32
+    unlink $HOME/.wine
     ln -s $WINE_DIR $HOME/.wine
     WINEARCH=win32 WINEPREFIX=$HOME/.wine wine wineboot -u
     export WINEPREFIX
