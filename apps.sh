@@ -72,8 +72,8 @@ function fn_aur_helper {
 
 function fn_amd_gpu {
     yay -S --noconfirm radeon-profile-daemon-git radeon-profile-git
-    systemctl enable radeon-profile-daemon.service
-    systemctl start radeon-profile-daemon.service
+    sudo systemctl enable radeon-profile-daemon.service
+    sudo systemctl start radeon-profile-daemon.service
 }
 
 
@@ -89,7 +89,7 @@ function fn_base_apps {
 
     # install software
     echo 'Installing packages...'
-    for pkg in openssh pamac-qt falkon syncthing plasma-wayland-session python-xdg xorg-xrandr udftools cantata plasma-browser-integration qbittorrent libreoffice firefox discover
+    for pkg in openssh pamac-qt falkon syncthing plasma-wayland-session python-xdg xorg-xrandr udftools cantata plasma-browser-integration qbittorrent libreoffice firefox discover barrier
     do
         yay -S --noconfirm --needed $pkg
     done
