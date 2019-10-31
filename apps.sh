@@ -14,20 +14,22 @@ function main {
     read -n 1 -p "
     1) Initial Config
     2) Base Apps
-    3) Intel GPU
-    4) AMD GPU
+    3) Extra Apps
     5) Virtualbox
     6) Virtualbox Guest
+    9) Intel GPU
+    0) AMD GPU
     *) Any key to exit
     :" ans;
     reset
     case $ans in
         1) fn_settings ;;
         2) fn_base_apps ;;
-        3) fn_intel_gpu ;;        
-        4) fn_amd_gpu ;;
+        3) fn_extra_apps ;;
         5) fn_virtual_box ;;
         6) fn_virtual_box_guest ;;
+        9) fn_intel_gpu ;;        
+        0) fn_amd_gpu ;;
         *) $SHELL ;;
     esac
     done
@@ -89,28 +91,34 @@ function fn_base_apps {
 
     # install software
     echo 'Installing packages...'
-    for pkg in openssh pamac-qt falkon syncthing plasma-wayland-session python-xdg xorg-xrandr udftools cantata plasma-browser-integration qbittorrent libreoffice firefox discover barrier
+    for pkg in openssh pamac-qt falkon syncthing plasma-wayland-session python-xdg xorg-xrandr udftools cantata plasma-browser-integration qbittorrent libreoffice firefox
     do
         yay -S --noconfirm --needed $pkg
     done
     
-    echo 'Installing dev apps...'
-    for pkg in visual-studio-code-bin guitar blender audacity krita obs-studio inkscape
-    do
-        yay -S --noconfirm --needed $pkg
-    done
-    
-
-    # extras
-    # sound-juicer smartgit riot-desktop openwmail-bin 
-    # netbeans virtualbox vidcutter xnviewmp avidemux trojita handbrake kube
-    # nheko
-    # nitroshare
-
-
     # enable ssh
     sudo systemctl enable sshd.service
     sudo systemctl start sshd.service
+
+    # remove orphan files
+    sudo pacman -Rs --noconfirm $(pacman -Qqdt)
+
+    echo 'install complete'
+    notify-send 'Applications' 'Install completed'
+}
+
+function fn_extra_apps {
+    echo 'Installing extra apps...'
+    for pkg in visual-studio-code-bin guitar blender audacity krita obs-studio inkscape discover barrier
+    do
+        yay -S --noconfirm --needed $pkg
+    done
+    
+    # extras
+    # sound-juicer smartgit riot-desktop openwmail-bin 
+    # vidcutter xnviewmp avidemux trojita handbrake kube
+    # nheko
+    # nitroshare lanshare
 
     # remove orphan files
     sudo pacman -Rs --noconfirm $(pacman -Qqdt)
