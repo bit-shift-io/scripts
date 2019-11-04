@@ -90,17 +90,17 @@ sudo tee /etc/systemd/system/tool-backup.timer > /dev/null << EOL
     [Timer]
     OnCalendar=daily
     Persistent=true   
-    Unit=tool-backup-borg.service
+    Unit=tool-backup.service
 
     [Install]
     WantedBy=timers.target
 EOL
 
     # Start timer, as root
-    sudo systemctl restart tool-backup-borg.timer
+    sudo systemctl restart tool-backup.timer
 
     # Enable timer to start at boot
-    sudo systemctl enable tool-backup-borg.timer
+    sudo systemctl enable tool-backup.timer
 
     # list timers
     #systemctl list-timers

@@ -14,21 +14,54 @@ function main {
     read -n 1 -p "
     1) Network Mount
     2) Swap
-    3) Inspiron
-    4) Mouse    
+    3) Inspiron (wacom)
+    4) Normalize Audio Output
+    5) Disable Intel Audio
     *) Any key to exit
     :" ans;
     reset
     case $ans in
         1) fn_network_mount ;;
         2) fn_swap ;;      
-        3) fn_inspiron ;;
-        4) fn_mouse ;;            
+        3) fn_inspiron ;;  
+        4) fn_normalize_pulse_audio ;;
+        5) fn_disable_intel_audio ;;        
         *) $SHELL ;;
     esac
     done
 }
 
+function fn_disable_intel_audio {
+    cat /proc/asound/modules
+    
+sudo bash -c "cat > /etc/modprobe.d/blacklist" << EOL 
+    blacklist snd_hda_intel
+EOL
+
+    notify-send 'Reboot' 'Audio disabled'
+}
+
+
+function fn_normalize_pulse_audio {
+    yay -S --noconfirm swh-plugins
+
+bash -c "cat > $HOME/.config/pulse/default.pa" << EOL 
+    .nofail
+    .include /etc/pulse/default.pa
+
+    # Create compressed sink that outpus to the simultaneous output device
+    load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=dyson_compress_1403  label=dysonCompress  control=0,1,0.5,0.99
+
+    # Create normalized sink that outputs to the compressed sink
+    load-module module-ladspa-sink  sink_name=ladspa_normalized  master=ladspa_sink  plugin=fast_lookahead_limiter_1913  label=fastLookaheadLimiter  control=10,0,0.8
+
+    # Comment out the line below to disable setting the normalized output by default:
+    set-default-sink ladspa_normalized
+EOL
+
+    # restart audio
+    pulseaudio -k
+}
 
 function fn_swap {
    # https://coreos.com/os/docs/latest/adding-swap.html
