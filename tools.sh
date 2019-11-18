@@ -23,6 +23,7 @@ function main {
     9) Gdrive Backup
     d) Duplicate database entry fix
     n) Test Network Routes
+    l) Limit Bandwidth
     *) Any key to exit
     :" ans;
     reset
@@ -38,6 +39,7 @@ function main {
         9) fn_backup_gdrive ;;
         d) fn_duplicate_database_entry ;;
         n) fn_network_test ;;
+        l) fn_limit_bandwidth ;;
         *) $SHELL ;;
     esac
     done
@@ -86,6 +88,19 @@ function fn_network_test {
             echo "${split[1]} ${split[0]} ok"
         fi
     done
+}
+
+
+function fn_limit_bandwidth {
+    echo "Limit Download (kb/s 0=unlimited): "
+    read limit_down
+    
+    if [ ${limit_down} == "0" ]; then
+        sudo tc qdisc delete dev enp0s3 root
+    else
+        sudo tc qdisc add dev enp0s3 root tbf rate ${limit_down}kbit latency 42ms burst 2k
+        #sudo tc qdisc add dev enp0s3 root tbf rate ${limit_down}mbit burst 32kbit latency 40ms
+    fi
 }
 
 function fn_backup_borg {
