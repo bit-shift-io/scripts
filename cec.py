@@ -147,19 +147,21 @@ if __name__ == '__main__':
         # dpms is on, and monitor changed state
         if (cur_dpms and monitor_changed):    
             # send cec command
-            log("Monitor on: " + str(cur_monitor))
+            log("monitor on: " + str(cur_monitor))
             send_cec_command(cur_monitor)
             
         # restart sleep timer
         # monitor has turned on
         # monitor changed state and monitor is on 
         if (monitor_changed and cur_monitor == True):
+            log("reset timer")
             screen_on_time = cur_time
             
         # restart timer
         # video/app started or stopped
         # inhibit has changed state
         if (inhibit_changed):
+            log("reset timer")
             screen_on_time = cur_time
             
         # screen timer
@@ -167,5 +169,5 @@ if __name__ == '__main__':
         # turn dpms off
         # turn off screen will occur next tick
         if (cur_monitor == True and (cur_time - screen_on_time) > max_screen_on_time):
-            log("Force sleep")
+            log("force dpms/sleep")
             runCommand("xset dpms force off")
