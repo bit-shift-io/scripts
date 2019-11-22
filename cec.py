@@ -170,4 +170,5 @@ if __name__ == '__main__':
         # turn off screen will occur next tick
         if (cur_monitor == True and (cur_time - screen_on_time) > max_screen_on_time):
             log("force dpms/sleep")
+            screen_on_time = cur_time
             runCommand("xset dpms force off")
