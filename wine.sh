@@ -107,50 +107,52 @@ function fn_wine_64 {
 
     # essentials
     # seperate lines if one fails the next will continue
-    WINEPREFIX=$WINE_DIR winetricks -q d3dx9_43
+    WINEPREFIX=$WINE_DIR winetricks -q d3dx9
+    WINEPREFIX=$WINE_DIR winetricks -q d3dx10
+    WINEPREFIX=$WINE_DIR winetricks -q d3dx11
     WINEPREFIX=$WINE_DIR winetricks -q directplay
     WINEPREFIX=$WINE_DIR winetricks -q corefonts
     WINEPREFIX=$WINE_DIR winetricks -q dxvk
     
     # for commandos
-    WINEPREFIX=$WINE_DIR winetricks -q amstream 
-    WINEPREFIX=$WINE_DIR winetricks -q quartz 
+    #WINEPREFIX=$WINE_DIR winetricks -q amstream 
+    #WINEPREFIX=$WINE_DIR winetricks -q quartz 
 
     # crusader 2
-    WINEPREFIX=$WINE_DIR winetricks -q comctl32 
-    WINEPREFIX=$WINE_DIR winetricks -q d3dcompiler_43 
-    WINEPREFIX=$WINE_DIR winetricks -q vcrun2010
+    #WINEPREFIX=$WINE_DIR winetricks -q comctl32 
+    #WINEPREFIX=$WINE_DIR winetricks -q d3dcompiler_43 
+    #WINEPREFIX=$WINE_DIR winetricks -q vcrun2010
     
     # sacred 2
-    WINEPREFIX=$WINE_DIR winetricks -q gdiplus
+    #WINEPREFIX=$WINE_DIR winetricks -q gdiplus
     
     # red solstice 
     # launch steam command: MESA_GL_VERSION_OVERRIDE=3.0 wine Steam.exe - OLD
-    WINEPREFIX=$WINE_DIR winetricks -q vcrun2012
-    WINEPREFIX=$WINE_DIR winetricks -q vcrun2013
+    #WINEPREFIX=$WINE_DIR winetricks -q vcrun2012
+    #WINEPREFIX=$WINE_DIR winetricks -q vcrun2013
     
     # settlers 4 history edititon
-    WINEPREFIX=$WINE_DIR winetricks -q vcrun2015
+    #WINEPREFIX=$WINE_DIR winetricks -q vcrun2015
 
     # act of aggression - xaudio
-    WINEPREFIX=$WINE_DIR winetricks -q xact 
+    #WINEPREFIX=$WINE_DIR winetricks -q xact 
 
     # uplay
-    WINEPREFIX=$WINE_DIR winetricks -q winhttp
+    #WINEPREFIX=$WINE_DIR winetricks -q winhttp
     
     # the forest installer
     # settings in regedit - HKEY_CURRENT_USER\Software\SKS\TheForest 
-    WINEPREFIX=$WINE_DIR winetricks -q mfc42
+    #WINEPREFIX=$WINE_DIR winetricks -q mfc42
     
     # Gaea software
-    WINEPREFIX=$WINE_DIR winetricks -q dotnet472
+    #WINEPREFIX=$WINE_DIR winetricks -q dotnet472
     
     # reg force steam winxp mode
     #WINEPREFIX=$WINE_DIR wine reg.exe ADD "HKEY_CURRENT_USER\Software\Wine\AppDefaults\Steam.exe" /v "Version" /t "REG_SZ" /d "winxp64" /f
     #WINEPREFIX=$WINE_DIR wine reg.exe ADD "HKEY_CURRENT_USER\Software\Wine\AppDefaults\steamwebhelper.exe" /v "Version" /t "REG_SZ" /d "winxp64" /f 
     
     # titan quest requires winxp mode
-    WINEPREFIX=$WINE_DIR wine reg.exe ADD "HKEY_CURRENT_USER\Software\Wine\AppDefaults\TQ.exe" /v "Version" /t "REG_SZ" /d "winxp64" /f    
+    #WINEPREFIX=$WINE_DIR wine reg.exe ADD "HKEY_CURRENT_USER\Software\Wine\AppDefaults\TQ.exe" /v "Version" /t "REG_SZ" /d "winxp64" /f    
 
     # open dialog to set settings
     WINEPREFIX=$WINE_DIR winecfg
