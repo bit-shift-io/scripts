@@ -32,26 +32,7 @@ function main {
 }
 
 
-function fn_setup_steam {
-    #mkdir
-    mkdir -p $HOME/Games/Steam
 
-    # move existing install
-    mv $HOME/.local/share/Steam $HOME/Games
-    
-    # remove unused
-    rm -r $HOME/.local/share/Steam
-
-    # create symlink
-    #rm -r $HOME/.local/share/Steam
-    ln -s $HOME/Games/Steam $HOME/.local/share/Steam
-
-    # steam fix
-    # find ~/.steam/root/ \( -name "libgcc_s.so*" -o -name "libstdc++.so*" -o -name "libxcb.so*" -o -name "libgpg-error.so*" \) -print -delete
-
-    notify-send 'Steam' 'Game on!'
-    $SHELL
-}
 
 
 function fn_install_wine {
@@ -62,10 +43,10 @@ function fn_install_wine {
     ln -s $HOME/wine/cache $HOME/.cache/wine
     
     # remove
-    ./util.sh -r wine-mono wine winetricks lib32-libldap lib32-gnutls lib32-mpg123 lib32-openal openal lib32-libgpg-error lib32-sqlite lib32-libpulse vulkan-radeon lib32-vulkan-radeon lib32-vulkan-icd-loader
+    ./util.sh -r wine-mono wine winetricks
     
     # install software - wine-staging
-    ./util.sh -i wine-staging winetricks 
+    ./util.sh -i wine-staging winetricks lib32-libldap lib32-gnutls lib32-mpg123 lib32-openal openal lib32-libgpg-error lib32-sqlite lib32-libpulse vulkan-radeon lib32-vulkan-radeon lib32-vulkan-icd-loader
 }
 
 function fn_wine_64 {
