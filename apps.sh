@@ -12,7 +12,7 @@ function main {
     # menu
     while true; do
     read -n 1 -p "
-    1) Initial Config
+    1) Manjaro Database
     2) Base Apps
     3) Extra Apps
     5) Virtualbox
@@ -23,7 +23,7 @@ function main {
     :" ans;
     reset
     case $ans in
-        1) fn_settings ;;
+        1) fn_manjaro_database ;;
         2) fn_base_apps ;;
         3) fn_extra_apps ;;
         5) fn_virtual_box ;;
@@ -42,17 +42,7 @@ function fn_intel_gpu {
 }
 
 
-function fn_settings {
-    # disable broken kde search
-    balooctl disable
-    
-    # fix systemd shutdown timeout
-    sudo sed -i -e "s/#DefaultTimeoutStopSec=90s/DefaultTimeoutStopSec=5s/g" /etc/systemd/system.conf
-    sudo sed -i -e "s/#DefaultTimeoutStartSec=90s/DefaultTimeoutStartSec=5s/g" /etc/systemd/system.conf
-    
-    # fix logs to be no more than 50mb
-    sudo sed -i -e "s/#SystemMaxUse=/SystemMaxUse=50M/g"  /etc/systemd/journald.conf
-
+function fn_manjaro_database {
     # add to top of mirror list and update
     # http://repo.manjaro.org/
     #sudo pacman-mirrors -c all # remove custom
@@ -61,14 +51,12 @@ function fn_settings {
     # update database
     sudo pacman -Syy
 
-    echo 'install complete'
-    notify-send 'Config Settings' 'Install completed'
-}
-
-
-function fn_aur_helper {
+    # aur helper
     sudo pacman -S yay --noconfirm --needed
     sudo pacman -S pacui --noconfirm --needed
+    
+    echo 'install complete'
+    notify-send 'Config Settings' 'Install completed'
 }
 
 
@@ -80,50 +68,35 @@ function fn_amd_gpu {
 
 
 function fn_base_apps {
-    fn_aur_helper
     # remove old stuff
     #use pactree qt4 - to list packages dependancies
-    echo 'Removing packages...'
-    for pkg in xterm manjaro-hello pamac-gtk octopi-notifier-frameworks octopi-cachecleaner octopi-repoeditor octopi calligra kget yakuake
-    do
-        yay -Rs --noconfirm $pkg
-    done
+    echo -e '\n\nRemoving packages...'
+    ./util.sh -r xterm manjaro-hello pamac-gtk octopi-notifier-frameworks octopi-cachecleaner octopi-repoeditor octopi calligra kget yakuake plasma-wayland-session python-xdg xorg-xrandr udftools pamac-qt
 
     # install software
-    echo 'Installing packages...'
-    for pkg in openssh pamac-qt falkon syncthing plasma-wayland-session python-xdg xorg-xrandr udftools cantata plasma-browser-integration qbittorrent libreoffice firefox
-    do
-        yay -S --noconfirm --needed $pkg
-    done
+    echo -e '\n\nInstalling packages...'
+    ./util.sh -i openssh falkon syncthing cantata plasma-browser-integration qbittorrent libreoffice firefox thunderbird
     
     # enable ssh
     sudo systemctl enable sshd.service
     sudo systemctl start sshd.service
 
-    # remove orphan files
-    sudo pacman -Rs --noconfirm $(pacman -Qqdt)
-
-    echo 'install complete'
+    echo -e '\n\ninstall complete'
     notify-send 'Applications' 'Install completed'
 }
 
 function fn_extra_apps {
-    echo 'Installing extra apps...'
-    for pkg in visual-studio-code-bin guitar blender audacity krita obs-studio inkscape discover barrier
-    do
-        yay -S --noconfirm --needed $pkg
-    done
-    
+    echo -e '\n\nInstalling extra apps...'
+    ./util.sh -i code guitar blender audacity krita obs-studio inkscape barrier
+
     # extras
     # sound-juicer smartgit riot-desktop openwmail-bin 
     # vidcutter xnviewmp avidemux trojita handbrake kube
     # nheko
     # nitroshare lanshare
 
-    # remove orphan files
-    sudo pacman -Rs --noconfirm $(pacman -Qqdt)
 
-    echo 'install complete'
+    echo -e '\n\ninstall complete'
     notify-send 'Applications' 'Install completed'
 }
 

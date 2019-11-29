@@ -17,6 +17,7 @@ function main {
     3) Inspiron (wacom)
     4) Normalize Audio Output
     5) Disable Intel Audio
+    6) General config (systemd timeout, kde index)
     *) Any key to exit
     :" ans;
     reset
@@ -25,10 +26,25 @@ function main {
         2) fn_swap ;;      
         3) fn_inspiron ;;  
         4) fn_normalize_pulse_audio ;;
-        5) fn_disable_intel_audio ;;        
+        5) fn_disable_intel_audio ;;
+        6) fn_general_config ;; 
         *) $SHELL ;;
     esac
     done
+}
+
+function fn_general_config {
+    # disable broken kde search
+    balooctl disable
+    
+    # fix systemd shutdown timeout
+    sudo sed -i -e "s/#DefaultTimeoutStopSec=90s/DefaultTimeoutStopSec=5s/g" /etc/systemd/system.conf
+    sudo sed -i -e "s/#DefaultTimeoutStartSec=90s/DefaultTimeoutStartSec=5s/g" /etc/systemd/system.conf
+    
+    # fix logs to be no more than 50mb
+    sudo sed -i -e "s/#SystemMaxUse=/SystemMaxUse=50M/g"  /etc/systemd/journald.conf
+
+    notify-send 'Reboot' 'Audio disabled'
 }
 
 function fn_disable_intel_audio {
