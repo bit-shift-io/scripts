@@ -14,8 +14,15 @@ function main {
         bin_exits=$(which ${util} 2> /dev/null | grep ${util} -c)
 
         if [[ ${bin_exits} == "1" ]]; then
-            install_util=${util} 
-            echo "found: ${util} @ install_util"
+            # install yay
+            if [[ ${util} == "pacman" ]]; then
+                sudo pacman -S yay --noconfirm --needed
+                util=(yay)
+            fi
+            
+            # return binary
+            install_util=${util}
+            echo "found: ${install_util}"
         fi
     done
     
@@ -39,9 +46,22 @@ function main {
 function install {
     bin="${1}"
     arr="${@:2}"
+    
     for pkg in ${arr}
     do
-        sudo ${bin} -n install ${pkg}
+        case ${bin} in
+            'yay')
+                ${bin} -S --noconfirm --needed ${pkg}
+                ;;
+                
+            'zypper')
+                sudo ${bin} -n install ${pkg}
+                ;;
+
+            *)
+                echo -n "unknown"
+                ;;
+        esac
     done
     
 }
@@ -49,10 +69,23 @@ function install {
 function remove {
     bin="${1}"
     arr="${@:2}"
+    
     for pkg in ${arr}
     do
-        sudo ${bin} -n rm ${pkg}
-    done
+        case ${bin} in
+            'yay')
+                ${bin} -Rs --noconfirm ${pkg}
+                ;;
+                
+            'zypper')
+                sudo ${bin} -n rm ${pkg}
+                ;;
+
+            *)
+                echo -n "unknown"
+                ;;
+        esac
+    done    
 }
 
 # pass all args

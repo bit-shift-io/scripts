@@ -38,6 +38,9 @@ function fn_setup_steam {
 
     # move existing install
     mv $HOME/.local/share/Steam $HOME/Games
+    
+    # remove unused
+    rm -r $HOME/.local/share/Steam
 
     # create symlink
     #rm -r $HOME/.local/share/Steam
