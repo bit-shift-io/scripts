@@ -181,6 +181,13 @@ function fn_network_mount {
     local_path="$HOME/wine/cache"
     remote_path="//192.168.1.2/s/wine/cache"
     add_mount $local_path $remote_path $smb_username $smb_password true
+    
+    # should be done in the mount above
+    # permissions
+    # get username
+    #user=$(id -nu)
+    #group=$(id -gn)
+    #sudo chown ${user}:${group} ${local_path}
 
     # create ssh key
     cat /dev/zero | ssh-keygen -q -N ""
@@ -206,7 +213,7 @@ function add_mount {
     if $local_user; then
         uid=$(id -u)
         gid=$(id -g)
-        id="uid=${uid},gid=${gid},"
+        id="uid=${uid},gid=${gid},forceuid,forcegid,"
     fi
 
     #  ${string/regexp/replacement}

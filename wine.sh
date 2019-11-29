@@ -57,17 +57,12 @@ function fn_install_wine {
     rm -rf $HOME/.cache/wine
     ln -s $HOME/wine/cache $HOME/.cache/winetricks
     ln -s $HOME/wine/cache $HOME/.cache/wine
-
-    for pkg in wine-mono wine winetricks
-    do
-        yay -Rs --noconfirm $pkg
-    done
+    
+    # remove
+    ./util.sh -r wine-mono wine winetricks lib32-libldap lib32-gnutls lib32-mpg123 lib32-openal openal lib32-libgpg-error lib32-sqlite lib32-libpulse vulkan-radeon lib32-vulkan-radeon lib32-vulkan-icd-loader
     
     # install software - wine-staging
-    for pkg in wine-staging winetricks lib32-libldap lib32-gnutls lib32-mpg123 lib32-openal openal lib32-libgpg-error lib32-sqlite lib32-libpulse vulkan-radeon lib32-vulkan-radeon lib32-vulkan-icd-loader
-    do
-        yay -S --noconfirm --needed $pkg
-    done
+    ./util.sh -i wine-staging winetricks 
 }
 
 function fn_wine_64 {
