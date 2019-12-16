@@ -24,7 +24,7 @@ function main {
     d) Duplicate database entry fix
     n) Test Network Routes
     l) Limit Bandwidth
-    c) Chroot Ubuntu
+    c) Chroot Ubuntu 14 LTS (Trusty)
     *) Any key to exit
     :" ans;
     reset
@@ -61,10 +61,9 @@ sudo bash -c "cat > /etc/schroot/schroot.conf" << EOL
 description=Ubuntu
 type=directory
 directory=/var/chroot/ubuntu
-priority=1
 users=${user}
 root-users=${user}
-aliases=precise,default
+aliases=trusty,default
 EOL
 
 
@@ -82,10 +81,10 @@ protocols
 hosts
 EOL
 
-    sudo debootstrap --arch amd64 precise /var/chroot/ubuntu http://au.archive.ubuntu.com/ubuntu/
+    sudo debootstrap --arch amd64 trusty /var/chroot/ubuntu http://au.archive.ubuntu.com/ubuntu/
     
     # and login 
-    schroot -c ubuntu
+    schroot -u root -c ubuntu
 }
 
 function fn_duplicate_database_entry {
