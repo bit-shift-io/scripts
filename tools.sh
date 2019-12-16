@@ -24,6 +24,7 @@ function main {
     d) Duplicate database entry fix
     n) Test Network Routes
     l) Limit Bandwidth
+    c) Chroot Ubuntu
     *) Any key to exit
     :" ans;
     reset
@@ -40,9 +41,34 @@ function main {
         d) fn_duplicate_database_entry ;;
         n) fn_network_test ;;
         l) fn_limit_bandwidth ;;
+        c) fn_chroot ;;
         *) $SHELL ;;
     esac
     done
+}
+
+
+function fn_chroot {
+    # https://bbs.archlinux.org/viewtopic.php?id=100039
+    
+    ./util.sh -i debootstrap schroot
+    
+    # get username
+    user=$(id -nu)
+    
+sudo bash -c "cat > /etc/schroot/schroot.conf" << EOL
+    [ubuntu]
+    description=Ubuntu
+    type=directory
+    directory=/var/chroot/ubuntu
+    priority=1
+    users=${user}
+    root-users=${user}
+    aliases=precise,default
+EOL
+
+
+    sudo debootstrap --arch amd64 precise /var/chroot/ubuntu http://au.archive.ubuntu.com/ubuntu/
 }
 
 function fn_duplicate_database_entry {
