@@ -57,18 +57,35 @@ function fn_chroot {
     user=$(id -nu)
     
 sudo bash -c "cat > /etc/schroot/schroot.conf" << EOL
-    [ubuntu]
-    description=Ubuntu
-    type=directory
-    directory=/var/chroot/ubuntu
-    priority=1
-    users=${user}
-    root-users=${user}
-    aliases=precise,default
+[ubuntu]
+description=Ubuntu
+type=directory
+directory=/var/chroot/ubuntu
+priority=1
+users=${user}
+root-users=${user}
+aliases=precise,default
 EOL
 
 
+sudo bash -c "cat > /etc/schroot/default/nssdatabases" << EOL
+# System databases to copy into the chroot from the host system.
+#
+# <database name>
+passwd
+shadow
+group
+gshadow
+services
+protocols
+#networks
+hosts
+EOL
+
     sudo debootstrap --arch amd64 precise /var/chroot/ubuntu http://au.archive.ubuntu.com/ubuntu/
+    
+    # and login 
+    schroot -c ubuntu
 }
 
 function fn_duplicate_database_entry {
