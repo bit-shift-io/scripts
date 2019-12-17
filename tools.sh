@@ -154,6 +154,15 @@ function fn_backup_borg {
     REPO="$DEST_ROOT/borg-backup"
     MNT="$DEST_ROOT/borg-mnt"
 
+    # check if backup drive is mounted
+    ls ${DEST_ROOT} # spin up drive for automount
+    is_mounted=$(lsblk | grep ${DEST_ROOT} -c)
+    if [ "${is_mounted}" == "0" ]; then
+        notify-send -u critial 'Backup' 'Drive not mounted!'
+        exit
+    fi
+
+
     # unmount
     borg umount $MNT
 

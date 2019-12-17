@@ -588,7 +588,7 @@ sudo tee /etc/systemd/system/mnt-backup.automount > /dev/null << EOL
 
     [Automount]
     Where=/mnt/backup/
-    TimeoutIdleSec=60
+    TimeoutIdleSec=1800
 
     [Install]
     WantedBy=multi-user.target
