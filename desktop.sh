@@ -23,7 +23,8 @@ function main {
     9) Disable Intel Audio
     q) Virtualbox
     w) Virtualbox Guest
-    e) Inspiron (wacom)   
+    e) Inspiron (wacom)
+    a) AMD GPU
     *) Any key to exit
     :" ans;
     reset
@@ -39,7 +40,8 @@ function main {
         9) fn_disable_intel_audio ;;
         q) fn_virtual_box ;;
         w) fn_virtual_box_guest ;;
-        e) fn_inspiron ;;  
+        e) fn_inspiron ;;
+        a) fn_amd_gpu ;;
         *) $SHELL ;;
     esac
     done
