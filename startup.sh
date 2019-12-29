@@ -1,15 +1,16 @@
 #!/bin/bash
 
 function main {
+    # fix screen resolution
+    xrandr --output HDMI1 --set audio force-dvi --mode 1920x1080
+
     # simple autostart script
     redshift &
-    pulseeffects --gapplication-service &
 
     # delay load
     sleep 20s
     syncthing &
     /bin/python $HOME/scripts/cec.py &
-    $HOME/Applications/airdcpp-webclient/airdcppd &
 }
 
 # pass all args
