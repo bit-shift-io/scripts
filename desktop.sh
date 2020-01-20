@@ -98,14 +98,17 @@ EOL
 
 
 function fn_normalize_pulse_audio {
-    yay -S --noconfirm swh-plugins
+    # https://askubuntu.com/questions/95716/automatically-adjust-the-volume-based-on-content
+    # note commented out alternative compressor
+    ./util.sh -i swh-plugins
 
 bash -c "cat > $HOME/.config/pulse/default.pa" << EOL 
     .nofail
     .include /etc/pulse/default.pa
 
     # Create compressed sink that outpus to the simultaneous output device
-    load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=dyson_compress_1403  label=dysonCompress  control=0,1,0.5,0.99
+    load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=sc4_1882 label=sc4  control=0,101.125,401,0,1,3.25,0
+    #load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=dyson_compress_1403  label=dysonCompress  control=0,1,0.5,0.99
 
     # Create normalized sink that outputs to the compressed sink
     load-module module-ladspa-sink  sink_name=ladspa_normalized  master=ladspa_sink  plugin=fast_lookahead_limiter_1913  label=fastLookaheadLimiter  control=10,0,0.8
