@@ -99,7 +99,31 @@ EOL
 
 function fn_normalize_pulse_audio {
     # https://askubuntu.com/questions/95716/automatically-adjust-the-volume-based-on-content
-    # note commented out alternative compressor
+    # https://unhexium.net/audio/uniform-audio-volume-with-pulseaudio/
+    
+    # http://plugin.org.uk/ladspa-swh/docs/ladspa-swh.html#tth_sEc2.91
+    # SC4 1882 control info
+    # The parameters (the control=1,1.5,401,-30,20,5,12 for example) for this compressor are described in Steve Harris' LADSPA Plugin Docs:
+    # RMS/peak: The balance between the RMS and peak envelope followers. RMS is generally better for subtle, musical compression and peak is better for heavier, fast compression and percussion.
+    # 9, Attack time (ms): The attack time in milliseconds.
+    # 5, Release time (ms): The release time in milliseconds.
+    # 63, Threshold level (dB): The point at which the compressor will start to kick in.
+    # 6, Ratio (1:n): The gain reduction ratio used when the signal level exceeds the threshold.
+    # -15, Knee radius (dB): The distance from the threshold where the knee curve starts.
+    # 3, Makeup gain (dB): Controls the gain of the makeup input signal in dB's.
+    # 49, Amplitude (dB): The level of the input signal, in decibels.
+    # no value was placed here
+    # Gain reduction (dB): The degree of gain reduction applied to the input signal, in decibels.
+    
+    
+    # http://plugin.org.uk/ladspa-swh/docs/ladspa-swh.html#tth_sEc2.39
+    # This is a limiter with an attack time of 5ms. It adds just over 5ms of lantecy to the input signal, but it guatantees that there will be no signals over the limit, and tries to get the minimum ammount of distortion.
+    # Input gain (dB): Gain that is applied to the input stage. Can be used to trim gain to bring it roughly under the limit or to push the signal against the limit.
+    # Limit (dB): The maximum output amplitude. Peaks over this level will be attenuated as smoothly as possible to bring them as close as possible to this level.
+    # Release time (s): The time taken for the limiters attenuation to return to 0 dB's
+    # Attenuation (dB): The current attenuation of the signal coming out of the delay buffer. 
+    
+    
     ./util.sh -i swh-plugins
 
 bash -c "cat > $HOME/.config/pulse/default.pa" << EOL 
@@ -107,11 +131,25 @@ bash -c "cat > $HOME/.config/pulse/default.pa" << EOL
     .include /etc/pulse/default.pa
 
     # Create compressed sink that outpus to the simultaneous output device
-    load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=sc4_1882 label=sc4  control=0,101.125,401,0,1,3.25,0
+    
+    # extreme
+    #load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=sc4_1882 label=sc4  control=0,101.125,401,-22,10,3.25,0
+    
+    # custom
+    load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=sc4_1882 label=sc4  control=0,100,400,-20,2,5,0
+    
+    # minimal
+    #load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=sc4_1882 label=sc4  control=0,101.125,401,0,1,3.25,0
+    
+    
+    # original using dyson compression
     #load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=dyson_compress_1403  label=dysonCompress  control=0,1,0.5,0.99
+    
 
     # Create normalized sink that outputs to the compressed sink
-    load-module module-ladspa-sink  sink_name=ladspa_normalized  master=ladspa_sink  plugin=fast_lookahead_limiter_1913  label=fastLookaheadLimiter  control=10,0,0.8
+    #load-module module-ladspa-sink  sink_name=ladspa_normalized  master=ladspa_sink  plugin=fast_lookahead_limiter_1913  label=fastLookaheadLimiter  control=10,0,0.8
+    
+    load-module module-ladspa-sink  sink_name=ladspa_normalized  master=ladspa_sink  plugin=fast_lookahead_limiter_1913  label=fastLookaheadLimiter  control=10,-10,1.0
 
     # Comment out the line below to disable setting the normalized output by default:
     set-default-sink ladspa_normalized
