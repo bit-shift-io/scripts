@@ -116,6 +116,13 @@ function fn_normalize_pulse_audio {
     # Gain reduction (dB): The degree of gain reduction applied to the input signal, in decibels.
     
     
+    # dyson compress
+    # peak limit (db) (-30-0)
+    # release time (s) (0-1)
+    # fast compress ratio (0-1)
+    # compress ratio (0-1)
+    
+    
     # http://plugin.org.uk/ladspa-swh/docs/ladspa-swh.html#tth_sEc2.39
     # This is a limiter with an attack time of 5ms. It adds just over 5ms of lantecy to the input signal, but it guatantees that there will be no signals over the limit, and tries to get the minimum ammount of distortion.
     # Input gain (dB): Gain that is applied to the input stage. Can be used to trim gain to bring it roughly under the limit or to push the signal against the limit.
@@ -136,20 +143,21 @@ bash -c "cat > $HOME/.config/pulse/default.pa" << EOL
     #load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=sc4_1882 label=sc4  control=0,101.125,401,-22,10,3.25,0
     
     # custom
-    load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=sc4_1882 label=sc4  control=0,100,400,-20,2,5,0
+    #load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=sc4_1882 label=sc4  control=0,100,400,-20,2,5,0
     
     # minimal
     #load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=sc4_1882 label=sc4  control=0,101.125,401,0,1,3.25,0
     
+    
+    # new dyson
+    load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=dyson_compress_1403  label=dysonCompress  control=0,0.4,0.5,0.7
     
     # original using dyson compression
     #load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=dyson_compress_1403  label=dysonCompress  control=0,1,0.5,0.99
     
 
     # Create normalized sink that outputs to the compressed sink
-    #load-module module-ladspa-sink  sink_name=ladspa_normalized  master=ladspa_sink  plugin=fast_lookahead_limiter_1913  label=fastLookaheadLimiter  control=10,0,0.8
-    
-    load-module module-ladspa-sink  sink_name=ladspa_normalized  master=ladspa_sink  plugin=fast_lookahead_limiter_1913  label=fastLookaheadLimiter  control=10,-10,1.0
+    load-module module-ladspa-sink  sink_name=ladspa_normalized  master=ladspa_sink  plugin=fast_lookahead_limiter_1913  label=fastLookaheadLimiter  control=10,0,0.8
 
     # Comment out the line below to disable setting the normalized output by default:
     set-default-sink ladspa_normalized
