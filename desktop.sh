@@ -24,6 +24,7 @@ function main {
     q) Virtualbox
     w) Virtualbox Guest
     e) Inspiron (wacom)
+    m) Mitigations off
     a) AMD GPU
     *) Any key to exit
     :" ans;
@@ -41,10 +42,22 @@ function main {
         q) fn_virtual_box ;;
         w) fn_virtual_box_guest ;;
         e) fn_inspiron ;;
+        m) fn_mitigations_off ;;
         a) fn_amd_gpu ;;
         *) $SHELL ;;
     esac
     done
+}
+
+
+function fn_mitigations_off {
+    # /etc/default/grub
+    sudo sed -i -e 's/GRUB_CMDLINE_LINUX_DEFAULT="quiet apparmor=1 security=apparmor udev.log_priority=3"/GRUB_CMDLINE_LINUX_DEFAULT="quiet apparmor=1 security=apparmor udev.log_priority=3 mitigations=off"/g' /etc/default/grub
+
+    # finally update grub
+    sudo update-grub
+
+    notify-send 'Mitigations off' 'Reboot required'
 }
 
 
@@ -69,7 +82,6 @@ function fn_setup_steam {
     # find ~/.steam/root/ \( -name "libgcc_s.so*" -o -name "libstdc++.so*" -o -name "libxcb.so*" -o -name "libgpg-error.so*" \) -print -delete
 
     notify-send 'Steam' 'Game on!'
-    $SHELL
 }
 
 function fn_general_config {
