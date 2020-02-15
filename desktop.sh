@@ -54,7 +54,7 @@ function main {
 function fn_mobile_apps {
     # install software
     echo -e '\n\nInstalling packages...'
-    ./util.sh -i openssh syncthing cantata koko kdeconnect okular marble vvave kcalc vlc
+    ./util.sh -i openssh kate syncthing cantata koko kdeconnect okular marble vvave kcalc vlc
     
     # enable ssh
     sudo systemctl enable sshd.service
