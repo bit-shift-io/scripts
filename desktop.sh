@@ -26,6 +26,7 @@ function main {
     e) Inspiron (wacom)
     m) Mitigations off
     a) AMD GPU
+    p) Phone/Mobile Apps
     *) Any key to exit
     :" ans;
     reset
@@ -44,11 +45,24 @@ function main {
         e) fn_inspiron ;;
         m) fn_mitigations_off ;;
         a) fn_amd_gpu ;;
+        p) fn_mobile_apps ;;
         *) $SHELL ;;
     esac
     done
 }
 
+function fn_mobile_apps {
+    # install software
+    echo -e '\n\nInstalling packages...'
+    ./util.sh -i openssh syncthing cantata koko kdeconnect okular marble vvave kcalc vlc
+    
+    # enable ssh
+    sudo systemctl enable sshd.service
+    sudo systemctl start sshd.service
+
+    echo -e '\n\ninstall complete'
+    notify-send 'Applications' 'Install completed'
+}
 
 function fn_mitigations_off {
     # /etc/default/grub
