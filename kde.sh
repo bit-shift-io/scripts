@@ -346,8 +346,8 @@ EOL
 cat > "$HOME/.local/share/user-places.xbel" << EOL
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xbel>
-<xbel xmlns:mime="http://www.freedesktop.org/standards/shared-mime-info" xmlns:bookmark="http://www.freedesktop.org/standards/desktop-bookmarks" xmlns:kdepriv="http://www.kde.org/kdepriv">
- <bookmark href="file://$HOME">
+<xbel xmlns:bookmark="http://www.freedesktop.org/standards/desktop-bookmarks" xmlns:kdepriv="http://www.kde.org/kdepriv" xmlns:mime="http://www.freedesktop.org/standards/shared-mime-info">
+ <bookmark href="file:///$HOME">
   <title>Home</title>
   <info>
    <metadata owner="http://freedesktop.org">
@@ -360,7 +360,7 @@ cat > "$HOME/.local/share/user-places.xbel" << EOL
    </metadata>
   </info>
  </bookmark>
- <bookmark href="file:///$HOME/Documents">
+ <bookmark href="file:////$HOME/Documents">
   <title>Documents</title>
   <info>
    <metadata owner="http://freedesktop.org">
@@ -371,8 +371,8 @@ cat > "$HOME/.local/share/user-places.xbel" << EOL
     <IsHidden>false</IsHidden>
    </metadata>
   </info>
- </bookmark> 
- <bookmark href="file://$HOME/Downloads">
+ </bookmark>
+ <bookmark href="file:///$HOME/Downloads">
   <title>Downloads</title>
   <info>
    <metadata owner="http://freedesktop.org">
@@ -423,114 +423,26 @@ cat > "$HOME/.local/share/user-places.xbel" << EOL
    </metadata>
   </info>
  </bookmark>
- <bookmark href="timeline:/lastmonth">
-  <title>Last Month</title>
+ <bookmark href="recentlyused:/files">
+  <title>Recent Files</title>
   <info>
    <metadata owner="http://freedesktop.org">
-    <bookmark:icon name="view-calendar-month"/>
+    <bookmark:icon name="document-open-recent"/>
    </metadata>
    <metadata owner="http://www.kde.org">
-    <ID>1494822021/3 (V2)</ID>
-    <OnlyInApp>dolphin-places-panel</OnlyInApp>
-    <IsHidden>true</IsHidden>
+    <ID>1588304428/0</ID>
     <isSystemItem>true</isSystemItem>
    </metadata>
   </info>
  </bookmark>
- <bookmark href="timeline:/thismonth">
-  <title>This Month</title>
+ <bookmark href="recentlyused:/locations">
+  <title>Recent Locations</title>
   <info>
    <metadata owner="http://freedesktop.org">
-    <bookmark:icon name="view-calendar-month"/>
+    <bookmark:icon name="folder-open-recent"/>
    </metadata>
    <metadata owner="http://www.kde.org">
-    <ID>1494822021/2 (V2)</ID>
-    <OnlyInApp>dolphin-places-panel</OnlyInApp>
-    <IsHidden>true</IsHidden>
-    <isSystemItem>true</isSystemItem>
-   </metadata>
-  </info>
- </bookmark>
- <bookmark href="timeline:/yesterday">
-  <title>Yesterday</title>
-  <info>
-   <metadata owner="http://freedesktop.org">
-    <bookmark:icon name="view-calendar-day"/>
-   </metadata>
-   <metadata owner="http://www.kde.org">
-    <ID>1494822021/1 (V2)</ID>
-    <OnlyInApp>dolphin-places-panel</OnlyInApp>
-    <IsHidden>true</IsHidden>
-    <isSystemItem>true</isSystemItem>
-   </metadata>
-  </info>
- </bookmark>
- <bookmark href="timeline:/today">
-  <title>Today</title>
-  <info>
-   <metadata owner="http://freedesktop.org">
-    <bookmark:icon name="go-jump-today"/>
-   </metadata>
-   <metadata owner="http://www.kde.org">
-    <ID>1494822021/0 (V2)</ID>
-    <OnlyInApp>dolphin-places-panel</OnlyInApp>
-    <IsHidden>true</IsHidden>
-    <isSystemItem>true</isSystemItem>
-   </metadata>
-  </info>
- </bookmark>
- <bookmark href="search:/videos">
-  <title>Videos</title>
-  <info>
-   <metadata owner="http://freedesktop.org">
-    <bookmark:icon name="folder-videos"/>
-   </metadata>
-   <metadata owner="http://www.kde.org">
-    <ID>1494822021/7 (V2)</ID>
-    <OnlyInApp>dolphin-places-panel</OnlyInApp>
-    <IsHidden>true</IsHidden>
-    <isSystemItem>true</isSystemItem>
-   </metadata>
-  </info>
- </bookmark>
- <bookmark href="search:/audio">
-  <title>Audio Files</title>
-  <info>
-   <metadata owner="http://freedesktop.org">
-    <bookmark:icon name="folder-sound"/>
-   </metadata>
-   <metadata owner="http://www.kde.org">
-    <ID>1494822021/6 (V2)</ID>
-    <OnlyInApp>dolphin-places-panel</OnlyInApp>
-    <IsHidden>true</IsHidden>
-    <isSystemItem>true</isSystemItem>
-   </metadata>
-  </info>
- </bookmark>
- <bookmark href="search:/images">
-  <title>Images</title>
-  <info>
-   <metadata owner="http://freedesktop.org">
-    <bookmark:icon name="folder-images"/>
-   </metadata>
-   <metadata owner="http://www.kde.org">
-    <ID>1494822021/5 (V2)</ID>
-    <OnlyInApp>dolphin-places-panel</OnlyInApp>
-    <IsHidden>true</IsHidden>
-    <isSystemItem>true</isSystemItem>
-   </metadata>
-  </info>
- </bookmark>
- <bookmark href="search:/documents">
-  <title>Documents</title>
-  <info>
-   <metadata owner="http://freedesktop.org">
-    <bookmark:icon name="folder-text"/>
-   </metadata>
-   <metadata owner="http://www.kde.org">
-    <ID>1494822021/4 (V2)</ID>
-    <OnlyInApp>dolphin-places-panel</OnlyInApp>
-    <IsHidden>true</IsHidden>
+    <ID>1588304428/1</ID>
     <isSystemItem>true</isSystemItem>
    </metadata>
   </info>
@@ -546,6 +458,70 @@ cat > "$HOME/.local/share/user-places.xbel" << EOL
    </metadata>
   </info>
  </bookmark>
+ <info>
+  <metadata owner="http://www.kde.org">
+   <withRecentlyUsed>true</withRecentlyUsed>
+   <GroupState-RecentlySaved-IsHidden>true</GroupState-RecentlySaved-IsHidden>
+   <withBaloo>true</withBaloo>
+   <GroupState-SearchFor-IsHidden>true</GroupState-SearchFor-IsHidden>
+  </metadata>
+ </info>
+ <bookmark href="search:/documents">
+  <title>Documents</title>
+  <info>
+   <metadata owner="http://freedesktop.org">
+    <bookmark:icon name="folder-text"/>
+   </metadata>
+   <metadata owner="http://www.kde.org">
+    <ID>1588304428/2</ID>
+    <isSystemItem>true</isSystemItem>
+   </metadata>
+  </info>
+ </bookmark>
+ <bookmark href="search:/images">
+  <title>Images</title>
+  <info>
+   <metadata owner="http://freedesktop.org">
+    <bookmark:icon name="folder-images"/>
+   </metadata>
+   <metadata owner="http://www.kde.org">
+    <ID>1588304428/3</ID>
+    <isSystemItem>true</isSystemItem>
+   </metadata>
+  </info>
+ </bookmark>
+ <bookmark href="search:/audio">
+  <title>Audio</title>
+  <info>
+   <metadata owner="http://freedesktop.org">
+    <bookmark:icon name="folder-sound"/>
+   </metadata>
+   <metadata owner="http://www.kde.org">
+    <ID>1588304428/4</ID>
+    <isSystemItem>true</isSystemItem>
+   </metadata>
+  </info>
+ </bookmark>
+ <bookmark href="search:/videos">
+  <title>Videos</title>
+  <info>
+   <metadata owner="http://freedesktop.org">
+    <bookmark:icon name="folder-videos"/>
+   </metadata>
+   <metadata owner="http://www.kde.org">
+    <ID>1588304428/5</ID>
+    <isSystemItem>true</isSystemItem>
+   </metadata>
+  </info>
+ </bookmark>
+ <separator>
+  <info>
+   <metadata owner="http://www.kde.org">
+    <UDI>/org/freedesktop/UDisks2/block_devices/sda1</UDI>
+    <isSystemItem>true</isSystemItem>
+   </metadata>
+  </info>
+ </separator>
 </xbel>
 
 EOL
@@ -997,9 +973,15 @@ stopmedia=Media Stop\tCtrl+Down,Media Stop,Stop media playback
 _k_friendly_name=Launch Dolphin
 _launch=Meta+F\tMeta+E,none,Launch Dolphin
 
+[org.kde.konsole.desktop]
+NewTab=,none,Open a New Tab
+NewWindow=none,none,Open a New Window
+_k_friendly_name=Launch Konsole
+_launch=Ctrl+Alt+T,none,Launch Konsole
+
 [org.kde.ksysguard.desktop]
 _k_friendly_name=Launch KSysGuard
-_launch=Ctrl+Shift+Esc\tCtrl+Esc,none,Launch KSysGuard
+_launch=Meta+Esc,none,Launch KSysGuard
 
 [plasmashell]
 _k_friendly_name=Plasma
