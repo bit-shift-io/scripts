@@ -211,6 +211,11 @@ function fn_swap {
     echo "How much swap in GB (eg 16 = 16GB): "
     read swap_size
     
+    # btrfs specific
+    sudo truncate -s 0 $local_path
+    sudo chattr +C $local_path
+    sudo btrfs property set $local_path compression none
+    
     sudo fallocate -l ${swap_size}G $local_path
     #sudo dd if=/dev/zero of=$local_path bs=1M count=8000
     #sudo chown root:root /swapfile
