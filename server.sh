@@ -31,6 +31,7 @@ function main {
     e) HDMI CEC
     r) MPD & DLNA
     t) Update downloader Service
+    x) xRDP
     *) Any key to exit
     :" ans;
     reset
@@ -50,6 +51,7 @@ function main {
         e) fn_cec ;;
         r) fn_mpd ;;
         t) fn_update_service ;;
+        x) fn_rdp ;;
         *) $SHELL ;;
     esac
     done
@@ -75,6 +77,24 @@ function fn_network_info {
     ip r
     networkctl status
 }
+
+
+function fn_rdp {
+    # install software
+    echo -e '\n\nInstalling packages...'
+    ./util.sh -i xrdp
+    
+    # enable
+    sudo systemctl enable xrdp.service
+    sudo systemctl start xrdp.service
+
+    sudo systemctl enable xrdp-sesman.service
+    sudo systemctl start xrdp-sesman.service
+
+    echo -e '\n\ninstall complete'
+    notify-send 'Applications' 'Install completed'
+}
+
 
 function fn_restore_network {
     # any files you create, add here for deletion
