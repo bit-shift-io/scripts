@@ -486,20 +486,22 @@ function fn_virtual_box {
 }
 
 function fn_virtual_box_guest {
-    kernel=$(echo "linux$(uname -r | awk -F "." '{print $1$2}')")
-    echo "kernel: ${kernel}"
-    yay -S --noconfirm --needed $kernel-headers
-    #yay -S --noconfirm --needed $kernel-virtualbox-guest-modules
-    #yay -S --noconfirm --needed virtualbox-guest-dkms # shouldnt need guest-modules with this
-    yay -S --noconfirm --needed xf86-video-vmware
-    yay -S --needed virtualbox-guest-utils # user input required, installs guest-modules also
-    
-    echo "kernel: ${kernel}"
-    # automount broken, roll our own bellow!
+    # looks like we dont need this anymore as most of this should work out of the box
+    #kernel=$(echo "linux$(uname -r | awk -F "." '{print $1$2}')")
+    #echo "kernel: ${kernel}"
+    #yay -S --noconfirm --needed $kernel-headers
+    #yay -S --noconfirm --needed xf86-video-vmware
+    #yay -S --needed virtualbox-guest-utils # user input required, installs guest-modules also
+    #echo "kernel: ${kernel}"
+
+    # automount appears in /media/
     #sudo mkdir /media
     #sudo chown -R $USER:vboxsf /media
     #sudo chmod -R 755 /media
+    sudo usermod -aG vboxsf $USER
     
+    # autmount is now working, this is incase it breaks again
+    '''
     sudo modprobe -a vboxguest vboxsf vboxvideo
     sudo usermod -aG vboxsf $USER
     sudo systemctl enable vboxservice
@@ -512,6 +514,7 @@ function fn_virtual_box_guest {
     for share in ${shares[@]}; do
         create_vbox_mount ${share}
     done
+    '''
 }
 
 
