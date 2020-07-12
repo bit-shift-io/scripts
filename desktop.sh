@@ -463,7 +463,7 @@ function fn_base_apps {
 
 function fn_extra_apps {
     echo -e '\n\nInstalling extra apps...'
-    ./util.sh -i visual-studio-code-bin guitar blender audacity krita obs-studio inkscape barrier
+    ./util.sh -i visual-studio-code-bin guitar blender audacity krita obs-studio inkscape barrier freerdp krdc
 
     # extras
     # sound-juicer smartgit riot-desktop openwmail-bin 
