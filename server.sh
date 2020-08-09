@@ -269,7 +269,44 @@ EOL
 }
 
 
+function fn_nm_bridge {
+    # network manager version of network bridge
+    nmcli con show
+
+    # create bridge 
+    sudo nmcli connection add type bridge ifname br0 stp no
+
+    # static ip
+    sudo nmcli connection modify br0 ipv4.addresses '192.168.1.2/24'
+    sudo nmcli connection modify br0 ipv4.gateway '192.168.1.3'
+    sudo nmcli connection modify br0 ipv4.dns '192.168.1.3,8.8.8.8'
+    sudo nmcli connection modify br0 ipv4.dns-search 'gateway.lan'
+    sudo nmcli connection modify br0 ipv4.method manual
+
+
+    # ehernet slave
+    sudo nmcli connection add type bridge-slave ifname eno1 master br0
+    
+    # host wifi ap
+    nmcli connection add type wifi ifname wlan0 con-name local-ap autoconnect yes ssid test-ap mode ap
+    nmcli connection modify con-name 802-11-wireless.mode ap 802-11-wireless-security.key-mgmt wpa-psk ipv4.method shared 802-11-wireless-security.psk 'PASSWORD'
+    nmcli connection up con-name
+
+    # turn on bridge
+    sudo nmcli con up br0
+
+
+    # remove ethernet
+    #sudo nmcli connection delete eno1
+
+    # status
+    nmcli
+    ip a s br0
+}
+
+
 function fn_network_bridge {
+    # systemd version of network bridge
     # https://wiki.archlinux.org/index.php/Systemd-networkd
     
     # bridge virtual device
