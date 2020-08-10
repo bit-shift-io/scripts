@@ -301,12 +301,16 @@ function fn_nm_bridge {
     wifi_name='Wireless-Access-Point'
 
     nmcli c add type wifi ifname ${wifi_device} con-name ${wifi_name} autoconnect yes ssid ${ssid}
-    nmcli connection modify ${wifi_name} 802-11-wireless.mode ap 802-11-wireless.band bg ipv4.method shared
+    nmcli connection modify ${wifi_name} 802-11-wireless.mode ap 802-11-wireless.band bg
     nmcli connection modify ${wifi_name} wifi-sec.key-mgmt wpa-psk
     nmcli connection modify ${wifi_name} wifi-sec.psk ${ap_password}
+    nmcli connection modify ${wifi_name} ipv4.addresses '192.168.0.2/24'
+    nmcli connection modify ${wifi_name} ipv4.gateway '192.168.0.2'
+    nmcli connection modify ${wifi_name} ipv4.method shared 
     nmcli connection up ${wifi_name}
 
-    sudo nmcli connection add type bridge-slave ifname ${wifi_device} master ${bridge_device}
+    # cannot bridge the network using metho shared
+    #sudo nmcli connection add type bridge-slave ifname ${wifi_device} master ${bridge_device}
 
     # turn on bridge
     sudo nmcli con up ${bridge_name}
