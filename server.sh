@@ -271,6 +271,10 @@ EOL
 
 function fn_nm_bridge {
     # network manager version of network bridge
+    # reset to defaults
+    sudo rm -rf /etc/NetworkManager/*
+    #sudo systemctl restart NetworkManager
+
     nmcli con show
 
     # create bridge 
@@ -284,7 +288,7 @@ function fn_nm_bridge {
     sudo nmcli connection modify br0 ipv4.method manual
 
 
-    # ehernet slave
+    # ethernet slave
     sudo nmcli connection add type bridge-slave ifname eno1 master br0
     
     # host wifi ap
