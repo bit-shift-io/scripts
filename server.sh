@@ -12,45 +12,35 @@ function main {
     # menu
     while true; do
     read -n 1 -p "
-    network tools
+    server tools
     ===================
-    1) Restore defaults
-    2) Network bridge
-    3) Network Info
-    4) Wifi AP
-    5) USB Tether
-    6) Bluetooth Tether
-    8) DHCP & DNS (Enable)
-    9) DHCP & DNS (Disable)
-    0) NAT Gateway
-
-    config
-    ===================
-    q) Samba & pac-cache
-    w) Backup service
-    e) HDMI CEC
-    r) MPD & DLNA
-    t) Update downloader Service
+    r) Reset Network
+    n) Network (AP, Bridge, DHCP, DNS)
+    s) Samba & pac-cache
+    b) Backup service
+    h) HDMI CEC
+    m) MPD & DLNA
     x) xRDP
     *) Any key to exit
     :" ans;
     reset
     case $ans in  
-        1) fn_restore_network ;;
-        2) fn_network_bridge ;;
-        3) fn_network_info ;;
-        4) fn_wireless_ap ;;
-        5) fn_usb_tether ;;
-        6) fn_bluetooth_tether ;;
-        8) fn_enable_dns_dhcp ;;
+        r) fn_reset_network ;;
+        n) fn_setup_network ;;
+        #2) fn_nm_bridge ;;
+        #3) fn_network_info ;;
+        #4) fn_wireless_ap ;;
+        #5) fn_usb_tether ;;
+        #6) fn_bluetooth_tether ;;
+        #8) fn_enable_dns_dhcp ;;
         9) fn_disable_dns_dhcp ;;
-        0) fn_nat_gateway ;;
+        #0) fn_nat_gateway ;;
 
-        q) fn_smb ;;
-        w) fn_mount_backup ; fn_backup_service ;;
-        e) fn_cec ;;
-        r) fn_mpd ;;
-        t) fn_update_service ;;
+        s) fn_smb ;;
+        b) fn_mount_backup ; fn_backup_service ;;
+        h) fn_cec ;;
+        m) fn_mpd ;;
+        #t) fn_update_service ;;
         x) fn_rdp ;;
         *) $SHELL ;;
     esac
@@ -96,7 +86,13 @@ function fn_rdp {
 }
 
 
-function fn_restore_network {
+function fn_setup_network {
+    #fn_enable_dns_dhcp
+    fn_nm_bridge
+}
+
+
+function fn_reset_network {
     # any files you create, add here for deletion
     # any services, add them here too!
 
@@ -112,7 +108,7 @@ function fn_restore_network {
         /etc/dnsmasq.conf
         /etc/hosts
     )
-
+    
     # loop
     for file in ${files[*]} ; do
         sudo rm ${file}
@@ -130,6 +126,7 @@ EOL
     #sudo ip route flush cache
 
     # restore services
+    sudo rm -rf /etc/NetworkManager/*
     fn_enable_network_manager
 
     # TODO: systemd routes??
@@ -272,44 +269,58 @@ EOL
 function fn_nm_bridge {
     # network manager version of network bridge
     # reset to defaults
+    echo "Enter AP password: "
+    read ap_password
+
     sudo rm -rf /etc/NetworkManager/*
-    #sudo systemctl restart NetworkManager
+    sudo systemctl restart NetworkManager
 
-    nmcli con show
 
-    # create bridge 
-    sudo nmcli connection add type bridge ifname br0 stp no
+    # create bridge
+    bridge_device='br0'
+    bridge_name='Network-Bridge'
+    sudo nmcli connection add type bridge ifname ${bridge_device} con-name ${bridge_name} bridge.stp no
 
     # static ip
-    sudo nmcli connection modify br0 ipv4.addresses '192.168.1.2/24'
-    sudo nmcli connection modify br0 ipv4.gateway '192.168.1.3'
-    sudo nmcli connection modify br0 ipv4.dns '192.168.1.3,8.8.8.8'
-    sudo nmcli connection modify br0 ipv4.dns-search 'gateway.lan'
-    sudo nmcli connection modify br0 ipv4.method manual
+    sudo nmcli connection modify ${bridge_name} ipv4.addresses '192.168.1.2/24'
+    sudo nmcli connection modify ${bridge_name} ipv4.gateway '192.168.1.3'
+    sudo nmcli connection modify ${bridge_name} ipv4.dns '192.168.1.3'
+    sudo nmcli connection modify ${bridge_name} ipv4.dns-search ''
+    sudo nmcli connection modify ${bridge_name} ipv4.method manual
 
 
-    # ethernet slave
-    sudo nmcli connection add type bridge-slave ifname eno1 master br0
+    # add etheernet devices into bridge
+    nmcli device status | grep -o "^enp\w*" | while read -r line ; do
+        sudo nmcli connection add type bridge-slave ifname ${line} master ${bridge_device}
+    done
+    
     
     # host wifi ap
-    nmcli connection add type wifi ifname wlan0 con-name local-ap autoconnect yes ssid test-ap mode ap
-    nmcli connection modify con-name 802-11-wireless.mode ap 802-11-wireless-security.key-mgmt wpa-psk ipv4.method shared 802-11-wireless-security.psk 'PASSWORD'
-    nmcli connection up con-name
+    wifi_device=$(nmcli device status | grep -o "^wlp\w*")
+    ssid='spud'
+    wifi_name='Wireless-Access-Point'
+
+    nmcli c add type wifi ifname ${wifi_device} con-name ${wifi_name} autoconnect yes ssid ${ssid}
+    nmcli connection modify ${wifi_name} 802-11-wireless.mode ap 802-11-wireless.band bg ipv4.method shared
+    nmcli connection modify ${wifi_name} wifi-sec.key-mgmt wpa-psk
+    nmcli connection modify ${wifi_name} wifi-sec.psk ${ap_password}
+    nmcli connection up ${wifi_name}
+
+    sudo nmcli connection add type bridge-slave ifname ${wifi_device} master ${bridge_device}
 
     # turn on bridge
-    sudo nmcli con up br0
-
-
-    # remove ethernet
-    #sudo nmcli connection delete eno1
+    sudo nmcli con up ${bridge_name}
 
     # status
-    nmcli
-    ip a s br0
+    nmcli device status
+    nmcli general hostname
+    nmcli con show ${bridge_name} | grep -E 'ipv4.dns|ipv4.addresses|ipv4.gateway'
+
+    notify-send 'Network' 'Static ip configured'
 }
 
 
-function fn_network_bridge {
+function fn_systemd_bridge {
     # systemd version of network bridge
     # https://wiki.archlinux.org/index.php/Systemd-networkd
     
@@ -445,6 +456,7 @@ EOL
     fn_enable_systemd_network   
 }
 
+
 function fn_enable_dns_dhcp {
     # https://www.linux.com/learn/dnsmasq-easy-lan-name-services
     # https://www.linux.com/learn/intro-to-linux/2018/2/dns-and-dhcp-dnsmasq
@@ -515,12 +527,9 @@ sudo tee /etc/hosts > /dev/null << EOL
     192.168.1.3     router
 EOL
 
-
     # dhcp/dns enabled
     sudo systemctl enable dnsmasq
     sudo systemctl restart dnsmasq
-
-    fn_enable_systemd_network   
 }
 
 
