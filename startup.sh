@@ -2,15 +2,12 @@
 
 function main {
     # fix screen resolution
-    xrandr --output HDMI1 --set audio force-dvi --mode 1920x1080
-
-    # simple autostart script
-    redshift &
+    #xrandr --output HDMI1 --set audio force-dvi --mode 1920x1080
 
     # delay load
     sleep 20s
     syncthing &
-    /bin/python $HOME/scripts/cec.py &
+    /bin/python $HOME/Projects/scripts/cec.py &
 }
 
 # pass all args
