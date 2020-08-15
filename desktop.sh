@@ -176,10 +176,14 @@ bash -c "cat > $HOME/.config/pulse/default.pa" << EOL
     
     
     # new dyson
-    load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=dyson_compress_1403  label=dysonCompress  control=0,0.4,0.5,0.7
+    #load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=dyson_compress_1403  label=dysonCompress  control=0,0.4,0.5,0.7
     
     # original using dyson compression
-    #load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=dyson_compress_1403  label=dysonCompress  control=0,1,0.5,0.99
+    load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=dyson_compress_1403  label=dysonCompress  control=0,1,0.5,0.99
+    
+        
+    # soften above -12db using dyson compression
+    load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=dyson_compress_1403  label=dysonCompress  control=-12,1,0.5,0.99
     
 
     # Create normalized sink that outputs to the compressed sink
