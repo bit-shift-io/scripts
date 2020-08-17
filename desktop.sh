@@ -159,6 +159,7 @@ function fn_normalize_pulse_audio {
     
     ./util.sh -i swh-plugins
 
+
 bash -c "cat > $HOME/.config/pulse/default.pa" << EOL 
     .nofail
     .include /etc/pulse/default.pa
@@ -191,6 +192,14 @@ bash -c "cat > $HOME/.config/pulse/default.pa" << EOL
 
     # Comment out the line below to disable setting the normalized output by default:
     set-default-sink ladspa_normalized
+EOL
+
+    # https://github.com/gotbletu/shownotes/blob/master/pulseaudio-dynamic-range-compression.md
+bash -c "cat > $HOME/.config/pulse/default.pa" << EOL 
+    .nofail
+    .include /etc/pulse/default.pa
+    load-module module-ladspa-sink sink_name=compressor-stereo plugin=sc4_1882 label=sc4 control=1,1.5,401,-30,20,5,12
+    set-default-sink compressor-stereo
 EOL
 
     # restart audio
