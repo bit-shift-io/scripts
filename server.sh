@@ -21,6 +21,7 @@ function main {
     h) HDMI CEC
     m) MPD & DLNA
     x) xRDP
+    a) ai assistant - mycroft
     *) Any key to exit
     :" ans;
     reset
@@ -42,6 +43,7 @@ function main {
         m) fn_mpd ;;
         #t) fn_update_service ;;
         x) fn_rdp ;;
+        a) fn_ai_assistant ;;
         *) $SHELL ;;
     esac
     done
@@ -66,6 +68,17 @@ function main {
 function fn_network_info {
     ip r
     networkctl status
+}
+
+
+function fn_ai_assistant {
+    ./util.sh -i mycroft-core mycroft-gui-git plasma5-applets-mycroft-git
+
+    VAR1='#load-module module-native-protocol-tcp'
+    VAR2='load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1'
+    sudo sed -i -e "s/${VAR1}/${VAR2}/g" /etc/pulse/default.pa
+    pulseaudio -k
+    sudo systemctl start mycroft.service
 }
 
 
