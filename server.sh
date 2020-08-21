@@ -72,7 +72,7 @@ function fn_network_info {
 
 
 function fn_ai_assistant {
-    ./util.sh -i mycroft-core mycroft-gui-git plasma5-applets-mycroft-git
+    ./util.sh -i mycroft-core mycroft-gui-git
 
     VAR1='#load-module module-native-protocol-tcp'
     VAR2='load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1'

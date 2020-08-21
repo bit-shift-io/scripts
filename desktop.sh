@@ -156,41 +156,15 @@ function fn_normalize_pulse_audio {
     # Release time (s): The time taken for the limiters attenuation to return to 0 dB's
     # Attenuation (dB): The current attenuation of the signal coming out of the delay buffer. 
     
-    
+    # https://wiki.archlinux.org/index.php/PulseAudio#Audio_post-processing
     ./util.sh -i swh-plugins
 
 
 bash -c "cat > $HOME/.config/pulse/default.pa" << EOL 
     .nofail
     .include /etc/pulse/default.pa
-
-    # Create compressed sink that outpus to the simultaneous output device
-    
-    # extreme
-    #load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=sc4_1882 label=sc4  control=0,101.125,401,-22,10,3.25,0
-    
-    # custom
-    #load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=sc4_1882 label=sc4  control=0,100,400,-20,2,5,0
-    
-    # minimal
-    #load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=sc4_1882 label=sc4  control=0,101.125,401,0,1,3.25,0
-    
-    
-    # new dyson
-    #load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=dyson_compress_1403  label=dysonCompress  control=0,0.4,0.5,0.7
-    
-    # original using dyson compression
-    load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=dyson_compress_1403  label=dysonCompress  control=0,1,0.5,0.99
-    
-        
-    # soften above -12db using dyson compression
-    load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=dyson_compress_1403  label=dysonCompress  control=-12,1,0.5,0.99
-    
-
-    # Create normalized sink that outputs to the compressed sink
+    load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=sc4_1882 label=sc4  control=0,101.125,401,-22,10,3.25,0
     load-module module-ladspa-sink  sink_name=ladspa_normalized  master=ladspa_sink  plugin=fast_lookahead_limiter_1913  label=fastLookaheadLimiter  control=10,0,0.8
-
-    # Comment out the line below to disable setting the normalized output by default:
     set-default-sink ladspa_normalized
 EOL
 
@@ -200,6 +174,15 @@ bash -c "cat > $HOME/.config/pulse/default.pa" << EOL
     .include /etc/pulse/default.pa
     load-module module-ladspa-sink sink_name=compressor-stereo plugin=sc4_1882 label=sc4 control=1,1.5,401,-30,20,5,12
     set-default-sink compressor-stereo
+EOL
+
+
+bash -c "cat > $HOME/.config/pulse/default.pa" << EOL 
+    .nofail
+    .include /etc/pulse/default.pa
+    load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=dyson_compress_1403  label=dysonCompress  control=-20,1,0.5,0.99
+    load-module module-ladspa-sink  sink_name=ladspa_normalized  master=ladspa_sink  plugin=fast_lookahead_limiter_1913  label=fastLookaheadLimiter  control=10,0,0.8
+    set-default-sink ladspa_normalized
 EOL
 
     # restart audio
