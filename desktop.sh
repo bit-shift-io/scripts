@@ -443,7 +443,7 @@ function fn_base_apps {
     # remove old stuff
     #use pactree qt4 - to list packages dependancies
     echo -e '\n\nRemoving packages...'
-    ./util.sh -r xterm manjaro-hello pamac-gtk octopi-notifier-frameworks octopi-cachecleaner octopi-repoeditor octopi calligra kget yakuake plasma-wayland-session python-xdg xorg-xrandr udftools pamac-qt
+    ./util.sh -r xterm manjaro-hello manjaro-application-utility octopi-notifier-frameworks octopi-cachecleaner octopi-repoeditor octopi calligra kget yakuake plasma-wayland-session python-xdg xorg-xrandr udftools pamac-tray-appindicator pamac-qt pamac-gtk pamac-common pamac-cli pamac-snap-plugin pamac-flatpak-plugin 
 
     # install software
     echo -e '\n\nInstalling packages...'
@@ -459,9 +459,10 @@ function fn_base_apps {
 
 function fn_extra_apps {
     echo -e '\n\nInstalling extra apps...'
-    ./util.sh -i visual-studio-code-bin guitar blender audacity krita obs-studio inkscape barrier freerdp krdc
+    ./util.sh -i visual-studio-code-bin guitar blender audacity krita obs-studio inkscape freerdp krdc
 
     # extras
+    # barrier
     # sound-juicer smartgit riot-desktop openwmail-bin 
     # vidcutter xnviewmp avidemux trojita handbrake kube
     # nheko
