@@ -20,7 +20,6 @@ function main {
     b) Backup service
     h) HDMI CEC
     m) MPD & DLNA
-    x) xRDP
     a) ai assistant - mycroft
     *) Any key to exit
     :" ans;
@@ -42,7 +41,6 @@ function main {
         h) fn_cec ;;
         m) fn_mpd ;;
         #t) fn_update_service ;;
-        x) fn_rdp ;;
         a) fn_ai_assistant ;;
         *) $SHELL ;;
     esac
@@ -79,23 +77,6 @@ function fn_ai_assistant {
     sudo sed -i -e "s/${VAR1}/${VAR2}/g" /etc/pulse/default.pa
     pulseaudio -k
     sudo systemctl start mycroft.service
-}
-
-
-function fn_rdp {
-    # install software
-    echo -e '\n\nInstalling packages...'
-    ./util.sh -i xrdp
-    
-    # enable
-    sudo systemctl enable xrdp.service
-    sudo systemctl start xrdp.service
-
-    sudo systemctl enable xrdp-sesman.service
-    sudo systemctl start xrdp-sesman.service
-
-    echo -e '\n\ninstall complete'
-    notify-send 'Applications' 'Install completed'
 }
 
 

@@ -447,7 +447,7 @@ function fn_base_apps {
 
     # install software
     echo -e '\n\nInstalling packages...'
-    ./util.sh -i openssh falkon syncthing cantata plasma-browser-integration qbittorrent libreoffice firefox thunderbird
+    ./util.sh -i openssh falkon syncthing cantata plasma-browser-integration qbittorrent libreoffice firefox thunderbird krdc krfb
     
     # enable ssh
     sudo systemctl enable sshd.service
@@ -459,7 +459,7 @@ function fn_base_apps {
 
 function fn_extra_apps {
     echo -e '\n\nInstalling extra apps...'
-    ./util.sh -i visual-studio-code-bin guitar blender audacity krita obs-studio inkscape freerdp krdc
+    ./util.sh -i visual-studio-code-bin guitar blender audacity krita obs-studio inkscape
 
     # extras
     # barrier
