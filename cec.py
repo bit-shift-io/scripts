@@ -100,6 +100,9 @@ if __name__ == '__main__':
     log('inhibit: ' + str(prev_inhibit_state))
     log()
 
+    # turn on the screen when pc boots
+    send_cec_command(True)
+
     # note:
     # is inhibit and dpms the same?
     
