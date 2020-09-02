@@ -156,8 +156,8 @@ sudo tee /etc/NetworkManager/conf.d/unmanaged.conf > /dev/null << EOL
 EOL
 
     # start systemd service
-    sudo systemctl start wg-quick@wg0
     sudo systemctl enable wg-quick@wg0
+    sudo systemctl restart wg-quick@wg0
 
     sudo wg show
 
