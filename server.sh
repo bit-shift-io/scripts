@@ -21,6 +21,7 @@ function main {
     h) HDMI CEC
     m) MPD & DLNA
     a) ai assistant - mycroft
+    w) Wireguard VPN
     *) Any key to exit
     :" ans;
     reset
@@ -42,6 +43,7 @@ function main {
         m) fn_mpd ;;
         #t) fn_update_service ;;
         a) fn_ai_assistant ;;
+        w) fn_wireguard ;;
         *) $SHELL ;;
     esac
     done
@@ -66,6 +68,100 @@ function main {
 function fn_network_info {
     ip r
     networkctl status
+}
+
+
+function fn_wireguard {
+    echo "Enter server ip address: "
+    read endpoint_address
+
+    echo "Enter listen port: "
+    read listen_port
+
+    ./util.sh -i wireguard-tools
+
+    # server
+    s_private_key=$(wg genkey)
+    s_public_key=$(echo $s_private_key | wg pubkey)
+    s_preshared_key=$(wg genpsk)
+
+    # client a
+    a_private_key=$(wg genkey)
+    a_public_key=$(echo $a_private_key | wg pubkey)
+    a_preshared_key=$(wg genpsk)
+
+    # client b
+    b_private_key=$(wg genkey)
+    b_public_key=$(echo $b_private_key | wg pubkey)
+    b_preshared_key=$(wg genpsk)
+
+    
+    # enabled ip forwarding to allow access to the lan
+    #sysctl -w net.ipv4.ip_forward=1
+    #sysctl -w net.ipv6.conf.all.forwarding=1
+    #sysctl -p
+    #echo 1 > /proc/sys/net/ipv4/ip_forward
+
+sudo tee /etc/wireguard/wg0.conf > /dev/null << EOL
+    [Interface]
+    Address = 192.168.100.1/24
+    ListenPort = ${listen_port}
+    PrivateKey = ${s_private_key}
+    PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+    PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+
+    [Peer]
+    PublicKey = ${a_public_key}
+    PresharedKey = ${a_preshared_key}
+    AllowedIPs = 192.168.100.2/32
+
+    [Peer]
+    PublicKey = ${b_public_key}
+    PresharedKey = ${b_preshared_key}
+    AllowedIPs = 192.168.100.3/32
+EOL
+
+tee client-a.conf > /dev/null << EOL
+    [Interface]
+    Address = 192.168.100.2/24
+    ListenPort = ${listen_port}
+    PrivateKey = ${a_private_key}
+
+    [Peer]
+    PublicKey = ${s_public_key}
+    PresharedKey = ${a_preshared_key}
+    AllowedIPs = 0.0.0.0/0, ::/0
+    Endpoint = ${endpoint_address}:${listen_port}
+    PersistentKeepalive = 21
+EOL
+
+tee client-b.conf > /dev/null << EOL
+    [Interface]
+    Address = 192.168.100.3/24
+    ListenPort = ${listen_port}
+    PrivateKey = ${b_private_key}
+
+    [Peer]
+    PublicKey = ${s_public_key}
+    PresharedKey = ${b_preshared_key}
+    AllowedIPs = 0.0.0.0/0, ::/0
+    Endpoint = ${endpoint_address}:${listen_port}
+    PersistentKeepalive = 21
+EOL
+
+    # prevent network manager management of the server
+sudo tee /etc/NetworkManager/conf.d/unmanaged.conf > /dev/null << EOL
+    [keyfile]
+    unmanaged-devices=interface-name:wg*
+EOL
+
+    # start systemd service
+    sudo systemctl start wg-quick@wg0
+    sudo systemctl enable wg-quick@wg0
+
+    sudo wg show
+
+    qrencode -t ansiutf8 < client-a.conf
 }
 
 
