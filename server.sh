@@ -373,8 +373,8 @@ function fn_nm_bridge {
 
     # static ip
     sudo nmcli connection modify ${bridge_name} ipv4.addresses '192.168.1.2/24'
-    sudo nmcli connection modify ${bridge_name} ipv4.gateway '192.168.1.3'
-    sudo nmcli connection modify ${bridge_name} ipv4.dns '192.168.1.3'
+    sudo nmcli connection modify ${bridge_name} ipv4.gateway '192.168.1.1'
+    sudo nmcli connection modify ${bridge_name} ipv4.dns '192.168.1.1'
     sudo nmcli connection modify ${bridge_name} ipv4.dns-search ''
     sudo nmcli connection modify ${bridge_name} ipv4.method manual
 
@@ -433,8 +433,8 @@ sudo tee /etc/systemd/network/bridge.network > /dev/null << EOL
     [Network]
     #DHCP=ipv4
     Address=192.168.1.2/24
-    DNS=192.168.1.3
-    Gateway=192.168.1.3
+    DNS=192.168.1.1
+    Gateway=192.168.1.1
     IPForward=yes
 EOL
 
@@ -528,7 +528,7 @@ EOL
 function fn_disable_dns_dhcp {
 
 sudo tee /etc/resolv.conf > /dev/null << EOL
-    nameserver 192.168.1.3
+    nameserver 192.168.1.1
 EOL
 
 
@@ -539,7 +539,7 @@ EOL
 sudo tee /etc/hosts > /dev/null << EOL
     127.0.0.1       localhost
     192.168.1.2     s
-    192.168.1.3     router
+    192.168.1.1     router
 EOL
 
 
@@ -587,7 +587,7 @@ sudo tee /etc/dnsmasq.conf > /dev/null << EOL
     dhcp-option=1,255.255.255.0
     
     # gateway
-    dhcp-option=3,192.168.1.3
+    dhcp-option=3,192.168.1.1
 
     # DNS server
     dhcp-option=6,192.168.1.2
@@ -618,7 +618,7 @@ EOL
 sudo tee /etc/hosts > /dev/null << EOL
     127.0.0.1       localhost
     192.168.1.2     s
-    192.168.1.3     router
+    192.168.1.1     router
 EOL
 
     # dhcp/dns enabled
@@ -707,7 +707,7 @@ function fn_nat_gateway {
     
     # load balancing version of above 
     # numgen inc mod 2 map = math generating a random number
-    #sudo nft add rule NAT prerouting dnat to numgen inc mod 2 map { 0 : 192.168.1.3, 1 : 192.168.1.3 }
+    #sudo nft add rule NAT prerouting dnat to numgen inc mod 2 map { 0 : 192.168.1.1, 1 : 192.168.1.1 }
                          
     # dns
     #sudo nft add rule NAT prerouting udp dport 53 ip saddr 192.168.1.0/24 dnat 8.8.8.8:53
