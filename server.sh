@@ -773,7 +773,7 @@ sudo tee /etc/systemd/system/tool-backup.service > /dev/null << EOL
     Description=Backup Service
 
     [Service]
-    ExecStart=/home/s/scripts/tools.sh fn_backup_borg
+    ExecStart=/home/s/Projects/scripts/tools.sh fn_backup_borg
 EOL
 
 sudo tee /etc/systemd/system/tool-backup.timer > /dev/null << EOL 
