@@ -853,9 +853,8 @@ sudo tee /etc/samba/smb.conf > /dev/null << EOL
         name resolve order = lmhosts bcast host wins
         wins support = yes
         
-        # automatic printer setup
-        #printcap name = /etc/printcap
-        printcap name = cups
+        # printer
+        printing = CUPS
         load printers = yes    
         
         security = user
@@ -873,6 +872,14 @@ sudo tee /etc/samba/smb.conf > /dev/null << EOL
         guest ok = yes
         browsable = yes
         public = yes
+
+    [printers]
+        comment = All Printers
+        path = /var/spool/samba
+        browseable = yes
+        guest ok = yes
+        printable = yes
+        create mask = 0600
 
     # read + write
     [Downloads]
