@@ -20,7 +20,7 @@ function main {
     6) Steam
     7) Swap
     8) Normalize Audio Output
-    9) Disable Intel Audio
+    9) Disable HDMI Audio
     q) Virtualbox
     w) Virtualbox Guest
     e) Inspiron (wacom)
@@ -39,7 +39,7 @@ function main {
         6) fn_setup_steam ;;
         7) fn_swap ;;
         8) fn_normalize_pulse_audio ;;
-        9) fn_disable_intel_audio ;;
+        9) fn_disable_audio ;;
         q) fn_virtual_box ;;
         w) fn_virtual_box_guest ;;
         e) fn_inspiron ;;
@@ -112,11 +112,12 @@ function fn_general_config {
     notify-send 'Reboot' 'Audio disabled'
 }
 
-function fn_disable_intel_audio {
+function fn_disable_audio {
     cat /proc/asound/modules
     
-sudo bash -c "cat > /etc/modprobe.d/blacklist" << EOL 
+sudo bash -c "cat > /etc/modprobe.d/blacklist.conf" << EOL 
     blacklist snd_hda_intel
+    blacklist snd_hda_codec_hdmi
 EOL
 
     notify-send 'Reboot' 'Audio disabled'
