@@ -443,7 +443,8 @@ function fn_base_apps {
     # remove old stuff
     #use pactree qt4 - to list packages dependancies
     echo -e '\n\nRemoving packages...'
-    ./util.sh -r xterm manjaro-hello manjaro-application-utility octopi-notifier-frameworks octopi-cachecleaner octopi-repoeditor octopi calligra kget yakuake plasma-wayland-session python-xdg xorg-xrandr udftools pamac-tray-appindicator pamac-qt pamac-gtk pamac-common pamac-cli pamac-snap-plugin pamac-flatpak-plugin 
+    ./util.sh -r xterm manjaro-hello manjaro-application-utility octopi-notifier-frameworks octopi-cachecleaner octopi-repoeditor octopi calligra kget yakuake plasma-wayland-session python-xdg xorg-xrandr udftools pamac-tray-appindicator pamac-tray-icon-plasma
+pamac-qt pamac-gtk pamac-cli pamac-snap-plugin pamac-flatpak-plugin pamac-common
 
     # install software
     echo -e '\n\nInstalling packages...'

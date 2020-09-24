@@ -958,15 +958,15 @@ function fn_cec {
 function fn_mpd {
     ID_NAME=$(id -nu)
 
-    yay -S --noconfirm alsa-utils ffmpeg mpd upmpdcli 
+    ./util.sh -i alsa-utils ffmpeg mpd upmpdcli 
     # ncmpcpp 
 
     # setup library links
-    mkdir ~/.config/mpd
+    mkdir $HOME/.config/mpd
     #ln -s $HOME/Bible ${HOME}/Music/Bible
     
     # mpd config
-sudo tee /etc/mpd.conf > /dev/null << EOL       
+tee $HOME/.config/mpd/mpd.conf > /dev/null << EOL       
     music_directory         "~/Music"
     playlist_directory      "~/Music/Playlists"
     db_file                 "~/.config/mpd/mpd.db"
