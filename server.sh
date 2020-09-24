@@ -126,11 +126,12 @@ tee client-a.conf > /dev/null << EOL
     Address = 192.168.100.2/24
     ListenPort = ${listen_port}
     PrivateKey = ${a_private_key}
+    Table = off
 
     [Peer]
     PublicKey = ${s_public_key}
     PresharedKey = ${a_preshared_key}
-    AllowedIPs = 0.0.0.0/0, ::/0
+    AllowedIPs = 192.168.100.0/24
     Endpoint = ${endpoint_address}:${listen_port}
     PersistentKeepalive = 21
 EOL
@@ -140,11 +141,12 @@ tee client-b.conf > /dev/null << EOL
     Address = 192.168.100.3/24
     ListenPort = ${listen_port}
     PrivateKey = ${b_private_key}
+    Table = off
 
     [Peer]
     PublicKey = ${s_public_key}
     PresharedKey = ${b_preshared_key}
-    AllowedIPs = 0.0.0.0/0, ::/0
+    AllowedIPs = 192.168.100.0/24
     Endpoint = ${endpoint_address}:${listen_port}
     PersistentKeepalive = 21
 EOL
@@ -773,7 +775,7 @@ sudo tee /etc/systemd/system/tool-backup.service > /dev/null << EOL
     Description=Backup Service
 
     [Service]
-    ExecStart=/home/s/scripts/tools.sh fn_backup_borg
+    ExecStart=/home/s/Projects/scripts/tools.sh fn_backup_borg
 EOL
 
 sudo tee /etc/systemd/system/tool-backup.timer > /dev/null << EOL 
