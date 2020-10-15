@@ -27,6 +27,7 @@ function main {
     m) Mitigations off
     a) AMD GPU
     p) Phone/Mobile Apps
+    r) RTL-SDR tools
     *) Any key to exit
     :" ans;
     reset
@@ -46,10 +47,21 @@ function main {
         m) fn_mitigations_off ;;
         a) fn_amd_gpu ;;
         p) fn_mobile_apps ;;
+        r) fn_sdr ;;
         *) $SHELL ;;
     esac
     done
 }
+
+
+function fn_sdr {
+    # https://ranous.files.wordpress.com/2020/05/rtl-sdr4linux_quickstartguidev20.pdf
+    ./util.sh -i rtl-sdr gqrx cubicsdr rtl_433-git gnuradio
+    rtl_test -s 2400000
+    echo -e '\n\nrestart required'
+    notify-send 'Applications' 'Please restart'
+}
+
 
 function fn_mobile_apps {
     # install software
@@ -294,6 +306,7 @@ function fn_network_mount {
 
     # wine cache
     # specify true for local user
+    mkdir -p $HOME/wine/cache
     local_path="$HOME/wine/cache"
     remote_path="//192.168.1.2/s/wine/cache"
     add_mount $local_path $remote_path $smb_username $smb_password true

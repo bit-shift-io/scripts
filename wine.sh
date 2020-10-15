@@ -16,7 +16,6 @@ function main {
     2) Wine - 64 bit
     3) Wine - 32 bit
     4) Switch wine prefix
-    5) Steam
     *) Any key to exit
     :" ans;
     reset
@@ -25,7 +24,6 @@ function main {
         2) fn_wine_64 ;;
         3) fn_wine_32 ;;
         4) fn_switch_wine_prefix ;;
-        5) fn_setup_steam ;;
         *) $SHELL ;;
     esac
     done
@@ -58,6 +56,7 @@ function fn_wine_64 {
     
     # create 64bit wine
     WINE_DIR=$HOME/wine/wine64
+    mkdir -p ${WINE_DIR}
     unlink $HOME/.wine
     ln -s $WINE_DIR $HOME/.wine
     WINEARCH=win64 WINEPREFIX=$HOME/.wine wine wineboot -u
@@ -155,6 +154,7 @@ function fn_wine_32 {
 
     # create 32bit wine
     WINE_DIR=$HOME/wine/wine32
+    mkdir -p ${WINE_DIR}
     unlink $HOME/.wine
     ln -s $WINE_DIR $HOME/.wine
     WINEARCH=win32 WINEPREFIX=$HOME/.wine wine wineboot -u
