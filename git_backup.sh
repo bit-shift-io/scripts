@@ -23,6 +23,7 @@ function git_backup {
     DIR="$BACKUP_DIR/$2"
     REPO_URL="$1/$2.git"
     #echo $DIR
+    echo ""
     if [ ! -d "$DIR" ] 
     then
         echo "Backing up $REPO_URL. Cloning..."
@@ -37,6 +38,7 @@ function git_backup {
     # https://stackoverflow.com/questions/10312521/how-to-fetch-all-git-branches
     cd $DIR
     for remote in `git branch -r`; do git branch --track ${remote#origin/} $remote; done
+    git fetch --all
 }
 
 mkdir $BACKUP_DIR
@@ -51,4 +53,6 @@ git_backup $GITHUB "macrokey"
 git_backup $GITHUB "qweather"
 git_backup $GITHUB "audiobook"
 
-echo "\nAll done!"
+echo ""
+echo "Backup complete!"
+echo ""
