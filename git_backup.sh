@@ -45,7 +45,7 @@ git_backup $GITLAB "dog-fight"
 git_backup $GITLAB "misc"
 git_backup $GITLAB "shop"
 
-#git_backup $GITHUB "scripts"
+git_backup $GITHUB "scripts"
 git_backup $GITHUB "macrokey"
 git_backup $GITHUB "qweather"
 git_backup $GITHUB "audiobook"
