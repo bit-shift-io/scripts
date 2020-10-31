@@ -33,6 +33,9 @@ function git_backup {
         cd $DIR
         git fetch --all
     fi
+
+    # https://stackoverflow.com/questions/10312521/how-to-fetch-all-git-branches
+    for remote in `git branch -r`; do git branch --track ${remote#origin/} $remote; done
 }
 
 mkdir $BACKUP_DIR
