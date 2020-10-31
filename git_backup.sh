@@ -50,3 +50,5 @@ git_backup $GITHUB "scripts"
 git_backup $GITHUB "macrokey"
 git_backup $GITHUB "qweather"
 git_backup $GITHUB "audiobook"
+
+echo "\nAll done!"
