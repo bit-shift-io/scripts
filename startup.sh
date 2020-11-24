@@ -6,6 +6,7 @@ function main {
 
     sleep 5s
     /bin/python $HOME/Projects/scripts/cec.py &
+    hass &
 
     # delay load
     sleep 5s
