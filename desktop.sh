@@ -462,7 +462,7 @@ pamac-qt pamac-gtk pamac-cli pamac-snap-plugin pamac-flatpak-plugin pamac-common
 
     # install software
     echo -e '\n\nInstalling packages...'
-    ./util.sh -i openssh falkon syncthing cantata plasma-browser-integration qbittorrent libreoffice firefox thunderbird krdc krfb
+    ./util.sh -i openssh falkon syncthing cantata plasma-browser-integration qbittorrent libreoffice firefox thunderbird krdc krfb hunspell-en_AU ventoy
     
     # enable ssh
     sudo systemctl enable sshd.service
