@@ -14,7 +14,8 @@ function main {
     read -n 1 -p "
     1) Manjaro Database
     2) Base Apps
-    3) Extra Apps
+    3) Code Development Apps
+    0) Media Development Apps
     4) Network Mount
     5) General config (systemd timeout, kde index)
     6) Steam
@@ -34,7 +35,8 @@ function main {
     case $ans in
         1) fn_manjaro_database ;;
         2) fn_base_apps ;;
-        3) fn_extra_apps ;;
+        3) fn_code_development_apps ;;
+        0) fn_media_development_apps ;;
         4) fn_network_mount ;;
         5) fn_general_config ;;
         6) fn_setup_steam ;;
@@ -462,7 +464,7 @@ pamac-qt pamac-gtk pamac-cli pamac-snap-plugin pamac-flatpak-plugin pamac-common
 
     # install software
     echo -e '\n\nInstalling packages...'
-    ./util.sh -i openssh falkon syncthing cantata plasma-browser-integration qbittorrent libreoffice firefox thunderbird krdc krfb hunspell-en_AU ventoy
+    ./util.sh -i binutils make gcc pkg-config fakeroot openssh falkon syncthing cantata plasma-browser-integration qbittorrent libreoffice firefox thunderbird krdc krfb hunspell-en_AU ventoy keepassxc
     
     # enable ssh
     sudo systemctl enable sshd.service
@@ -472,9 +474,25 @@ pamac-qt pamac-gtk pamac-cli pamac-snap-plugin pamac-flatpak-plugin pamac-common
     notify-send 'Applications' 'Install completed'
 }
 
-function fn_extra_apps {
-    echo -e '\n\nInstalling extra apps...'
-    ./util.sh -i visual-studio-code-bin guitar blender audacity krita obs-studio inkscape
+function fn_code_development_apps {
+    echo -e '\n\nInstalling code development apps...'
+    ./util.sh -i visual-studio-code-bin guitar smartgit
+
+    # extras
+    # barrier
+    # sound-juicer smartgit riot-desktop openwmail-bin 
+    # vidcutter xnviewmp avidemux trojita handbrake kube
+    # nheko
+    # nitroshare lanshare
+
+
+    echo -e '\n\ninstall complete'
+    notify-send 'Applications' 'Install completed'
+}
+
+function fn_media_development_apps {
+    echo -e '\n\nInstalling media development apps...'
+    ./util.sh -i blender audacity krita obs-studio inkscape
 
     # extras
     # barrier
