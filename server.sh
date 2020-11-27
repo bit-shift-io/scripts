@@ -72,7 +72,7 @@ function fn_network_info {
 
 
 function fn_wireguard {
-    echo "Enter server ip address: "
+    echo "Enter internet address: "
     read endpoint_address
 
     echo "Enter listen port: "
@@ -97,14 +97,17 @@ function fn_wireguard {
 
     
     # enabled ip forwarding to allow access to the lan
-    #sysctl -w net.ipv4.ip_forward=1
-    #sysctl -w net.ipv6.conf.all.forwarding=1
-    #sysctl -p
-    #echo 1 > /proc/sys/net/ipv4/ip_forward
+sudo tee /etc/sysctl.d/30-ipforward.conf > /dev/null << EOL
+    net.ipv4.ip_forward=1
+    net.ipv6.conf.default.forwarding=1
+    net.ipv6.conf.all.forwarding=1
+EOL
+    sudo sysctl -p /etc/sysctl.d/30-ipforward.conf
 
-sudo tee /etc/wireguard/wg0.conf > /dev/null << EOL
+    # /etc/wireguard/ for systemd
+tee wg-server.conf > /dev/null << EOL
     [Interface]
-    Address = 192.168.100.1/24
+    Address = 192.168.0.2/24
     ListenPort = ${listen_port}
     PrivateKey = ${s_private_key}
     PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
@@ -113,57 +116,56 @@ sudo tee /etc/wireguard/wg0.conf > /dev/null << EOL
     [Peer]
     PublicKey = ${a_public_key}
     PresharedKey = ${a_preshared_key}
-    AllowedIPs = 192.168.100.2/32
+    AllowedIPs = 192.168.0.3/32
 
     [Peer]
     PublicKey = ${b_public_key}
     PresharedKey = ${b_preshared_key}
-    AllowedIPs = 192.168.100.3/32
+    AllowedIPs = 192.168.0.4/32
 EOL
 
-tee client-a.conf > /dev/null << EOL
+tee wg-client-a.conf > /dev/null << EOL
     [Interface]
-    Address = 192.168.100.2/24
+    Address = 192.168.0.3/24
     ListenPort = ${listen_port}
     PrivateKey = ${a_private_key}
-    Table = off
 
     [Peer]
     PublicKey = ${s_public_key}
     PresharedKey = ${a_preshared_key}
-    AllowedIPs = 192.168.100.0/24
+    AllowedIPs = 192.168.0.0/24
     Endpoint = ${endpoint_address}:${listen_port}
     PersistentKeepalive = 21
 EOL
 
-tee client-b.conf > /dev/null << EOL
+tee wg-client-b.conf > /dev/null << EOL
     [Interface]
-    Address = 192.168.100.3/24
+    Address = 192.168.0.4/24
     ListenPort = ${listen_port}
     PrivateKey = ${b_private_key}
-    Table = off
 
     [Peer]
     PublicKey = ${s_public_key}
     PresharedKey = ${b_preshared_key}
-    AllowedIPs = 192.168.100.0/24
+    AllowedIPs = 192.168.0.0/24
     Endpoint = ${endpoint_address}:${listen_port}
     PersistentKeepalive = 21
 EOL
+    # use network manager to host the server
+    nmcli connection import type wireguard file wg-server.conf
 
     # prevent network manager management of the server
-sudo tee /etc/NetworkManager/conf.d/unmanaged.conf > /dev/null << EOL
-    [keyfile]
-    unmanaged-devices=interface-name:wg*
-EOL
+#sudo tee /etc/NetworkManager/conf.d/unmanaged.conf > /dev/null << EOL
+#    [keyfile]
+#    unmanaged-devices=interface-name:wg*
+#EOL
 
     # start systemd service
-    sudo systemctl enable wg-quick@wg0
-    sudo systemctl restart wg-quick@wg0
+    #sudo systemctl enable wg-quick@wg-server
+    #sudo systemctl restart wg-quick@wg-server
+    #sudo wg show
 
-    sudo wg show
-
-    qrencode -t ansiutf8 < client-a.conf
+    qrencode -t ansiutf8 < wg-client-a.conf
 }
 
 
