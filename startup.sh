@@ -6,6 +6,7 @@ function main {
 
     sleep 5s
     /bin/python $HOME/Projects/scripts/cec.py &
+    $HOME/Applications/zigbee2mqtt/start.sh &
     hass &
 
     # delay load
