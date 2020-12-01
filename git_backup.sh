@@ -5,7 +5,7 @@
 # gitlab:
 # generate a key on the server with:
 #   ssh-keygen -t ed25519 -C "comment here"
-#   cat /home/server/.ssh/id_ed25519.pub
+#   cat ~/.ssh/id_ed25519.pub
 #
 # paste results into gitlab account > settings > ssh keys
 #
