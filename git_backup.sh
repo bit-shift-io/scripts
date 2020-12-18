@@ -52,6 +52,7 @@ git_backup $GITHUB "scripts"
 git_backup $GITHUB "macrokey"
 git_backup $GITHUB "qweather"
 git_backup $GITHUB "audiobook"
+git_backup $GITHUB "the-great-cook-up"
 git_backup $GITHUB "bible-survey"
 
 echo ""
