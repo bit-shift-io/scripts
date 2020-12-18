@@ -13,8 +13,7 @@ function main {
     while true; do
     read -n 1 -p "
     1) Speed test
-    2) DVD to video
-    3) DVD to ISO
+    2) DVD to mp4
     4) Sound Juicer
     5) mp3gain
     6) mp4gain
@@ -30,8 +29,7 @@ function main {
     reset
     case $ans in
         1) fn_speed_test ;;
-        2) fn_dvd_to_video ;;      
-        3) fn_dvd_to_iso ;;
+        2) fn_dvd_to_video ;;
         4) fn_sound_juicer ;;
         5) fn_mp3gain ;;
         6) fn_mp4gain ;;  
@@ -693,73 +691,6 @@ function fn_sound_juicer {
     gvfs-mount cdda://sr0
     sound-juicer
 }
-
-
-function fn_dvd_to_iso {
-    # get username
-    ID=$(id -nu)
-    IDN=$(id -u)
-    GIDN=$(id -g)
-
-    # Configuration variables START
-    MOUNT_DIR="/run/media/$ID/iso"
-
-    sudo mkdir -p $MOUNT_DIR
-    sudo chown $ID:$ID $MOUNT_DIR
-
-
-    # check if file was supplied
-    if [ -z "$1" ]
-    then
-    echo "ERROR: Please supply file as 1st parameter."
-    $SHELL
-    fi
-
-    # check if  the mount directory exists
-    if [ ! -d "$MOUNT_DIR" ]
-    then
-    echo "ERROR: Configuration directory MOUNT_DIR=$MOUNT_DIR does not exist."
-    $SHELL
-    fi
-
-    # collect information
-    filename_full="$1"
-    filename_nopath=$(basename "$filename_full")
-    filename_noext=${filename_nopath%.*}
-    filename_path=$(dirname "$filename_full")
-
-    echo $filename_full 
-    echo $filename_nopath
-    echo $filename_noext
-    echo $filename_path
-
-    # check for mounted iso
-    sudo umount $MOUNT_DIR
-
-    # mount iso
-    echo "Mounting $filename_nopath on $MOUNT_DIR" 
-    sudo mount "$filename_full" "$MOUNT_DIR" -t udf -o loop
-
-    # lets encode
-    echo "Encoding... $filename_full to $filename_path ..."
-
-    # split into chapters
-    n=1
-
-    while [ -e "$MOUNT_DIR/VIDEO_TS/VTS_0"$n"_1.VOB" ]
-    do
-        echo "Chapter $n"
-        cat $MOUNT_DIR/VIDEO_TS/VTS_0"$n"_[123456789].VOB | ffmpeg -i - -movflags faststart -codec:a libmp3lame -q:a 4 -ar 22050 -ac 1 -vcodec libx264 -preset medium -crf 23 -vf "hqdn3d=1.5:1.5:6:6" "$filename_path/$filename_noext-"$n".mp4"
-        n=$((n+1))
-    done
-
-    #cat $MOUNT_DIR/VIDEO_TS/VTS_0[123456789]_[123456789].VOB | ffmpeg -i - -movflags faststart -codec:a libmp3lame -q:a 4 -ar 22050 -ac 1 -vcodec libx264 -preset medium -crf 23 -vf "hqdn3d=1.5:1.5:6:6" "$filename_path/$filename_noext.mp4"
-
-    # Unmount
-    #sudo umount $MOUNT_DIR
-}
-
-
 
 function fn_dvd_to_video {
     # get username

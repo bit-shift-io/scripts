@@ -492,10 +492,10 @@ function fn_code_development_apps {
 
 function fn_media_development_apps {
     echo -e '\n\nInstalling media development apps...'
-    ./util.sh -i blender audacity krita obs-studio inkscape
+    ./util.sh -i blender audacity krita obs-studio inkscape handbrake
 
     # extras
-    # barrier
+    # barrier kdenlive
     # sound-juicer smartgit riot-desktop openwmail-bin 
     # vidcutter xnviewmp avidemux trojita handbrake kube
     # nheko
