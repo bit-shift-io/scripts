@@ -43,6 +43,8 @@ function git_backup {
 
 mkdir $BACKUP_DIR
 git_backup $GITLAB "trains-and-things"
+git_backup $GITLAB "misc"
+git_backup $GITLAB "dog-fight"
 
 git_backup $GITHUB "scripts"
 git_backup $GITHUB "macrokey"
@@ -58,8 +60,6 @@ git_backup $GITHUB "machine-learning-experiments"
 git_backup $GITHUB "airstream"
 git_backup $GITHUB "tower-of-cards"
 git_backup $GITHUB "qcalendar"
-git_backup $GITHUB "misc"
-git_backup $GITHUB "dog-fight"
 
 echo ""
 echo "Backup complete!"
