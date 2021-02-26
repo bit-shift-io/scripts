@@ -12,63 +12,53 @@ function main {
     # menu
     while true; do
     read -n 1 -p "
-    1) Manjaro Database
-    2) Base Apps
-    3) Code Development Apps
-    0) Media Development Apps
-    4) Network Mount
-    5) General config (systemd timeout, kde index)
-    6) Steam
-    7) Swap
-    8) Normalize Audio Output
-    9) Disable HDMI Audio
-    q) Virtualbox
-    w) Virtualbox Guest
-    e) Inspiron (wacom)
-    m) Mitigations off
-    a) AMD GPU
-    p) Phone/Mobile Apps
-    r) RTL-SDR tools
+    desktop
+    ===================
+    1) General config (systemd timeout, kde index, manjaro database)
+    2) Network Mount (optional, pac cache > server, wine cache)
+    3) Steam
+    4) Swap
+    5) Base Apps
+    6) Code Development Apps
+    7) Media Development Apps
+
+    mobile
+    ===================
+    m) Mobile Apps
+
+    extras
+    ===================
+    v) Virtualbox
+    g) Virtualbox Guest
+    a) AMD GPU - fan fix
+
     *) Any key to exit
     :" ans;
     reset
     case $ans in
-        1) fn_manjaro_database ;;
-        2) fn_base_apps ;;
-        3) fn_code_development_apps ;;
-        0) fn_media_development_apps ;;
-        4) fn_network_mount ;;
-        5) fn_general_config ;;
-        6) fn_setup_steam ;;
-        7) fn_swap ;;
-        8) fn_normalize_pulse_audio ;;
-        9) fn_disable_audio ;;
-        q) fn_virtual_box ;;
-        w) fn_virtual_box_guest ;;
-        e) fn_inspiron ;;
-        m) fn_mitigations_off ;;
+        1) fn_general_config ;;
+        2) fn_network_mount ;;
+        3) fn_setup_steam ;;
+        4) fn_swap ;;
+        5) fn_base_apps ;;
+        6) fn_code_development_apps ;;
+        7) fn_media_development_apps ;;
+        m) fn_mobile_apps ;;
+        v) fn_virtual_box ;;
+        g) fn_virtual_box_guest ;;
         a) fn_amd_gpu ;;
-        p) fn_mobile_apps ;;
-        r) fn_sdr ;;
         *) $SHELL ;;
     esac
     done
 }
 
 
-function fn_sdr {
-    # https://ranous.files.wordpress.com/2020/05/rtl-sdr4linux_quickstartguidev20.pdf
-    ./util.sh -i rtl-sdr gqrx cubicsdr rtl_433-git gnuradio
-    rtl_test -s 2400000
-    echo -e '\n\nrestart required'
-    notify-send 'Applications' 'Please restart'
-}
-
-
 function fn_mobile_apps {
     # install software
     echo -e '\n\nInstalling packages...'
-    ./util.sh -i openssh kate syncthing cantata kdeconnect okular marble vvave kcalc vlc
+    
+    # email, clock, calendar, calc, matrix, weather, browser, bible, music, mpd, map, dictionary, text editor, anbox, syncthing
+    ./util.sh -i openssh kate syncthing cantata marble vlc audiobook qweather
     
     # enable ssh
     sudo systemctl enable sshd.service
@@ -76,16 +66,6 @@ function fn_mobile_apps {
 
     echo -e '\n\ninstall complete'
     notify-send 'Applications' 'Install completed'
-}
-
-function fn_mitigations_off {
-    # /etc/default/grub
-    sudo sed -i -e 's/GRUB_CMDLINE_LINUX_DEFAULT="quiet apparmor=1 security=apparmor udev.log_priority=3"/GRUB_CMDLINE_LINUX_DEFAULT="quiet apparmor=1 security=apparmor udev.log_priority=3 mitigations=off"/g' /etc/default/grub
-
-    # finally update grub
-    sudo update-grub
-
-    notify-send 'Mitigations off' 'Reboot required'
 }
 
 
@@ -112,6 +92,7 @@ function fn_setup_steam {
     notify-send 'Steam' 'Game on!'
 }
 
+
 function fn_general_config {
     # disable broken kde search
     balooctl disable
@@ -123,86 +104,22 @@ function fn_general_config {
     # fix logs to be no more than 50mb
     sudo sed -i -e "s/#SystemMaxUse=/SystemMaxUse=50M/g"  /etc/systemd/journald.conf
 
-    notify-send 'Reboot' 'Audio disabled'
+
+    # add to top of mirror list and update
+    # http://repo.manjaro.org/
+    #sudo pacman-mirrors -c all # remove custom
+    sudo pacman-mirrors --country Australia,New_Zealand,United_States
+    
+    # update database
+    sudo pacman -Syy
+
+    # aur helper
+    sudo pacman -S yay --noconfirm --needed
+    sudo pacman -S pacui --noconfirm --needed
+
+    notify-send 'Config' 'General config complete'
 }
 
-function fn_disable_audio {
-    cat /proc/asound/modules
-    
-sudo bash -c "cat > /etc/modprobe.d/blacklist.conf" << EOL 
-    blacklist snd_hda_intel
-    blacklist snd_hda_codec_hdmi
-EOL
-
-    notify-send 'Reboot' 'Audio disabled'
-}
-
-
-function fn_normalize_pulse_audio {
-    # https://askubuntu.com/questions/95716/automatically-adjust-the-volume-based-on-content
-    # https://unhexium.net/audio/uniform-audio-volume-with-pulseaudio/
-    
-    # http://plugin.org.uk/ladspa-swh/docs/ladspa-swh.html#tth_sEc2.91
-    # SC4 1882 control info
-    # The parameters (the control=1,1.5,401,-30,20,5,12 for example) for this compressor are described in Steve Harris' LADSPA Plugin Docs:
-    # RMS/peak: The balance between the RMS and peak envelope followers. RMS is generally better for subtle, musical compression and peak is better for heavier, fast compression and percussion.
-    # 9, Attack time (ms): The attack time in milliseconds.
-    # 5, Release time (ms): The release time in milliseconds.
-    # 63, Threshold level (dB): The point at which the compressor will start to kick in.
-    # 6, Ratio (1:n): The gain reduction ratio used when the signal level exceeds the threshold.
-    # -15, Knee radius (dB): The distance from the threshold where the knee curve starts.
-    # 3, Makeup gain (dB): Controls the gain of the makeup input signal in dB's.
-    # 49, Amplitude (dB): The level of the input signal, in decibels.
-    # no value was placed here
-    # Gain reduction (dB): The degree of gain reduction applied to the input signal, in decibels.
-    
-    
-    # dyson compress
-    # peak limit (db) (-30-0)
-    # release time (s) (0-1)
-    # fast compress ratio (0-1)
-    # compress ratio (0-1)
-    
-    
-    # http://plugin.org.uk/ladspa-swh/docs/ladspa-swh.html#tth_sEc2.39
-    # This is a limiter with an attack time of 5ms. It adds just over 5ms of lantecy to the input signal, but it guatantees that there will be no signals over the limit, and tries to get the minimum ammount of distortion.
-    # Input gain (dB): Gain that is applied to the input stage. Can be used to trim gain to bring it roughly under the limit or to push the signal against the limit.
-    # Limit (dB): The maximum output amplitude. Peaks over this level will be attenuated as smoothly as possible to bring them as close as possible to this level.
-    # Release time (s): The time taken for the limiters attenuation to return to 0 dB's
-    # Attenuation (dB): The current attenuation of the signal coming out of the delay buffer. 
-    
-    # https://wiki.archlinux.org/index.php/PulseAudio#Audio_post-processing
-    ./util.sh -i swh-plugins
-
-
-bash -c "cat > $HOME/.config/pulse/default.pa" << EOL 
-    .nofail
-    .include /etc/pulse/default.pa
-    load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=sc4_1882 label=sc4  control=0,101.125,401,-22,10,3.25,0
-    load-module module-ladspa-sink  sink_name=ladspa_normalized  master=ladspa_sink  plugin=fast_lookahead_limiter_1913  label=fastLookaheadLimiter  control=10,0,0.8
-    set-default-sink ladspa_normalized
-EOL
-
-    # https://github.com/gotbletu/shownotes/blob/master/pulseaudio-dynamic-range-compression.md
-bash -c "cat > $HOME/.config/pulse/default.pa" << EOL 
-    .nofail
-    .include /etc/pulse/default.pa
-    load-module module-ladspa-sink sink_name=compressor-stereo plugin=sc4_1882 label=sc4 control=1,1.5,401,-30,20,5,12
-    set-default-sink compressor-stereo
-EOL
-
-
-bash -c "cat > $HOME/.config/pulse/default.pa" << EOL 
-    .nofail
-    .include /etc/pulse/default.pa
-    load-module module-ladspa-sink  sink_name=ladspa_sink  master=combined plugin=dyson_compress_1403  label=dysonCompress  control=-20,1,0.5,0.99
-    load-module module-ladspa-sink  sink_name=ladspa_normalized  master=ladspa_sink  plugin=fast_lookahead_limiter_1913  label=fastLookaheadLimiter  control=10,0,0.8
-    set-default-sink ladspa_normalized
-EOL
-
-    # restart audio
-    pulseaudio -k
-}
 
 function fn_swap {
    # https://coreos.com/os/docs/latest/adding-swap.html
@@ -257,35 +174,6 @@ EOL
     #swapon
     
     notify-send 'Swap' 'Created'
-}
-
-
-function fn_inspiron {
-    # helpful links:
-    # https://wiki.archlinux.org/index.php/Tablet_PC
-
-
-    yay -S --noconfirm --needed onboard # onscreen keyboard
-    yay -S --noconfirm --needed xournal # note taking with stylus
-    yay -S --noconfirm --needed cellwriter # hand writing recognition
-
-    yay -S --noconfirm --needed iio-sensor-proxy-git kded-rotation-git # kde auto screen rotation
-
-    yay -S --noconfirm --needed xf86-input-wacom # wacom tools
-
-
-    # fix the right click on the track pad if its a problem
-
-    #cat > "/usr/share/X11/xorg.conf.d/52-mymods.conf" << EOL
-    #Section "InputClass"
-    #Identifier "Force Clickpad Config"
-    #MatchDriver "synaptics"
-    #Option "ClickPad" "true"
-    #Option "EmulateMidButtonTime" "0"
-    #Option "SoftButtonAreas" "50% 0 82% 0 0 0 0 0"
-    #Option "SecondarySoftButtonAreas" "58% 0 0 15% 42% 58% 0 15%"
-    #EndSection 
-    #EOL
 }
 
 
@@ -393,58 +281,6 @@ EOL
 
     sudo systemctl enable $smb_path_name.automount
     sudo systemctl start $smb_path_name.automount
-}
-
-
-
-function fn_mouse {
-    sudo pacman -S --noconfirm xorg-xinput
-
-    # temp config for current session
-    # https://stackoverflow.com/questions/18755967/how-to-make-a-program-that-finds-ids-of-xinput-devices-and-sets-xinput-some-set/18756948#18756948
-    devlist=$(xinput --list | grep "USB Gaming Mouse" | sed -n 's/.*id=\([0-9]\+\).*/\1/p')
-    for id in $devlist; do
-        xinput set-prop $id "AccelProfile" "flat" #"Device Accel Velocity Scaling" 1
-        xinput set-prop $id "AccelSpeed" "-0.8" #"Device Accel Constant Deceleration" 3
-    done 
-
-# (> = overwite, >> = append)
-sudo bash -c 'cat > /etc/X11/xorg.conf.d/50-mouse.conf' << EOL
-Section "InputClass"
-    Identifier "My Mouse"
-    MatchProduct "USB Gaming Mouse"
-    Driver "libinput"
-    MatchIsPointer "yes"
-    Option "AccelProfile" "flat"
-    Option "AccelSpeed" "-0.8"
-EndSection
-EOL
-
-    notify-send 'Mouse' 'Settings applied'
-}
-
-
-function fn_intel_gpu {
-    # https://forum.manjaro.org/t/intel-j5005-uhd-graphics-605-gemini-lake-hardware-video-acceleration-not-working/57462/6
-    yay --noconfirm -S libva-intel-driver intel-hybrid-codec-driver intel-media-driver
-}
-
-
-function fn_manjaro_database {
-    # add to top of mirror list and update
-    # http://repo.manjaro.org/
-    #sudo pacman-mirrors -c all # remove custom
-    sudo pacman-mirrors --country Australia,New_Zealand,United_States
-    
-    # update database
-    sudo pacman -Syy
-
-    # aur helper
-    sudo pacman -S yay --noconfirm --needed
-    sudo pacman -S pacui --noconfirm --needed
-    
-    echo 'install complete'
-    notify-send 'Config Settings' 'Install completed'
 }
 
 
