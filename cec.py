@@ -75,7 +75,7 @@ def log(str=''):
     if not log_to_file:
         return
 
-    with open("log.txt", "a") as f:
+    with open("cec.log", "a") as f:
         f.write(str + '\n')
         f.close()
     return
