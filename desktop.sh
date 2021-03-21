@@ -58,7 +58,7 @@ function fn_mobile_apps {
     echo -e '\n\nInstalling packages...'
     
     # email, clock, calendar, calc, matrix, weather, browser, bible, music, mpd, map, dictionary, text editor, anbox, syncthing
-    ./util.sh -i openssh kate syncthing cantata marble vlc audiobook qweather
+    ./util.sh -i base-devel openssh nota cantata kdeconnect audiobook qweather
     
     # enable ssh
     sudo systemctl enable sshd.service
