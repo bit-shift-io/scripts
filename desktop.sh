@@ -300,7 +300,7 @@ pamac-qt pamac-gtk pamac-cli pamac-snap-plugin pamac-flatpak-plugin pamac-common
 
     # install software
     echo -e '\n\nInstalling packages...'
-    ./util.sh -i binutils make gcc pkg-config fakeroot openssh falkon syncthing cantata plasma-browser-integration qbittorrent libreoffice firefox thunderbird krdc krfb hunspell-en_AU ventoy keepassxc
+    ./util.sh -i base-devel openssh falkon syncthing cantata plasma-browser-integration qbittorrent libreoffice firefox krdc krfb hunspell-en_AU keepassxc
     
     # enable ssh
     sudo systemctl enable sshd.service
@@ -312,7 +312,7 @@ pamac-qt pamac-gtk pamac-cli pamac-snap-plugin pamac-flatpak-plugin pamac-common
 
 function fn_code_development_apps {
     echo -e '\n\nInstalling code development apps...'
-    ./util.sh -i visual-studio-code-bin guitar smartgit
+    ./util.sh -i visual-studio-code-bin guitar
 
     # extras
     # barrier
