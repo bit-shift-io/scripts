@@ -908,6 +908,12 @@ sudo tee /etc/samba/smb.conf > /dev/null << EOL
         writeable = yes
 
     # read only
+    [Emulators]
+        comment = Public
+        path = /home/s/Emulators
+        read only = yes
+        writeable = no	
+
     [Games]
         comment = Public
         path = /home/s/Games
