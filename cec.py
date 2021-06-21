@@ -21,7 +21,7 @@ def has_inhibit():
     return bool(pm.HasInhibit())
     
 
-def runCommand(command):
+def run_command(command):
     result = ""
     try:
         result = subprocess.check_output(command, shell=True).decode("utf-8")
@@ -35,14 +35,14 @@ def get_monitor():
 	if not get_dpms():
 		return True
     
-	if runCommand("xset -q").find("Monitor is On") != -1:
+	if run_command("xset -q").find("Monitor is On") != -1:
 		return True
 
 	return False
 
 
 def get_dpms():
-    if runCommand("xset -q").find("DPMS is Enabled") != -1:
+    if run_command("xset -q").find("DPMS is Enabled") != -1:
         return True
 		
     return False
@@ -52,16 +52,16 @@ def send_cec_command(state):
     # commands will fail if cec device not found
     if (state):
         log("turning screen on")
-        runCommand("echo 'on 0' | cec-client -s")
+        run_command("echo 'on 0' | cec-client -s")
     else:
         log("turning screen off")
-        runCommand("echo 'standby 0' | cec-client -s")
+        run_command("echo 'standby 0' | cec-client -s")
         
         
 def set_defaults(): 
     # https://forum.kde.org/viewtopic.php?t=108974
-    #runCommand("xset dpms 360 420 480") # timeout standby, suspend, off in seconds
-    #runCommand("xset +dpms") # enable dpms
+    #run_command("xset dpms 360 420 480") # timeout standby, suspend, off in seconds
+    #run_command("xset +dpms") # enable dpms
     return
 
 
@@ -81,12 +81,7 @@ def log(str=''):
     return
 
 
-		
-if __name__ == '__main__':
-    log('Started...')
-    log('found device:')
-    log(runCommand('lsusb | grep "CEC"'))
-
+def main():
     set_defaults()
     prev_monitor_state = get_monitor()
     prev_inhibit_state = has_inhibit()
@@ -174,4 +169,27 @@ if __name__ == '__main__':
         if (cur_monitor == True and (cur_time - screen_on_time) > max_screen_on_time):
             log("force dpms/sleep")
             screen_on_time = cur_time
-            runCommand("xset dpms force off")
+            run_command("xset dpms force off")
+
+
+def toggle_display():
+    # get screen on/off state
+    state = run_command("echo 'pow 0' | cec-client -s -d 1")
+    if ('power status: on' in state):
+        send_cec_command(False)
+    else:
+        send_cec_command(True)
+
+    return
+
+
+if __name__ == '__main__':
+    log('Started...')
+    log('found device:')
+    log(run_command('lsusb | grep "CEC"'))
+
+    if (len(sys.argv) > 1):
+        if (sys.argv[1] == 'toggle'):
+            toggle_display()
+    else:
+        main()
