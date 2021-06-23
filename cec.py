@@ -183,6 +183,17 @@ def toggle_display():
     return
 
 
+def help():
+    result = run_command("echo help | cec-client -s -d 1")
+    log(result)
+    return
+
+
+def set_source(src):
+    run_command("echo 'tx 4F:82:{}0:00' | cec-client -s -d 1".format(src))
+    return
+
+
 if __name__ == '__main__':
     log('Started...')
     log('found device:')
@@ -191,5 +202,9 @@ if __name__ == '__main__':
     if (len(sys.argv) > 1):
         if (sys.argv[1] == 'toggle'):
             toggle_display()
+        if (sys.argv[1] == 'list' or sys.argv[1] == 'help'):
+            help()
+        if (sys.argv[1] == 'source'):
+            set_source(sys.argv[2])
     else:
         main()
