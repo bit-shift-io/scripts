@@ -115,7 +115,7 @@ function fn_general_config {
 
     # aur helper
     sudo pacman -S yay --noconfirm --needed
-    sudo pacman -S pacui --noconfirm --needed
+    # sudo pacman -S pacui --noconfirm --needed # use pamac update instead now
 
     notify-send 'Config' 'General config complete'
 }
@@ -295,8 +295,7 @@ function fn_base_apps {
     # remove old stuff
     #use pactree qt4 - to list packages dependancies
     echo -e '\n\nRemoving packages...'
-    ./util.sh -r xterm manjaro-hello manjaro-application-utility octopi-notifier-frameworks octopi-cachecleaner octopi-repoeditor octopi calligra kget yakuake plasma-wayland-session python-xdg xorg-xrandr udftools pamac-tray-appindicator pamac-tray-icon-plasma
-pamac-qt pamac-gtk pamac-cli pamac-snap-plugin pamac-flatpak-plugin pamac-common
+    ./util.sh -r xterm manjaro-hello manjaro-application-utility octopi-notifier-frameworks octopi-cachecleaner octopi-repoeditor octopi calligra kget yakuake plasma-wayland-session python-xdg xorg-xrandr udftools
 
     # install software
     echo -e '\n\nInstalling packages...'
