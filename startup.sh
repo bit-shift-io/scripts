@@ -16,6 +16,9 @@ function main {
     sleep 5s
     syncthing -no-browser &
     #krfb --nodialog & # this causes KDE wallet problems! disabling for now
+
+    # bose on plz!
+    $HOME/Projects/scripts/bose_power.sh &
 }
 
 # pass all args
