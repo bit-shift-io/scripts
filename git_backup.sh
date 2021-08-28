@@ -62,6 +62,7 @@ git_backup $GITHUB "tower-of-cards"
 git_backup $GITHUB "qcalendar"
 git_backup $GITHUB "flow"
 git_backup $GITHUB "fido-and-kitch"
+git_backup $GITHUB "fido-and-kitch-assets"
 
 git_backup $GITLAB "dog-fight"
 
