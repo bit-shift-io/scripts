@@ -8,3 +8,6 @@ sudo systemctl mask NetworkManager-wait-online.service
 # GRUB_TIMEOUT=10 to 1
 # then:
 # sudo update-grub
+
+sudo sed -i 's/GRUB_TIMEOUT=10/GRUB_TIMEOUT=1/g' /etc/default/grub
+sudo update-grub
