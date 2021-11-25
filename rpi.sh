@@ -31,6 +31,8 @@ function main {
 }
 
 function fn_nftables {
+    sudo systemctl --now enable nftables
+
 sudo tee /etc/nftables.conf > /dev/null << EOL
 #!/usr/bin/nft -f
 
@@ -59,6 +61,10 @@ table ip nat {
         }
 }
 EOL
+
+    nft -f /etc/nftables.conf
+    #sudo systemctl restart nftables
+    sudo nft list ruleset
 }
 
 
