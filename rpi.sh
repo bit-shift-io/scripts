@@ -63,7 +63,7 @@ table ip nat {
 }
 EOL
 
-    nft -f /etc/nftables.conf
+    sudo nft -f /etc/nftables.conf
     #sudo systemctl restart nftables
     sudo nft list ruleset
 }
