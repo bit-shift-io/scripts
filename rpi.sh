@@ -17,6 +17,7 @@ function main {
     1) zigbee2mqtt service
     2) adgaurd install
     3) webthings service
+    4) route port 80 to 8080
     *) Any key to exit
     :" ans;
     reset
@@ -27,6 +28,37 @@ function main {
         *) $SHELL ;;
     esac
     done
+}
+
+function fn_nftables {
+sudo tee /etc/nftables.conf > /dev/null << EOL
+#!/usr/bin/nft -f
+
+flush ruleset
+
+table inet filter {
+        chain input {
+                type filter hook input priority 0;
+        }
+        chain forward {
+                type filter hook forward priority 0;
+        }
+        chain output {
+                type filter hook output priority 0;
+        }
+}
+
+table ip nat {
+        chain prerouting {
+                type nat hook prerouting priority 0; policy accept;
+                tcp dport 80 redirect to 8080
+        }
+
+        chain postrouting {
+                type nat hook postrouting priority 0; policy accept;
+        }
+}
+EOL
 }
 
 
