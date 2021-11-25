@@ -25,6 +25,7 @@ function main {
         1) fn_zigbee2mqtt ;;
         2) fn_adguard ;;
         3) fn_webthings ;;
+        4) fn_nftables ;;
         *) $SHELL ;;
     esac
     done
