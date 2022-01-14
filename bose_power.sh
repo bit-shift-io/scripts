@@ -2,12 +2,17 @@
 
 # https://github.com/mjg59/python-broadlink/tree/master/cli
 
-# a little clumsy to setup:
+# setup:
 #
-# python -m pip install broadlink
+# yay -S python-pip
+# pip install broadlink
+# yay -S python-broadlink
+#
+# OR
+#
 # grab the cli from here: https://github.com/mjg59/python-broadlink/tree/master/cli
 # chmod +x broadlink_cli
-
+#
 # broadlink lib is probably here (unfortunately doesnt include the cli!):
 #/home/s/.local/lib/python3.9/site-packages
 
@@ -17,6 +22,6 @@
 DIR=$HOME/Projects/scripts
 cd $DIR
 
-./broadlink_cli --type 0x653c --host 192.168.1.100 --mac a043b032c784 --send 26004800000127941212123712121237123712371212123712371237121212371212121212371212121212121237123712121212123712121237123712121212123712371212123712000501
+broadlink_cli --type 0x653c --host 192.168.1.100 --mac a043b032c784 --send 26004800000127941212123712121237123712371212123712371237121212371212121212371212121212121237123712121212123712121237123712121212123712371212123712000501
 
 notify-send 'BOSE' 'Power toggled'
