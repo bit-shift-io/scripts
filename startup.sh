@@ -9,16 +9,18 @@ function main {
     
     sleep 5s
     /bin/python $HOME/Projects/scripts/cec.py &
-    $HOME/Applications/zigbee2mqtt/start.sh &
+    #$HOME/Applications/zigbee2mqtt/start.sh &
     # hass &
-
-    # delay load
-    sleep 5s
-    syncthing -no-browser &
-    #krfb --nodialog & # this causes KDE wallet problems! disabling for now
 
     # bose on plz!
     $HOME/Projects/scripts/bose_power.sh &
+
+    # delay load
+    sleep 5s
+    syncthing
+    #syncthing -no-browser &
+    #krfb --nodialog & # this causes KDE wallet problems! disabling for now
+
 }
 
 # pass all args
