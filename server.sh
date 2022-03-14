@@ -1052,7 +1052,14 @@ EOL
 
     # change user
     # https://unix.stackexchange.com/questions/64914/mpd-no-audio-output-with-pulseaudio-no-mixing-with-alsa
-    sudo sed -i -e "s/User=mpd/User=${ID_NAME}\nPAMName=system-local-login/g" /usr/lib/systemd/system/mpd.service
+    #sudo sed -i -e "s/User=mpd/User=${ID_NAME}\nPAMName=system-local-login/g" /usr/lib/systemd/system/mpd.service
+
+    # new method
+sudo tee /usr/lib/systemd/system/mpd.service.d/00-arch.conf > /dev/null << EOL       
+    [Service]
+    User=s
+    PAMName=system-local-login
+EOL
     
     sudo systemctl daemon-reload
     sudo systemctl enable mpd
