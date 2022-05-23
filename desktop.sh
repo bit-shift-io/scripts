@@ -58,11 +58,14 @@ function fn_mobile_apps {
     echo -e '\n\nInstalling packages...'
     
     # email, clock, calendar, calc, matrix, weather, browser, bible, music, mpd, map, dictionary, text editor, anbox, syncthing
-    ./util.sh -i base-devel openssh nota cantata kdeconnect audiobook qweather
+    ./util.sh -i base-devel pamac yay openssh nota kdeconnect neochat vvave elisa plasma-camera plasma-pix filelight waydroid-image
     
     # enable ssh
     sudo systemctl enable sshd.service
     sudo systemctl start sshd.service
+
+    # waydroid
+    pkexec setup-waydroid
 
     echo -e '\n\ninstall complete'
     notify-send 'Applications' 'Install completed'
