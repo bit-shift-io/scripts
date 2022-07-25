@@ -22,7 +22,6 @@ function main {
     m) MPD & DLNA
     a) ai assistant - mycroft
     w) Wireguard VPN
-    n) NextCloud Docker
     *) Any key to exit
     :" ans;
     reset
@@ -42,7 +41,6 @@ function main {
         b) fn_mount_backup ; fn_backup_service ;;
         h) fn_cec ;;
         m) fn_mpd ;;
-        n) fn_nextcloud ;;
         #t) fn_update_service ;;
         a) fn_ai_assistant ;;
         w) fn_wireguard ;;
@@ -170,14 +168,6 @@ EOL
     qrencode -t ansiutf8 < wg-client-a.conf
 }
 
-function fn_nextcloud {
-    # https://hub.docker.com/_/nextcloud/
-    ./util.sh -i docker
-    sudo systemctl enable docker
-    sudo systemctl start docker
-    sudo docker pull nextcloud
-    sudo docker run -d -p 8080:80 nextcloud
-}
 
 function fn_ai_assistant {
     ./util.sh -i mycroft-core mycroft-gui-git
