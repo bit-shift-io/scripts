@@ -15,12 +15,14 @@ function main {
     docker tools
     ===================
     d) Docker Base
-    n) NextCloud Docker
+    r) Remove All
+    n) NextCloud
     *) Any key to exit
     :" ans;
     reset
     case $ans in  
         d) fn_docker_base ;;
+        r) fn_remove_all ;;
         n) fn_nextcloud ;;
         *) $SHELL ;;
     esac
@@ -33,13 +35,20 @@ function fn_docker_base {
     sudo systemctl start docker
 }
 
+function fn_remove_all {
+    sudo docker container stop $(docker container ls -aq)
+    sudo docker container prune -f
+    sudo docker ps
+}
+
 function fn_nextcloud {
     # https://hub.docker.com/_/nextcloud/
     # https://blog.ssdnodes.com/blog/installing-nextcloud-docker/
     # https://github.com/ichiTechs/Dockerized-SSL-NextCloud-with-MariaDB/blob/master/docker-compose.yml
 
     sudo docker network create nextcloud_network
-    docker-compose up -f nextcloud-dockcer-compose.yml
+    cd $HOME/Bronson/conf/
+    docker-compose -f docker-compose.nextcloud.yml up --build
 }
 
 
