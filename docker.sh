@@ -36,7 +36,7 @@ function fn_docker_base {
 }
 
 function fn_remove_all {
-    sudo docker container stop $(docker container ls -aq)
+    sudo docker container stop $(sudo docker container ls -aq)
     sudo docker container prune -f
     sudo docker ps
 }
