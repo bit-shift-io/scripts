@@ -302,7 +302,7 @@ function fn_base_apps {
 
     # install software
     echo -e '\n\nInstalling packages...'
-    ./util.sh -i base-devel openssh falkon syncthing cantata plasma-browser-integration qbittorrent libreoffice firefox krdc krfb hunspell-en_AU keepassxc isoimagewriter
+    ./util.sh -i base-devel openssh falkon syncthing cantata plasma-browser-integration qbittorrent libreoffice firefox krdc krfb audiocd-kio hunspell-en_AU keepassxc isoimagewriter
     
     # enable ssh
     sudo systemctl enable sshd.service
