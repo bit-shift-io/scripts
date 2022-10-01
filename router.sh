@@ -4,10 +4,10 @@
 
 
 
-phone_wifi_device='wlp0s20u2'
-lan_wifi_device='wlp4s0'
+phone_wifi_device='wlp0s20u2' # which devices for connecting to phone hotspot?
+lan_wifi_device='wlp4s0' # which device for LAN devices?
 
-ssid='spud_test'
+ssid='spud_test' # Enter what you want to call your wifi
 
 # reset to defaults
 echo '[Router] Resetting network manager defaults'
@@ -23,15 +23,16 @@ read ap_password
 
 # set up the phone wifi to connect to any avilable hotposts
 #sudo nmcli dev wifi connect network-ssid password "network-password"
-phone1_wifi_name='Melissa'
+phone1_wifi_name='MelissaM'
 phone1_wifi_password='1234567890' # TODO: make this an input
-phone2_wifi_name='Fabian'
+phone2_wifi_name='FabianM'
 phone2_wifi_password='1234567890' # TODO: make this an input
 
-echo '[Router] Trying to connect to phone spots'
+echo '[Router] Trying to connect to phone hotspots'
 sleep 10s # need time for network mgr to get up and detect wifi networks
 #nmcli connection up ${phone1_wifi_name} ifname ${phone_wifi_device}
 nmcli dev wifi connect ${phone2_wifi_name} password ${phone2_wifi_password} ifname ${phone_wifi_device}
+nmcli dev wifi connect ${phone1_wifi_name} password ${phone1_wifi_password} ifname ${phone_wifi_device}
 
 #nmcli connection up ${phone1_wifi_name} ifname ${phone_wifi_device}
 
@@ -51,9 +52,9 @@ nmcli connection add type bridge ifname ${bridge_device} con-name ${bridge_name}
 
 
 # add ethernet devices into bridge
-nmcli device status | grep -o "^enp\w*" | while read -r line ; do
-    echo ${line}
-#    sudo nmcli connection add type bridge-slave ifname ${line} master ${bridge_device}
+nmcli device status | grep -o "^en\w*" | while read -r line ; do
+    echo "[Router] Adding ethernet device '${line}'"
+    nmcli connection add type bridge-slave ifname ${line} master ${bridge_device}
 done
 
 
