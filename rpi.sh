@@ -75,6 +75,14 @@ function fn_dockerpipe {
     # pipe
     mkfifo /home/pi/Docker/pipe/pipe
 
+    # create script
+sudo tee /home/pi/Docker/pipe/start_pipe.sh > /dev/null << EOL
+#!/bin/bash
+while true; do eval "$(cat pipe)"; done
+EOL
+
+    chmod +x /home/pi/Docker/pipe/start_pipe.sh
+
     # create service
 sudo tee /etc/systemd/system/pipe.service > /dev/null << EOL
     [Unit]
@@ -82,8 +90,8 @@ sudo tee /etc/systemd/system/pipe.service > /dev/null << EOL
     After=network.target
 
     [Service]
-    ExecStart=while true; do eval "$(cat /home/pi/Docker/pipe/pipe)"; done
-    WorkingDirectory=/home/pi/Docker/pipe
+    ExecStart=/home/pi/Docker/pipe/start_pipe.sh
+    WorkingDirectory=/home/pi/Docker/pipe/
     StandardOutput=inherit
     StandardError=inherit
     Restart=always
