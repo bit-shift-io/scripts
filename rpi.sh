@@ -72,6 +72,9 @@ EOL
 
 
 function fn_dockerpipe {
+    # pipe
+    mkfifo /home/pi/Docker/pipe/pipe
+
     # create service
 sudo tee /etc/systemd/system/pipe.service > /dev/null << EOL
     [Unit]
@@ -79,7 +82,7 @@ sudo tee /etc/systemd/system/pipe.service > /dev/null << EOL
     After=network.target
 
     [Service]
-    ExecStart=mkfifo /home/pi/Docker/pipe/pipe; while true; do eval "$(cat /home/pi/Docker/pipe/pipe)"; done
+    ExecStart=while true; do eval "$(cat /home/pi/Docker/pipe/pipe)"; done
     WorkingDirectory=/home/pi/Docker/pipe
     StandardOutput=inherit
     StandardError=inherit
