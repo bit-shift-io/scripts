@@ -18,6 +18,7 @@ function main {
     2) adgaurd install
     3) webthings service
     4) route port 80 to 8080
+    5) docker pipe
     *) Any key to exit
     :" ans;
     reset
@@ -26,6 +27,7 @@ function main {
         2) fn_adguard ;;
         3) fn_webthings ;;
         4) fn_nftables ;;
+        5) fn_dockerpipe ;;
         *) $SHELL ;;
     esac
     done
@@ -66,6 +68,31 @@ EOL
     sudo nft -f /etc/nftables.conf
     #sudo systemctl restart nftables
     sudo nft list ruleset
+}
+
+
+function fn_dockerpipe {
+    # create service
+sudo tee /etc/systemd/system/pipe.service > /dev/null << EOL
+    [Unit]
+    Description=docker pipe
+    After=network.target
+
+    [Service]
+    ExecStart=mkfifo /home/pi/Docker/pipe/pipe; while true; do eval "$(cat /home/pi/Docker/pipe/pipe)"; done
+    WorkingDirectory=/home/pi/Docker/pipe
+    StandardOutput=inherit
+    StandardError=inherit
+    Restart=always
+    User=pi
+
+    [Install]
+    WantedBy=multi-user.target
+EOL
+
+    sudo systemctl reset-failed pipe
+    sudo systemctl enable pipe
+    sudo systemctl start pipe
 }
 
 
