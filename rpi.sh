@@ -78,10 +78,10 @@ function fn_dockerpipe {
     # create script
 sudo tee /home/pi/Docker/pipe/start_pipe.sh > /dev/null << EOL
 #!/bin/bash
-while true; do eval "$(cat pipe)"; done
+while true; do eval "\$(cat pipe)"; done
 EOL
 
-    chmod +x /home/pi/Docker/pipe/start_pipe.sh
+    sudo chmod +x /home/pi/Docker/pipe/start_pipe.sh
 
     # create service
 sudo tee /etc/systemd/system/pipe.service > /dev/null << EOL
