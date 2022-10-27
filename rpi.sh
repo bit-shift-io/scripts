@@ -84,8 +84,8 @@ EOL
 
 sudo tee /home/pi/Docker/pipe/run.sh > /dev/null << EOL
 #!/bin/bash
-echo "\$@" > pipe_in
-cat pipe_out
+echo "\$@" > /pipe/pipe_in
+cat /pipe/pipe_out
 EOL
 
     sudo chmod +x /home/pi/Docker/pipe/start_pipe.sh
