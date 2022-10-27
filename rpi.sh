@@ -84,7 +84,7 @@ EOL
 
 sudo tee /home/pi/Docker/pipe/run.sh > /dev/null << EOL
 #!/bin/bash
-echo "$@" > pipe_in
+echo "\$@" > pipe_in
 cat pipe_out
 EOL
 
