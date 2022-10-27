@@ -73,15 +73,23 @@ EOL
 
 function fn_dockerpipe {
     # pipe
-    mkfifo /home/pi/Docker/pipe/pipe
+    mkfifo /home/pi/Docker/pipe/pipe_in
+    mkfifo /home/pi/Docker/pipe/pipe_out
 
     # create script
 sudo tee /home/pi/Docker/pipe/start_pipe.sh > /dev/null << EOL
 #!/bin/bash
-while true; do eval "\$(cat pipe)"; done
+while true; do eval "\$(cat pipe_in)" > pipe_out; done
+EOL
+
+sudo tee /home/pi/Docker/pipe/run.sh > /dev/null << EOL
+#!/bin/bash
+echo "$@" > pipe_in
+cat pipe_out
 EOL
 
     sudo chmod +x /home/pi/Docker/pipe/start_pipe.sh
+    sudo chmod +x /home/pi/Docker/pipe/run.sh
 
     # create service
 sudo tee /etc/systemd/system/pipe.service > /dev/null << EOL
