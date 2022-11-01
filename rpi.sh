@@ -14,18 +14,16 @@ function main {
     read -n 1 -p "
     server tools
     ===================
-    1) zigbee2mqtt service
-    2) adgaurd install
-    3) webthings service
-    4) route port 80 to 8080
+    d) Docker Base
+    r) Docker Remove All
+    4) route port to 80
     5) docker pipe
     *) Any key to exit
     :" ans;
     reset
-    case $ans in  
-        1) fn_zigbee2mqtt ;;
-        2) fn_adguard ;;
-        3) fn_webthings ;;
+    case $ans in 
+        d) fn_docker_base ;;
+        r) fn_remove_all ;;
         4) fn_nftables ;;
         5) fn_dockerpipe ;;
         *) $SHELL ;;
@@ -34,6 +32,9 @@ function main {
 }
 
 function fn_nftables {
+    echo "Enter port to forward to 80: "
+    read port_forward
+
     sudo systemctl --now enable nftables
 
 sudo tee /etc/nftables.conf > /dev/null << EOL
@@ -56,7 +57,7 @@ table inet filter {
 table ip nat {
         chain prerouting {
                 type nat hook prerouting priority 0; policy accept;
-                tcp dport 80 redirect to 8080
+                tcp dport 80 redirect to ${port_forward}
         }
 
         chain postrouting {
@@ -115,65 +116,20 @@ EOL
 }
 
 
-function fn_webthings {
-    # create service
-sudo tee /etc/systemd/system/webthings.service > /dev/null << EOL
-    [Unit]
-    Description=webthings
-    After=network.target
-
-    [Service]
-    ExecStart=/usr/bin/npm start
-    WorkingDirectory=/home/pi/webthings/gateway
-    StandardOutput=inherit
-    StandardError=inherit
-    Restart=always
-    User=pi
-
-    [Install]
-    WantedBy=multi-user.target
-EOL
-
-    sudo systemctl reset-failed webthings
-    sudo systemctl enable webthings
-    sudo systemctl start webthings
+function fn_docker_base {
+    ./util.sh -i docker docker-compose
+    sudo systemctl enable docker
+    sudo systemctl start docker
+    # add user
+    sudo usermod -aG docker ${USER}
 }
 
 
-function fn_adguard {
-    cd $HOME
-    wget https://static.adguard.com/adguardhome/release/AdGuardHome_linux_arm.tar.gz
-    tar xvf AdGuardHome_linux_arm.tar.gz
-    rm AdGuardHome_linux_arm.tar.gz
-    cd AdGuardHome
-    sudo ./AdGuardHome -s install
+function fn_remove_all {
+    sudo docker container stop $(sudo docker container ls -aq)
+    sudo docker container prune -f
+    sudo docker ps
 }
-
-
-function fn_zigbee2mqtt {
-    # create service
-sudo tee /etc/systemd/system/zigbee2mqtt.service > /dev/null << EOL
-    [Unit]
-    Description=zigbee2mqtt
-    After=network.target
-
-    [Service]
-    ExecStart=/usr/bin/npm start
-    WorkingDirectory=/home/pi/zigbee2mqtt
-    StandardOutput=inherit
-    StandardError=inherit
-    Restart=always
-    User=pi
-
-    [Install]
-    WantedBy=multi-user.target
-EOL
-
-    sudo systemctl reset-failed zigbee2mqtt
-    sudo systemctl enable zigbee2mqtt
-    sudo systemctl start zigbee2mqtt
-}
-
 
 
 # pass all args
