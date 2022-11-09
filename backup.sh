@@ -1,9 +1,11 @@
 #!/bin/bash
 
 hostname=$(hostname)
-archive=$HOME/docker-${hostname}.tar.gz
+archive=$HOME/Backups/docker-${hostname}.tar.gz
 backup=$HOME/Docker
 containers=$(docker container list -qa)
+
+mkdir $HOME/Backups
 
 echo "stop containers"
 sudo docker container stop ${containers}
