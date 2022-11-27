@@ -22,15 +22,13 @@ function main {
     6) Code Development Apps
     7) Media Development Apps
 
-    mobile
-    ===================
-    m) Mobile Apps
-
     extras
     ===================
     v) Virtualbox
     g) Virtualbox Guest
     a) AMD GPU - fan fix
+    v) AMD VSYNC
+    h) HDMI CEC
 
     *) Any key to exit
     :" ans;
@@ -43,32 +41,43 @@ function main {
         5) fn_base_apps ;;
         6) fn_code_development_apps ;;
         7) fn_media_development_apps ;;
-        m) fn_mobile_apps ;;
         v) fn_virtual_box ;;
         g) fn_virtual_box_guest ;;
         a) fn_amd_gpu ;;
+        v) fn_vsync ;;
+        h) fn_cec ;;
         *) $SHELL ;;
     esac
     done
 }
 
+function fn_vsync {
+    # script to fix tearing on AMD GPU's
+    # https://wiki.archlinux.org/index.php/AMDGPU
+sudo bash -c "cat > /etc/X11/xorg.conf.d/20-amdgpu.conf" << EOL 
+Section "Device"
+    Identifier "AMD"
+    Driver "amdgpu"
+    Option "TearFree" "true"
+EndSection
+EOL
+}
 
-function fn_mobile_apps {
-    # install software
-    echo -e '\n\nInstalling packages...'
+function fn_cec {
+    # https://wiki.archlinux.org/index.php/Users_and_groups#User_management
+
+    #ls -l /dev/ttyUSB0
+    #id -Gn
+    #stat /dev/ttyACM0 <- should show which user group has access to device
+    yay -S --noconfirm --needed libcec
     
-    # email, clock, calendar, calc, matrix, weather, browser, bible, music, mpd, map, dictionary, text editor, anbox, syncthing
-    ./util.sh -i base-devel pamac yay openssh nota kdeconnect neochat vvave elisa plasma-camera plasma-pix filelight waydroid-image
-    
-    # enable ssh
-    sudo systemctl enable sshd.service
-    sudo systemctl start sshd.service
+    USER=$(id -un)
+    sudo gpasswd -a $USER uucp 
+    sudo gpasswd -a $USER lock
+    # might not need a reboot, test it
+    getent group uucp
 
-    # waydroid
-    pkexec setup-waydroid
-
-    echo -e '\n\ninstall complete'
-    notify-send 'Applications' 'Install completed'
+    notify-send 'CEC' 'Please reboot!'
 }
 
 
@@ -298,7 +307,7 @@ function fn_base_apps {
     # remove old stuff
     #use pactree qt4 - to list packages dependancies
     echo -e '\n\nRemoving packages...'
-    ./util.sh -r xterm manjaro-hello manjaro-application-utility octopi-notifier-frameworks octopi-cachecleaner octopi-repoeditor octopi calligra kget yakuake plasma-wayland-session python-xdg xorg-xrandr udftools
+    #./util.sh -r xterm manjaro-hello manjaro-application-utility octopi-notifier-frameworks octopi-cachecleaner octopi-repoeditor octopi calligra kget yakuake plasma-wayland-session python-xdg xorg-xrandr udftools
 
     # install software
     echo -e '\n\nInstalling packages...'

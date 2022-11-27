@@ -18,6 +18,7 @@ function main {
     r) Docker Remove All
     4) route port to 80
     5) docker pipe
+    b) backup docker folder
     *) Any key to exit
     :" ans;
     reset
@@ -26,9 +27,31 @@ function main {
         r) fn_remove_all ;;
         4) fn_nftables ;;
         5) fn_dockerpipe ;;
+        b) fn_backup ;;
         *) $SHELL ;;
     esac
     done
+}
+
+function fn_backup {
+    hostname=$(hostname)
+    archive=$HOME/Backups/docker-${hostname}.tar.gz
+    backup=$HOME/Docker
+    containers=$(docker container list -qa)
+
+    mkdir $HOME/Backups
+
+    echo "stop containers"
+    sudo docker container stop ${containers}
+
+    echo "create backup..."
+    echo ${archive}
+    sudo tar -czvf ${archive} ${backup} > /dev/null
+
+    echo "restart containers"
+    sudo docker restart ${containers}
+
+    echo "done!"
 }
 
 function fn_nftables {

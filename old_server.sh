@@ -18,7 +18,6 @@ function main {
     n) Network (AP, Bridge, DHCP, DNS)
     s) Samba & pac-cache
     b) Backup service
-    h) HDMI CEC
     m) MPD & DLNA
     a) ai assistant - mycroft
     w) Wireguard VPN
@@ -39,7 +38,6 @@ function main {
 
         s) fn_smb ;;
         b) fn_mount_backup ; fn_backup_service ;;
-        h) fn_cec ;;
         m) fn_mpd ;;
         #t) fn_update_service ;;
         a) fn_ai_assistant ;;
@@ -170,13 +168,23 @@ EOL
 
 
 function fn_ai_assistant {
-    ./util.sh -i mycroft-core mycroft-gui-git
+    # https://mycroft-ai.gitbook.io/docs/using-mycroft-ai/get-mycroft/linux
 
-    VAR1='#load-module module-native-protocol-tcp'
-    VAR2='load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1'
-    sudo sed -i -e "s/${VAR1}/${VAR2}/g" /etc/pulse/default.pa
-    pulseaudio -k
-    sudo systemctl start mycroft.service
+    cd ~/
+    git clone https://github.com/MycroftAI/mycroft-core.git
+    cd mycroft-core
+    ./dev_setup.sh
+
+    ./start-mycroft.sh all
+
+    # broken on aur 2022
+    #./util.sh -i mycroft-core mycroft-gui-git
+
+    #VAR1='#load-module module-native-protocol-tcp'
+    #VAR2='load-module module-native-protocol-tcp auth-ip-acl=127.0.0.1'
+    #sudo sed -i -e "s/${VAR1}/${VAR2}/g" /etc/pulse/default.pa
+    #pulseaudio -k
+    #sudo systemctl start mycroft.service
 }
 
 
@@ -963,22 +971,6 @@ EOL
     notify-send 'SMB' 'Mount up!'
 }
 
-function fn_cec {
-    # https://wiki.archlinux.org/index.php/Users_and_groups#User_management
-
-    #ls -l /dev/ttyUSB0
-    #id -Gn
-    #stat /dev/ttyACM0 <- should show which user group has access to device
-    yay -S --noconfirm --needed libcec
-    
-    USER=$(id -un)
-    sudo gpasswd -a $USER uucp 
-    sudo gpasswd -a $USER lock
-    # might not need a reboot, test it
-    getent group uucp
-
-    notify-send 'CEC' 'Please reboot!'
-}
 
 
 function fn_mpd {
