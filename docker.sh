@@ -97,45 +97,48 @@ EOL
 
 function fn_dockerpipe {
     # pipe
-    mkfifo /home/pi/Docker/pipe/pipe_in
-    mkfifo /home/pi/Docker/pipe/pipe_out
+    mkdir $HOME/Docker/pipe
+    mkfifo $HOME/Docker/pipe/pipe_in
+    mkfifo $HOME/Docker/pipe/pipe_out
 
     # create script
-sudo tee /home/pi/Docker/pipe/start_pipe.sh > /dev/null << EOL
+sudo tee $HOME/Docker/pipe/start_pipe.sh > /dev/null << EOL
 #!/bin/bash
 while true; do eval "\$(cat pipe_in)" > pipe_out; done
 EOL
 
-sudo tee /home/pi/Docker/pipe/run.sh > /dev/null << EOL
+sudo tee $HOME/Docker/pipe/run.sh > /dev/null << EOL
 #!/bin/bash
 echo "\$@" > /pipe/pipe_in
 cat /pipe/pipe_out
 EOL
 
-    sudo chmod +x /home/pi/Docker/pipe/start_pipe.sh
-    sudo chmod +x /home/pi/Docker/pipe/run.sh
+    sudo chmod +x $HOME/Docker/pipe/start_pipe.sh
+    sudo chmod +x $HOME/Docker/pipe/run.sh
 
     # create service
 sudo tee /etc/systemd/system/pipe.service > /dev/null << EOL
     [Unit]
     Description=docker pipe
-    After=network.target
+    After=sound.target
 
     [Service]
-    ExecStart=/home/pi/Docker/pipe/start_pipe.sh
-    WorkingDirectory=/home/pi/Docker/pipe/
+    ExecStart=$HOME/Docker/pipe/start_pipe.sh
+    WorkingDirectory=$HOME/Docker/pipe/
     StandardOutput=inherit
     StandardError=inherit
     Restart=always
-    User=pi
+    User=$USER
+    Environment="PULSE_RUNTIME_PATH=/run/user/1000/pulse/"
 
     [Install]
-    WantedBy=multi-user.target
+    WantedBy=default.target
 EOL
 
     sudo systemctl reset-failed pipe
     sudo systemctl enable pipe
     sudo systemctl start pipe
+    systemctl status pipe.service
 }
 
 
