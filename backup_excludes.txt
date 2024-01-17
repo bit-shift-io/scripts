@@ -1,1 +1,9 @@
 - .*/
+- Games/
+- Emulators/
+- Bible/
+- Books/
+- Music/
+- Projects/
+- Audio Books/
+- Fell Seal/
