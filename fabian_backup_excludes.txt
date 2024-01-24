@@ -8,3 +8,4 @@
 - Projects/
 - Audio Books/
 - Fell Seal/
+- syncthing_old/
