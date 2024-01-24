@@ -1,4 +1,5 @@
 - .*/
+- Backups/
 - Games/
 - Emulators/
 - Bible/
