@@ -9,3 +9,10 @@
 - Audio Books/
 - Fell Seal/
 - syncthing_old/
+- Desktop/
+- Downloads/
+- Public/
+- Sync/
+- Videos/
+- Templates/
+- Documents/
