@@ -11,7 +11,7 @@
 # fi
 
 
-DEST_DIR_1="/run/media/server/offsite/fabian" # external hdd backup
+DEST_DIR_1="/run/media/server/offsite/backups/fabian" # external hdd backup
 
 cd rsync-time-backup
 
