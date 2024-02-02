@@ -15,10 +15,10 @@ function main {
 
         if [[ ${bin_exits} == "1" ]]; then
             # install yay
-            if [[ ${util} == "pacman" ]]; then
-                sudo pacman -S yay --noconfirm --needed
-                util=(yay)
-            fi
+            #if [[ ${util} == "pacman" ]]; then
+             #   sudo pacman -S yay --noconfirm --needed
+              #  util=(yay)
+            #fi
             
             # return binary
             install_util=${util}
@@ -50,6 +50,10 @@ function install {
     for pkg in ${arr}
     do
         case ${bin} in
+            'pacman')
+                ${bin} -S --noconfirm --needed ${pkg}
+                ;;
+                
             'yay')
                 ${bin} -S --noconfirm --needed ${pkg}
                 ;;
@@ -73,6 +77,10 @@ function remove {
     for pkg in ${arr}
     do
         case ${bin} in
+            'pacman')
+                ${bin} -Rs --noconfirm ${pkg}
+                ;;
+                
             'yay')
                 ${bin} -Rs --noconfirm ${pkg}
                 ;;
