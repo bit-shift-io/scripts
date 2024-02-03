@@ -17,10 +17,10 @@ function main {
     1) General config (systemd timeout, kde index, mirror list)
     2) Swap
     3) Steam
-    4) Base Apps
     
     apps
     ===================
+    4) Base Apps
     6) Code Development Apps
     7) Media Development Apps
 
@@ -34,9 +34,8 @@ function main {
     reset
     case $ans in
         1) fn_general_config ;;
-        2) fn_network_mount ;;
-        3) fn_setup_steam ;;
         2) fn_swap ;;
+        3) fn_setup_steam ;;
         4) fn_base_apps ;;
         6) fn_code_development_apps ;;
         7) fn_media_development_apps ;;

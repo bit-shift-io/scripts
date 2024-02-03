@@ -6,7 +6,7 @@ function main {
     type="${1}"
     
     # array of utils
-    install_utils=(pacman yay zypper)
+    install_utils=(pacman yay apt zypper)
     
     # get package tool
     for util in ${install_utils[@]};
