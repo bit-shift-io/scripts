@@ -92,7 +92,7 @@ function fn_cec {
     #ls -l /dev/ttyUSB0
     #id -Gn
     #stat /dev/ttyACM0 <- should show which user group has access to device
-    yay -S --noconfirm --needed libcec
+    ./util.sh -i libcec
     
     USER=$(id -un)
     sudo gpasswd -a $USER uucp 
