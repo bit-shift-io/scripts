@@ -140,11 +140,11 @@ function fn_general_config {
     sudo sed -i -e "s/#SystemMaxUse=/SystemMaxUse=50M/g"  /etc/systemd/journald.conf
     
     # setup pacman mirror
-    echo "Local pacman mirror (http://pc:9129/repo/manjaro/$repo/os/$arch): "
-    read mirror
+    echo "Local pacman mirror computer name (eg: computer.local): "
+    read computer_name
     
-sudo bash -c "cat > /etc/pacmand.d/mirrorlist" << EOL 
-Server = ${mirror}
+sudo bash -c "cat > /etc/pacman.d/mirrorlist" << EOL 
+Server = http://${computer_name}:9129/repo/manjaro/\$repo/\$arch
 EOL
     
     notify-send 'Config' 'General config complete'
