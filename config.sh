@@ -14,13 +14,14 @@ function main {
     read -n 1 -p "
     config
     ===================
-    1) General config (systemd timeout, kde index, mirror list)
-    2) Swap
-    3) Steam
+    1) General config (systemd timeout, kde index)
+    2) Pacman mirror (pacoloco)
+    3) Swap
+    4) Steam
     
     apps
     ===================
-    4) Base Apps
+    5) Base Apps
     6) Code Development Apps
     7) Media Development Apps
 
@@ -33,10 +34,11 @@ function main {
     :" ans;
     reset
     case $ans in
+        2) fn_pacman_mirror ;;
         1) fn_general_config ;;
-        2) fn_swap ;;
-        3) fn_setup_steam ;;
-        4) fn_base_apps ;;
+        3) fn_swap ;;
+        4) fn_setup_steam ;;
+        5) fn_base_apps ;;
         6) fn_code_development_apps ;;
         7) fn_media_development_apps ;;
         a) fn_automount;;
@@ -128,6 +130,26 @@ function fn_setup_steam {
 }
 
 
+function fn_pacman_mirror {
+    # setup pacman mirror
+    echo "Local pacman mirror computer name/ip (eg: computer.local): "
+    read computer_name
+
+    echo "Local pacman mirror repo (manjaro or archlinux): "
+    read repo_name
+
+    # replace
+    # Include = /etc/pacman.d/mirrorlist
+    # with
+    # Server = http://${computer_name}:9129/repo/${repo_name}/\$repo/\$arch
+    sudo sed -i "s,Include = /etc/pacman.d/mirrorlist,Server = http://${computer_name}:9129/repo/${repo_name}/\$repo/\$arch,g" /etc/pacman.conf
+#sudo bash -c "cat > /etc/pacman.d/mirrorlist" << EOL
+#Server = http://${computer_name}:9129/repo/${repo_name}/\$repo/\$arch
+#EOL
+
+    notify-send 'Config' 'Pacman cache updated'
+}
+
 function fn_general_config {
     # disable broken kde search
     balooctl disable
@@ -138,15 +160,7 @@ function fn_general_config {
     
     # fix logs to be no more than 50mb
     sudo sed -i -e "s/#SystemMaxUse=/SystemMaxUse=50M/g"  /etc/systemd/journald.conf
-    
-    # setup pacman mirror
-    echo "Local pacman mirror computer name (eg: computer.local): "
-    read computer_name
-    
-sudo bash -c "cat > /etc/pacman.d/mirrorlist" << EOL 
-Server = http://${computer_name}:9129/repo/manjaro/\$repo/\$arch
-EOL
-    
+
     notify-send 'Config' 'General config complete'
 }
 
