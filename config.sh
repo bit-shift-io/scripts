@@ -142,7 +142,8 @@ function fn_pacman_mirror {
     # Include = /etc/pacman.d/mirrorlist
     # with
     # Server = http://${computer_name}:9129/repo/${repo_name}/\$repo/\$arch
-    sudo sed -i "s,Include = /etc/pacman.d/mirrorlist,Server = http://${computer_name}:9129/repo/${repo_name}/\$repo/\$arch,g" /etc/pacman.conf
+    # manjaro needs /os removed??
+    sudo sed -i "s,Include = /etc/pacman.d/mirrorlist,Server = http://${computer_name}:9129/repo/${repo_name}/\$repo/os/\$arch,g" /etc/pacman.conf
 #sudo bash -c "cat > /etc/pacman.d/mirrorlist" << EOL
 #Server = http://${computer_name}:9129/repo/${repo_name}/\$repo/\$arch
 #EOL
