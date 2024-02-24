@@ -22,8 +22,7 @@ function main {
     apps
     ===================
     5) Base Apps
-    6) Code Development Apps
-    7) Media Development Apps
+    6) Media Development Apps
 
     extras
     ===================
@@ -39,8 +38,7 @@ function main {
         3) fn_swap ;;
         4) fn_setup_steam ;;
         5) fn_base_apps ;;
-        6) fn_code_development_apps ;;
-        7) fn_media_development_apps ;;
+        6) fn_media_development_apps ;;
         a) fn_automount;;
         h) fn_cec ;;
         *) $SHELL ;;
@@ -143,7 +141,7 @@ function fn_pacman_mirror {
     # with
     # Server = http://${computer_name}:9129/repo/${repo_name}/\$repo/\$arch
     # manjaro needs /os removed
-    if [repo_name = 'manjaro']; then
+    if [ $repo_name = 'manjaro' ]; then
         sudo sed -i "s,Include = /etc/pacman.d/mirrorlist,Server = http://${computer_name}:9129/repo/${repo_name}/\$repo/\$arch,g" /etc/pacman.conf
     else
         sudo sed -i "s,Include = /etc/pacman.d/mirrorlist,Server = http://${computer_name}:9129/repo/${repo_name}/\$repo/os/\$arch,g" /etc/pacman.conf
@@ -234,7 +232,7 @@ function fn_base_apps {
 
     # install software
     echo -e '\n\nInstalling packages...'
-    ./util.sh -i base-devel openssh   plasma-browser-integration libreoffice firefox keepassxc
+    ./util.sh -i base-devel openssh kio-extras  plasma-browser-integration libreoffice firefox keepassxc code git
     
     # enable ssh
     sudo systemctl enable sshd.service
@@ -244,33 +242,10 @@ function fn_base_apps {
     notify-send 'Applications' 'Install completed'
 }
 
-function fn_code_development_apps {
-    echo -e '\n\nInstalling code development apps...'
-    ./util.sh -i visual-studio-code-bin guitar
-
-    # extras
-    # barrier
-    # sound-juicer smartgit riot-desktop openwmail-bin 
-    # vidcutter xnviewmp avidemux trojita handbrake kube
-    # nheko
-    # nitroshare lanshare
-
-
-    echo -e '\n\ninstall complete'
-    notify-send 'Applications' 'Install completed'
-}
 
 function fn_media_development_apps {
     echo -e '\n\nInstalling media development apps...'
     ./util.sh -i blender audacity krita obs-studio inkscape handbrake
-
-    # extras
-    # barrier kdenlive
-    # sound-juicer smartgit riot-desktop openwmail-bin 
-    # vidcutter xnviewmp avidemux trojita handbrake kube
-    # nheko
-    # nitroshare lanshare
-
 
     echo -e '\n\ninstall complete'
     notify-send 'Applications' 'Install completed'
