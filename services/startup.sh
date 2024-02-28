@@ -8,7 +8,7 @@ function main {
     echo 'on 0' | cec-client -s
     
     sleep 5s
-    /bin/python $HOME/Projects/scripts/cec.py &
+    /bin/python $HOME/Projects/scripts/services/cec.py &
 
     # delay load
     sleep 5s
