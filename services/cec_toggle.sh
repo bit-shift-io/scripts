@@ -1,4 +1,4 @@
 #!/bin/bash
 
-cd Projects/scripts/
+cd Projects/scripts/services/
 ./cec.py toggle
