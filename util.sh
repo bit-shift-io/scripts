@@ -51,7 +51,7 @@ function install {
     do
         case ${bin} in
             'pacman')
-                ${bin} -S --noconfirm --needed ${pkg}
+                sudo ${bin} -S --noconfirm --needed ${pkg}
                 ;;
                 
             'yay')
@@ -78,7 +78,7 @@ function remove {
     do
         case ${bin} in
             'pacman')
-                ${bin} -Rs --noconfirm ${pkg}
+                sudo ${bin} -Rs --noconfirm ${pkg}
                 ;;
                 
             'yay')
