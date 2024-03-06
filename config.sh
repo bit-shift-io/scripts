@@ -28,6 +28,9 @@ function main {
     ===================
     a) Automount
     h) HDMI CEC
+    b) audio bluetooth
+    s) audio network server
+    c) audio network client
 
     *) Any key to exit
     :" ans;
@@ -41,11 +44,67 @@ function main {
         6) fn_media_development_apps ;;
         a) fn_automount;;
         h) fn_cec ;;
+        b) fn_audio_bluetooth ;;
+        s) fn_audio_network_server ;;
+        c) fn_audio_network_client ;;
         *) $SHELL ;;
     esac
     done
 }
 
+function fn_audio_network_server {
+    ./util.sh -i pipewire-zeroconf
+    
+    sudo systemctl enable avahi-daemon
+    sudo systemctl start avahi-daemon
+
+
+    sudo tee /etc/pipewire/pipewire-pulse.conf.d/50-network-party.conf > /dev/null << EOL 
+context.exec = [
+    { path = "pactl" args = "load-module module-native-protocol-tcp" }
+    { path = "pactl" args = "load-module module-zeroconf-discover" }
+    { path = "pactl" args = "load-module module-zeroconf-publish" }
+]
+EOL
+}
+
+function fn_audio_network_client {
+    ./util.sh -i pipewire-zeroconf
+
+    sudo systemctl enable avahi-daemon
+    sudo systemctl start avahi-daemon
+
+    #mkdir -p $HOME/.config/pipewire/pipewire.conf.d/
+
+    # pw-cli load-module libpipewire-module-raop-discover 
+    # PIPEWIRE_DEBUG=3 pw-cli -m load-module libpipewire-module-raop-discover
+    # https://gitlab.freedesktop.org/pipewire/pipewire/-/issues/1542
+
+    sudo tee /etc/pipewire/pipewire.conf.d/raop-discover.conf > /dev/null << EOL 
+context.modules = [
+    {
+        name = libpipewire-module-raop-discover
+        args = { }
+    }
+]
+EOL
+}
+
+function fn_audio_bluetooth {
+    echo "Enter visible bluetooth name: "
+    read bluetooth_name
+
+    # bluetooth config
+    # double qoutes to expand variable
+    sudo sed -i "s/#Name =.*/Name = ${bluetooth_name}/" /etc/bluetooth/main.conf 
+    sudo sed -i 's/#DiscoverableTimeout = 0/DiscoverableTimeout = 0/' /etc/bluetooth/main.conf
+    sudo sed -i 's/#AlwaysPairable = false/AlwaysPairable = true/' /etc/bluetooth/main.conf
+    sudo sed -i 's/#PairableTimeout = 0/PairableTimeout = 0/' /etc/bluetooth/main.conf
+    sudo sed -i 's/#JustWorksRepairing.*/JustWorksRepairing = always/' /etc/bluetooth/main.conf
+    sudo sed -i 's/#AutoEnable=true/AutoEnable=true/' /etc/bluetooth/main.conf
+
+    sudo systemctl restart bluetooth
+}
 
 function fn_automount {
     echo "Enter drive label to automount: "
