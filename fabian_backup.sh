@@ -18,6 +18,7 @@ cd rsync-time-backup
 sudo tee fabian_backup_excludes.txt > /dev/null << EOL
 + /Fabian/
 + /.config/
++ /.mozilla/
 + /Melissa/
 + /Pictures/
 + /Docker/
