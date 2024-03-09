@@ -4,8 +4,6 @@
 
 # setup:
 #
-# yay -S python-pip
-# pip install broadlink
 # yay -S python-broadlink
 #
 # OR
