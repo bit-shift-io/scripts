@@ -8,12 +8,12 @@ function main {
     echo 'on 0' | cec-client -s
     
     sleep 5s
-    /bin/python $HOME/Projects/scripts/services/cec.py &
+    #/bin/python $HOME/Projects/scripts/services/cec.py &
 
     # delay load
     sleep 5s
-    #syncthing
-    syncthing -no-browser &
+    syncthing
+    #syncthing -no-browser &
 }
 
 # pass all args
