@@ -6,6 +6,10 @@
 
 # https://serverfault.com/questions/573379/system-suspend-dbus-upower-signals-are-not-seen#582440
 
+# maybe we can inhibit sleep,
+# but turn the tv off when this is requested?
+# https://github.com/jnerin/dbus-listen-inhibit 
+
 from datetime import datetime
 import dbus
 #import gobject

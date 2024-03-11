@@ -4,6 +4,10 @@
 
 # Source: https://forum.manjaro.org/t/howto-disable-turn-off-hibernate-completely/8033
 
+# this script doesnt work,
+# https://www.tutorialspoint.com/how-to-disable-suspend-and-hibernation-modes-in-linux
+
+# https://www.tecmint.com/disable-suspend-and-hibernation-in-linux/
 
 
 
