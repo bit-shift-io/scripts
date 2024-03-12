@@ -8,11 +8,19 @@ Run ```./install.sh```
 
 This will build the plugin into a distributable zip and install it on your system.
 
+
 More info here: https://develop.kde.org/docs/plasma/kwin/
 
 ## Develop
 
+Open the script runner:
+
 ```plasma-interactiveconsole --kwin```
+
+To view the script print outputs:
+
+```journalctl -f QT_CATEGORY=js QT_CATEGORY=kwin_scripting```
+
 
 More info here: https://develop.kde.org/docs/plasma/kwin/
 
