@@ -1,5 +1,8 @@
-# scripts
+# Scripts
 
+A bunch of arch based linux scripts for various things.
+
+Primarily tested on Manjaro and EndeavourOS.
 
 ## Syncthing as a systemd service
 
@@ -22,3 +25,12 @@ Once docker service is installed and running, each config file contains the comm
 
 sudo systemctl enable bluetooth
 
+### Enable Docker network access (i.e. to access Node-red Dashboard)
+
+EndeavourOS has a firewall enabled by default so to allow access to Node-red Dashboard running from Docker:
+
+1) RMB > Edit Firewall Settings
+
+2) Under the public Zone > Ports and add:
+
+3) Port 1880, tcp.
