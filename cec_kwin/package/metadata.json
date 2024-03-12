@@ -1,0 +1,21 @@
+{
+    "KPlugin": {
+        "Name": "CEC KWin",
+        "Description": "Connect a CEC device to monitor on and off events",
+        "Icon": "preferences-system-windows",
+        
+        "Authors": [
+            {
+                "Email": "supagu@gmail.com",
+                "Name": "Fabian Mathews"
+            }
+        ],
+        "Id": "cec_kwin",
+        "Version": "1.0",
+        "License": "GPLv3",
+        "Website": "https://github.com/bit-shift-io/scripts"
+    },
+    "X-Plasma-API": "javascript",
+    "X-Plasma-MainScript": "code/main.js",
+    "KPackageStructure": "KWin/Script"
+}
