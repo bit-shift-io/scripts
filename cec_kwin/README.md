@@ -9,6 +9,10 @@ Run ```./install.sh```
 This will build the plugin into a distributable zip and install it on your system.
 
 
+Run ```./start.sh``` run dbus-listen and listen for the dbus fired from the kwin plugin.
+
+More info here: https://askubuntu.com/questions/150790/how-do-i-run-a-script-on-a-dbus-signal
+
 More info here: https://develop.kde.org/docs/plasma/kwin/
 
 ## Develop
