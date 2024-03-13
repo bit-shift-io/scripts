@@ -8,8 +8,10 @@ Run ```./install.sh```
 
 This will build the plugin into a distributable zip and install it on your system.
 
+You then need to open KWin and enable the script.
 
-Run ```./start.sh``` run dbus-listen and listen for the dbus fired from the kwin plugin.
+
+Run ```./start-listen-service.sh``` which listens for the dbus events fired from the kwin plugin (this will need to be setup as a systemd service).
 
 More info here: https://askubuntu.com/questions/150790/how-do-i-run-a-script-on-a-dbus-signal
 
