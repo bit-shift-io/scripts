@@ -31,6 +31,7 @@ function main {
     b) audio bluetooth
     s) audio network server
     c) audio network client
+    m) microcontroller - arduino
 
     *) Any key to exit
     :" ans;
@@ -47,9 +48,23 @@ function main {
         b) fn_audio_bluetooth ;;
         s) fn_audio_network_server ;;
         c) fn_audio_network_client ;;
+        m) fn_microcontroller ;;
         *) $SHELL ;;
     esac
     done
+}
+
+function fn_microcontroller {
+        sudo tee /etc/udev/rules.d/01-ttyusb.rules > /dev/null << EOL 
+SUBSYSTEMS=="usb-serial", TAG+="uaccess"
+EOL
+    # load new uev rule
+    udevadm control --reload
+    udevadm trigger
+
+    # install after permissions set
+    ./util.sh -i yay
+    ./util.sh -i arduino-ide-bin
 }
 
 function fn_audio_network_server {
