@@ -1,7 +1,7 @@
 {
     "KPlugin": {
         "Name": "CEC KWin",
-        "Description": "Connect a CEC device to monitor on and off events",
+        "Description": "Connect your external CEC device in order to turn your TV/Monitor on and off when KDE attempts to do so",
         "Icon": "preferences-system-windows",
         
         "Authors": [
@@ -11,7 +11,7 @@
             }
         ],
         "Id": "cec_kwin",
-        "Version": "1.0",
+        "Version": "1.0.2",
         "License": "GPLv3",
         "Website": "https://github.com/bit-shift-io/scripts"
     },

@@ -1,6 +1,6 @@
 # CEC_KWIN
 
-This is a KWin script that connects your external CEC device in order to turn your TV/Monitor on and off when KDE attempts to do so.
+Connect your external CEC device in order to turn your TV/Monitor on and off when KDE attempts to do so.
 
 ## Install
 
@@ -8,10 +8,10 @@ Run ```./install.sh```
 
 This will build the plugin into a distributable zip and install it on your system.
 
-You then need to open KWin and enable the script.
+You then need to open "KWin Scripts" and enable the script.
 
 
-Run ```./start-listen-service.sh``` which listens for the dbus events fired from the kwin plugin (this will need to be setup as a systemd service).
+Run ```./dbus_service.py``` which listens for the dbus events fired from the kwin plugin (this will need to be setup as a systemd service).
 
 More info here: https://askubuntu.com/questions/150790/how-do-i-run-a-script-on-a-dbus-signal
 
