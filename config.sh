@@ -23,6 +23,7 @@ function main {
     ===================
     5) Base Apps
     6) Media Development Apps
+    7) Chinese pinyin virtual keyboard support
 
     extras
     ===================
@@ -49,10 +50,19 @@ function main {
         s) fn_audio_network_server ;;
         c) fn_audio_network_client ;;
         m) fn_microcontroller ;;
+        7) fn_pinyin ;;
         *) $SHELL ;;
     esac
     done
 }
+
+
+function fn_pinyin {
+    # https://forum.manjaro.org/t/chinese-language-support/115416/5
+    ./util.sh -i adobe-source-han-sans-cn-fonts adobe-source-han-serif-cn-fonts
+    ./util.sh fcitx5 fcitx5-gtk fcitx5-qt fcitx5-configtool fcitx5-chinese-addons manjaro-asian-input-support-fcitx5
+}
+
 
 function fn_microcontroller {
         sudo tee /etc/udev/rules.d/01-ttyusb.rules > /dev/null << EOL 
