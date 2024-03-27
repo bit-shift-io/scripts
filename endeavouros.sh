@@ -14,7 +14,7 @@ function main {
     read -n 1 -p "
     config
     ===================
-    1) Setup Firewall
+    1) Disable Firewall
     2) Enable Blutooth
 
     *) Any key to exit
@@ -29,13 +29,10 @@ function main {
 }
 
 function fn_setup_firewall {
-    # let docker through to access node-red dashboard on LAN
-    sudo firewall-cmd --permanent --zone=home --add-port=1880/tcp
-
-    # allow kdeconnect
-    sudo firewall-cmd --permanent --zone=home --add-service=kdeconnect
-
-    sudo firewall-cmd --reload
+    # https://discovery.endeavouros.com/applications/firewalld/2022/03/
+    sudo systemctl stop firewalld
+    sudo systemctl disable --now firewalld
+    #sudo pacman -R firewalld
 }
 
 function fn_enable_bluetooth {
