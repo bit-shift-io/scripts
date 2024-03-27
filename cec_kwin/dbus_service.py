@@ -11,6 +11,10 @@ import dbus
 import dbus.service
 import dbus.mainloop.glib
 from gi.repository import GLib
+import os
+
+def script_path(): 
+    return os.path.dirname(os.path.realpath(__file__))
 
 
 class Service(dbus.service.Object):
@@ -22,19 +26,19 @@ class Service(dbus.service.Object):
         bus_name = dbus.service.BusName("io.bitshift.dbus_service", dbus.SessionBus())
         dbus.service.Object.__init__(self, bus_name, "/io/bitshift/dbus_service")
 
-        print("Service running...")
+        print("Service running from " + script_path() + "...")
         self._loop.run()
         print("Service stopped")
 
     @dbus.service.method("io.bitshift.dbus_service", in_signature="", out_signature="")
     def aboutToTurnOff(self):
         print(f"aboutToTurnOff")
-        self.run_command("./aboutToTurnOff.sh")
+        self.run_command(". " + script_path() + "/aboutToTurnOff.sh")
 
     @dbus.service.method("io.bitshift.dbus_service", in_signature="", out_signature="")
     def wakeUp(self):
         print(f"wakeUp")
-        self.run_command("./wakeUp.sh")
+        self.run_command(". " + script_path() + "/wakeUp.sh")
 
     @dbus.service.method("io.bitshift.dbus_service", in_signature="s", out_signature="i")
     def run_command(self, m):
