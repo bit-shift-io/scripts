@@ -33,12 +33,12 @@ class Service(dbus.service.Object):
     @dbus.service.method("io.bitshift.dbus_service", in_signature="", out_signature="")
     def aboutToTurnOff(self):
         print(f"aboutToTurnOff")
-        self.run_command(". " + script_path() + "/aboutToTurnOff.sh")
+        self.run_command(script_path() + "/aboutToTurnOff.sh")
 
     @dbus.service.method("io.bitshift.dbus_service", in_signature="", out_signature="")
     def wakeUp(self):
         print(f"wakeUp")
-        self.run_command(". " + script_path() + "/wakeUp.sh")
+        self.run_command(script_path() + "/wakeUp.sh")
 
     @dbus.service.method("io.bitshift.dbus_service", in_signature="s", out_signature="i")
     def run_command(self, m):
