@@ -16,6 +16,7 @@ function main {
     ===================
     1) Disable Firewall
     2) Enable Blutooth
+    3) Install Vulkan driver
 
     *) Any key to exit
     :" ans;
@@ -37,6 +38,11 @@ function fn_setup_firewall {
 
 function fn_enable_bluetooth {
     sudo systemctl enable bluetooth
+}
+
+function fn_install_vulkan_driver {
+    # https://forum.endeavouros.com/t/should-i-get-vulkan-for-amd-igpu/40309
+    yay vulkan-radeon lib32-vulkan-radeon
 }
 
 # pass all args
