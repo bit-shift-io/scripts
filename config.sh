@@ -124,70 +124,30 @@ function fn_audio_bluetooth {
     #echo "Enter bluetooth pin (eg 123456): "
     #read bluetooth_pin
 
-    ./util.sh -i bluez bluez-utils bluez-tools
-    # python-dbus
+    #./util.sh -i bluez bluez-utils bluez-tools
+    ./util.sh -i python-dbus
 
-    # bluetooth config
-    # double qoutes to expand variable
-    sudo sed -i "s/#Name =.*/Name = ${bluetooth_name}/" /etc/bluetooth/main.conf 
-    sudo sed -i 's/#DiscoverableTimeout = 0/DiscoverableTimeout = 0/' /etc/bluetooth/main.conf
-    sudo sed -i 's/#AlwaysPairable = false/AlwaysPairable = true/' /etc/bluetooth/main.conf
-    sudo sed -i 's/#PairableTimeout = 0/PairableTimeout = 0/' /etc/bluetooth/main.conf
-    sudo sed -i 's/#JustWorksRepairing.*/JustWorksRepairing = always/' /etc/bluetooth/main.conf
-    sudo sed -i 's/#AutoEnable=true/AutoEnable=true/' /etc/bluetooth/main.conf
-
-    # might need one of the following?
-    # sudo hciconfig hci0 sspmode 0
-    # sudo hciconfig hci0 sspmode
-    # sudo hciconfig noauth
-
-    # also power on boot?
-    # sudo bluetoothctl <<EOF
-    # power on
-    # discoverable on
-    # pairable on
-#sudo tee /etc/bluetooth/pin.cfg > /dev/null << EOL
-#* ${bluetooth_pin}
-#EOL
 
 sudo tee /etc/systemd/system/bt.service > /dev/null << EOL 
 [Unit]
-Description=Bluetooth Power On
-After=network.target bluetooth.service
+Description=Bluetooth speaker agent
+After=network.target bluetooth.service dbus.service
 
 [Service]
-#oneshot
-Type=oneshot
-#ExecStart=echo -e 'power on\ndiscoverable on\npairable on\nquit' | bluetoothctl
-ExecStart=/usr/bin/bluetoothctl power on
-ExecStart=/usr/bin/bluetoothctl discoverable on
-ExecStart=/usr/bin/bluetoothctl pairable on
+TimeoutStartSec=60
+ExecStartPre=/usr/bin/sleep 20
+#BusName=org.bluez
+Environment=PYTHONUNBUFFERED=1
+ExecStart=python ${HOME}/Projects/scripts/services/speaker-agent.py
 User=${USER}
 
 [Install]
 WantedBy=default.target
 EOL
 
-sudo tee /etc/systemd/system/bt-agent.service > /dev/null << EOL 
-[Unit]
-Description=Bluetooth Agent
-After=network.target bluetooth.service
-
-[Service]
-ExecStart=bt-agent -c NoInputNoOutput -p /etc/bluetooth/pin.cfg
-Restart=always
-RestartSec=1
-User=${USER}
-
-[Install]
-WantedBy=default.target
-EOL
-
-    sudo systemctl restart bluetooth
     sudo systemctl enable bt.service
     sudo systemctl start bt.service
-    sudo systemctl enable bt-agent.service
-    sudo systemctl start bt-agent.service
+
 
 }
 
