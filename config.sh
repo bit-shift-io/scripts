@@ -127,8 +127,22 @@ function fn_audio_bluetooth {
     #./util.sh -i bluez bluez-utils bluez-tools
     ./util.sh -i python-dbus
 
+    # bluetooth config
+    # double qoutes to expand variable
+    sudo sed -i "s/.*Name =.*/Name = ${bluetooth_name}/" /etc/bluetooth/main.conf 
+    sudo sed -i 's/#DiscoverableTimeout = 0/DiscoverableTimeout = 0/' /etc/bluetooth/main.conf
+    sudo sed -i 's/#AlwaysPairable = false/AlwaysPairable = true/' /etc/bluetooth/main.conf
+    sudo sed -i 's/#PairableTimeout = 0/PairableTimeout = 0/' /etc/bluetooth/main.conf
+    sudo sed -i 's/#JustWorksRepairing.*/JustWorksRepairing = always/' /etc/bluetooth/main.conf
+    sudo sed -i 's/#AutoEnable=true/AutoEnable=true/' /etc/bluetooth/main.conf
 
-sudo tee /etc/systemd/system/bt.service > /dev/null << EOL 
+    # might need one of the following?
+    # sudo hciconfig hci0 sspmode 0
+    # sudo hciconfig hci0 sspmode 1
+    #sudo hciconfig hci0 noauth
+
+#/etc/systemd/system/
+sudo tee /usr/lib/systemd/user/bt.service > /dev/null << EOL 
 [Unit]
 Description=Bluetooth speaker agent
 After=network.target bluetooth.service dbus.service
@@ -136,19 +150,18 @@ After=network.target bluetooth.service dbus.service
 [Service]
 TimeoutStartSec=60
 ExecStartPre=/usr/bin/sleep 20
-#BusName=org.bluez
 Environment=PYTHONUNBUFFERED=1
 ExecStart=python ${HOME}/Projects/scripts/services/speaker-agent.py
-User=${USER}
+#User=${USER}
+#Group=${USER}
 
 [Install]
 WantedBy=default.target
 EOL
 
-    sudo systemctl enable bt.service
+    sudo systemctl daemon-reload
+    sudo systemctl --global enable bt.service
     sudo systemctl start bt.service
-
-
 }
 
 function fn_automount {

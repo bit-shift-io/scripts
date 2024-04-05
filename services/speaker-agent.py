@@ -58,12 +58,14 @@ class Agent(dbus.service.Object):
     def set_exit_on_release(self, exit_on_release):
         self.exit_on_release = exit_on_release
 
+
     @dbus.service.method(AGENT_INTERFACE,
                          in_signature="", out_signature="")
     def Release(self):
         print("Release")
         if self.exit_on_release:
             mainloop.quit()
+
 
     @dbus.service.method(AGENT_INTERFACE,
                          in_signature="os", out_signature="")
@@ -73,7 +75,7 @@ class Agent(dbus.service.Object):
             raise Rejected("Connection rejected by user")
 
         # always auth device
-        print("Auto authorize %s" % device)
+        print("Auto authorize (%s, %s)" % (device, uuid))
         return
         '''
         # Always authorize A2DP and AVRCP connection
@@ -84,6 +86,7 @@ class Agent(dbus.service.Object):
             print("Service rejected (%s, %s)" % (device, uuid))
         '''
         raise Rejected("Connection rejected by user")
+
 
     @dbus.service.method(AGENT_INTERFACE,
                          in_signature="", out_signature="")
@@ -105,7 +108,7 @@ def start_speaker_agent():
 
     print("Bluetooth speaker discoverable")
 
-    # As the RPi speaker will not have any interface, create a pairing
+    # As the bluetooth speaker will not have any interface, create a pairing
     # agent with NoInputNoOutput capability
     obj = bus.get_object(BUS_NAME, "/org/bluez")
     manager = dbus.Interface(obj, "org.bluez.AgentManager1")
