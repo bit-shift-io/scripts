@@ -60,6 +60,10 @@ function main {
 
 function fn_android {
     ./util.sh -i android-ndk android-tools clang llvm lld jdk17-openjdk
+    
+    # todo:
+    # bash rc env paths for java, sdk, ndk
+    # reboot
 }
 
 
