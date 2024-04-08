@@ -24,7 +24,8 @@ function main {
     5) Base Apps
     6) Media Development Apps
     7) Chinese pinyin virtual keyboard support
-
+    9) Android SDK/NDK
+    
     extras
     ===================
     a) Automount
@@ -51,9 +52,14 @@ function main {
         c) fn_audio_network_client ;;
         m) fn_microcontroller ;;
         7) fn_pinyin ;;
+        9) fn_android ;;
         *) $SHELL ;;
     esac
     done
+}
+
+function fn_android {
+    ./util.sh -i android-ndk android-tools clang llvm lld jdk17-openjdk
 }
 
 
