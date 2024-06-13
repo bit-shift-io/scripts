@@ -353,17 +353,29 @@ EOL
 
 function fn_base_apps {
     # remove old stuff
-    #use pactree qt4 - to list packages dependancies
+    # use pactree qt4 - to list packages dependancies
     echo -e '\n\nRemoving packages...'
-    #./util.sh -r xterm manjaro-hello manjaro-application-utility octopi-notifier-frameworks octopi-cachecleaner octopi-repoeditor octopi calligra kget yakuake plasma-wayland-session python-xdg xorg-xrandr udftools
+    ./util.sh -r yakuake
 
     # install software
     echo -e '\n\nInstalling packages...'
-    ./util.sh -i base-devel openssh kio-extras  plasma-browser-integration libreoffice firefox keepassxc code git
+    ./util.sh -i yay base-devel openssh kio-extras plasma-browser-integration libreoffice firefox keepassxc git rustup vulkan-radeon lib32-vulkan-radeon
+    
+    # aur software
+    echo -e '\n\nInstalling AUR packages...'
+    ./util.sh -i visual-studio-code-bin
     
     # enable ssh
     sudo systemctl enable sshd.service
     sudo systemctl start sshd.service
+    
+    # enable bluetooth
+    sudo systemctl enable bluetooth
+    
+    # disable firewall - endevour
+    sudo systemctl stop firewalld
+    sudo systemctl disable --now firewalld
+    #sudo pacman -R firewalld
 
     echo -e '\n\ninstall complete'
     notify-send 'Applications' 'Install completed'
