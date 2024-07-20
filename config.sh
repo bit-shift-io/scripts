@@ -33,7 +33,8 @@ function main {
     b) audio bluetooth
     s) audio network server
     c) audio network client
-    m) microcontroller - arduino
+    m) microcontroller udev rules
+    f) fix pacman keys
 
     *) Any key to exit
     :" ans;
@@ -53,10 +54,19 @@ function main {
         m) fn_microcontroller ;;
         7) fn_pinyin ;;
         9) fn_android ;;
+        f) fn_fix_pacman ;;
         *) $SHELL ;;
     esac
     done
 }
+
+
+function fn_fix_pacman {
+    sudo pacman -Syy
+    sudo pacman-key --refresh-keys
+    sudo pacman-key --populate archlinux manjaro
+}
+
 
 function fn_android {
     ./util.sh -i android-ndk android-tools clang llvm lld jdk17-openjdk
@@ -75,16 +85,39 @@ function fn_pinyin {
 
 
 function fn_microcontroller {
-        sudo tee /etc/udev/rules.d/01-ttyusb.rules > /dev/null << EOL 
+# arduino
+sudo tee /etc/udev/rules.d/01-ttyusb.rules > /dev/null << EOL 
 SUBSYSTEMS=="usb-serial", TAG+="uaccess"
 EOL
+
+# NRF
+sudo tee /etc/udev/rules.d/71-nrf.rules > /dev/null << EOL 
+ACTION!="add", SUBSYSTEM!="usb_device", GOTO="nrf_rules_end"
+
+# Set /dev/bus/usb/*/* as read-write for all users (0666) for Nordic Semiconductor devices
+SUBSYSTEM=="usb", ATTRS{idVendor}=="1915", MODE="0666"
+
+# Flag USB CDC ACM devices, handled later in 99-mm-nrf-blacklist.rules
+# Set USB CDC ACM devnodes as read-write for all users
+KERNEL=="ttyACM[0-9]*", SUBSYSTEM=="tty", SUBSYSTEMS=="usb", ATTRS{idVendor}=="1915", MODE="0666", ENV{NRF_CDC_ACM}="1"
+
+LABEL="nrf_rules_end"
+EOL
+
+# NRF
+sudo tee /etc/udev/rules.d/99-mm-nrf-blacklist.rules > /dev/null << EOL 
+# 99-modemmmanager-acm-fix.rules
+# Previously flagged nRF USB CDC ACM devices shall be ignored by ModemManager
+ENV{NRF_CDC_ACM}=="1", ENV{ID_MM_CANDIDATE}="0", ENV{ID_MM_DEVICE_IGNORE}="1"
+EOL
+
     # load new uev rule
     udevadm control --reload
     udevadm trigger
 
     # install after permissions set
-    ./util.sh -i yay
-    ./util.sh -i arduino-ide-bin
+    #./util.sh -i yay
+    #./util.sh -i arduino-ide-bin
 }
 
 function fn_audio_network_server {
