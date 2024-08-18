@@ -6,6 +6,12 @@ Connect your external CEC device in order to turn your TV/Monitor on and off whe
 
 Run ```./install.sh```
 
+
+
+
+
+## OLD
+
 This will build the plugin into a distributable zip and install it on your system.
 
 You then need to open "KWin Scripts" and enable the script.

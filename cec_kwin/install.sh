@@ -15,9 +15,12 @@ kpackagetool6 --type=KWin/Script -i ./package/
 #
 # setup a systemd service to run on bootup, which listens for the kwin script
 #
+
+mkdir -p $HOME/.config/systemd/user/
+
 DIR="$( cd "$( dirname "$0" )" && pwd )"
 
-sudo tee ~/.config/systemd/user/cec_kwin.service > /dev/null << EOL 
+tee $HOME/.config/systemd/user/cec_kwin.service > /dev/null << EOL 
 
 [Unit]
 Description=cec_kwin - Connect your external CEC device in order to turn your TV/Monitor on and off when KDE attempts to do so.
@@ -48,3 +51,18 @@ EOL
 
 systemctl --user enable cec_kwin.service
 systemctl --user start cec_kwin.service
+
+
+#
+# activate the kwin script
+#
+
+current=`kreadconfig5 --file kwinrc --group Plugins --key cec_kwin`
+
+if [ "$current" = "true" ]; then
+  kwriteconfig5 --file kwinrc --group Plugins --key cec_kwin false
+elif [ "$current" = "false" ]; then
+  kwriteconfig5 --file kwinrc --group Plugins --key cec_kwin true
+fi
+
+qdbus org.kde.KWin /KWin reconfigure
