@@ -57,12 +57,12 @@ systemctl --user start cec_kwin.service
 # activate the kwin script
 #
 
-current=`kreadconfig5 --file kwinrc --group Plugins --key cec_kwin`
+#current=`kreadconfig5 --file kwinrc --group Plugins --key cec_kwin`
 
-if [ "$current" = "true" ]; then
-  kwriteconfig5 --file kwinrc --group Plugins --key cec_kwin false
-elif [ "$current" = "false" ]; then
+#if [ "$current" = "true" ]; then
+#  kwriteconfig5 --file kwinrc --group Plugins --key cec_kwin false
+#elif [ "$current" = "false" ]; then
   kwriteconfig5 --file kwinrc --group Plugins --key cec_kwin true
-fi
+#fi
 
 qdbus org.kde.KWin /KWin reconfigure
