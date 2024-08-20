@@ -36,4 +36,7 @@ To view the script print outputs:
 
 More info here: https://develop.kde.org/docs/plasma/kwin/
 
+https://discuss.kde.org/t/determine-when-monitor-is-turned-on-or-off-via-python-dbus/11980/9
+
+
 ## Notes
