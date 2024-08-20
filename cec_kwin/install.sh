@@ -1,5 +1,13 @@
 #!/bin/bash
 
+
+#
+# install required tools
+# qdbus
+#
+
+sudo pacman -S qt6-tools
+
 #
 # install the kwin script
 #
@@ -57,12 +65,12 @@ systemctl --user start cec_kwin.service
 # activate the kwin script
 #
 
-#current=`kreadconfig5 --file kwinrc --group Plugins --key cec_kwin`
+kwriteconfig5 --file kwinrc --group Plugins --key cec_kwinEnabled true
+qdbus6 org.kde.KWin /KWin reconfigure
 
-#if [ "$current" = "true" ]; then
-#  kwriteconfig5 --file kwinrc --group Plugins --key cec_kwin false
-#elif [ "$current" = "false" ]; then
-  kwriteconfig5 --file kwinrc --group Plugins --key cec_kwin true
-#fi
 
-qdbus org.kde.KWin /KWin reconfigure
+#
+# display status
+#
+
+systemctl --user status cec_kwin
