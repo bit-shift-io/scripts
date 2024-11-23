@@ -18,20 +18,15 @@ function add_mount {
 # mount
 sudo tee /etc/systemd/system/$path_name.mount > /dev/null << EOL 
     [Unit]
-    Description=network mount
-    Requires=network-online.target
-    After=network-online.service
-    Wants=network-online.target
+    Description=sshfs network mount
     Before=remote-fs.target
 
     [Mount]
-    What=sshfs#$user@$host:$remote_path
+    What=$user@$host:$remote_path
     Where=$local_path
     Type=fuse.sshfs
-    #Options=_netdev,reconnect,ServerAliveInterval=30,ServerAliveCountMax=5,x-systemd.automount
     Options=_netdev,rw,nosuid,allow_other,uid=$uid,gid=$gid,default_permissions,follow_symlinks,idmap=user,identityfile=$HOME/.ssh/id_ed25519
-    TimeoutSec=2
-    #ForceUnmount=true
+    TimeoutSec=30
 
     [Install]
     WantedBy=remote-fs.target
@@ -45,13 +40,11 @@ EOL
 # autmount
 sudo tee /etc/systemd/system/$path_name.automount > /dev/null << EOL   
     [Unit]
-    Description=network mount
-    Requires=network-online.target
-    After=network-online.service
+    Description=sshfs network mount
 
     [Automount]
     Where=$local_path
-    TimeoutIdleSec=60
+    TimeoutIdleSec=0
 
     [Install]
     WantedBy=multi-user.target
