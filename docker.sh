@@ -148,7 +148,7 @@ function fn_docker_base_debian {
     # https://docs.docker.com/engine/install/debian/
 
     # https://download.docker.com/linux/debian/dists/
-    VERSION = bookworm
+    VERSION=bookworm
     echo "install docker for debian: {$VERISON}"
 
     # remove old
