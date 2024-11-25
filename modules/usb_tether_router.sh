@@ -3,6 +3,7 @@
 # https://peppe8o.com/raspberry-pi-portable-hotspot-with-android-usb-tethering/
 # https://oxcrag.net/projects/linux-router-part-1-routing-nat-and-nftables/
 # https://wiki.nftables.org/wiki-nftables/index.php/Simple_ruleset_for_a_home_router
+# https://github.com/gene-git/blog/tree/master/nftables
 
 ## ==== MAIN CODE ====
 
@@ -15,12 +16,12 @@ sudo apt remove netplan.io
 sudo apt autoremove
 
 
-# enable forwarding/routing - done in the network files
+# enable forwarding/routing - can be done in the network files now?
 #sudo nano /etc/sysctl.conf
 #net.ipv4.ip_forward=1
 #sysctl net.ipv4.conf.all.rp_filter=0
 #sudo sysctl -p
-# cat /proc/sys/net/ipv4/ip_forward
+#cat /proc/sys/net/ipv4/ip_forward
 
 
 # disable systemd resolv (dns server)
@@ -73,8 +74,8 @@ Name=end0
 
 [Network]
 Address=192.168.1.6/24
-#Gateway=192.168.1.1
-#DNS=192.168.1.3
+Gateway=192.168.1.1
+DNS=192.168.1.3
 
 #IPv4Forwarding=yes
 #IPv6Forwarding=yes
@@ -93,63 +94,92 @@ sudo systemctl restart systemd-networkd
 
 # need system reboot here
 
-#
-sudo nft add table ip nat
-sudo nft add chain ip nat postrouting { type nat hook postrouting priority 100 \; }
-sudo nft add rule ip nat postrouting oif "usb0" masquerade
+
+
 
 # nftables routing
 sudo mkdir /etc/nftables.d
+
 sudo tee /etc/nftables.d/nat.conf > /dev/null << EOL
-flush ruleset
-
-# Filter Table (for packet filtering)
 table inet filter {
-    chain input {
-        type filter hook input priority 0; policy accept;
-    }
+        chain input {
+                type filter hook input priority 0; policy accept;
+                #icmp type { echo-request, echo-reply } limit rate 4/second accept
+        }
+    
+        chain forward {
+                type filter hook forward priority filter; policy accept;
+                #iifname "usb0" oifname "end0" ct state established,related accept
+                iifname "usb0" oifname "end0" accept # dont need?
+                iifname "end0" oifname "usb0" accept # dont need?
+        }
 
-    chain forward {
-        type filter hook forward priority filter; policy accept;
-        # Allow forwarding between end0 and usb0
-        iif "end0" oif "usb0" accept
-        iif "usb0" oif "end0" accept
-    }
-
-    chain output {
-        type filter hook output priority 0; policy accept;
-    }
+        # added docker forward accept
+        chain DOCKER-USER {
+                type filter hook forward priority filter; policy accept;
+                iifname "usb0" oifname "end0" accept # dont need?
+                iifname "end0" oifname "usb0" accept # dont need?
+        }
 }
 
-# NAT Table (for Network Address Translation)
 table ip nat {
-    chain prerouting {
-        type nat hook prerouting priority filter; policy accept;
-    }
+        chain prerouting {
+                type nat hook prerouting priority dstnat; policy accept;
+        }
 
-    chain postrouting {
-        type nat hook postrouting priority srcnat; policy accept;
-        oif "usb0" masquerade  # Masquerading for traffic from end0
-    }
+        chain postrouting {
+                type nat hook postrouting priority srcnat; policy accept;
+                oifname "usb0" masquerade
+        }
 }
 EOL
+
 
 # add include to the bottom of nftables.conf
 echo 'include "/etc/nftables.d/*.conf"' | sudo tee -a /etc/nftables.conf
 sudo nft -f /etc/nftables.conf
-sudo nft -f /etc/nftables.d/nat.conf
+#sudo nft -f /etc/nftables.d/nat.conf
 sudo nft list ruleset
 
-sudo journalctl | grep "ICMP Echo Reply"
 
-#default via 192.168.1.6 dev end0 
-#172.17.0.0/16 dev docker0 proto kernel scope link src 172.17.0.1 linkdown 
-#172.18.0.0/16 dev br-cc00a7d88795 proto kernel scope link src 172.18.0.1 
-#192.168.1.0/24 dev end0 proto kernel scope link src 192.168.1.6 
-#192.168.102.0/24 dev usb0 proto kernel scope link src 192.168.102.114 metric 1024 
-#192.168.102.208 dev usb0 proto dhcp scope link src 192.168.102.114 metric 1024 
 
-sudo tee /etc/nftables.d/net.conf > /dev/null << EOL
+
+# should no need this eventually.... 
+
+# udev to run system nft rules service
+sudo tee /etc/systemd/system/internet-usb.service > /dev/null << EOL
+[Unit]
+Description=Run nftables on usb device connect
+After=network.target
+
+[Service]
+ExecStart=/usr/sbin/nft -f /etc/nftables.conf
+Type=oneshot
+User=root
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+sudo tee /etc/udev/rules.d/99-internet-usb.rules > /dev/null << EOL
+SUBSYSTEMS=="usb", ACTION=="add", ATTR{idVendor}=="18d1", ATTR{idProduct}=="4eec", RUN+="/usr/bin/systemctl start internet-usb.service"
+EOL
+
+sudo systemctl daemon-reload
+sudo systemctl enable internet-usb.service
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+
+
+
+
+
+
+
+
+# more advanced firewall example
+sudo tee /etc/nftables.d/net.conf.bk > /dev/null << EOL
 #!/usr/sbin/nft -f
 
 # Clear out any existing rules
@@ -224,91 +254,4 @@ table ip nat {
 		oif $WANLINK masquerade
 	}
 }
-EOL
-
-
-
-
-
-
-
-sudo tee
-#!/usr/sbin/nft -f
-
-flush ruleset
-
-table inet firewall {
-    chain input {
-        type filter hook input priority 0; policy drop;
-
-        # allow localhost
-        iif "lo" accept
-
-        # allow from wan interface
-        iifname "enp1s0" accept
-
-        # allow return traffic
-        ct state established,related accept
-
-        # allow ICMP
-        meta l4proto { icmp, ipv6-icmp } accept
-
-        # allow DHCP from LAN
-        iifname { "end0" } udp dport 67 accept
-
-        # allow DNS from LAN and live
-        iifname { "end0" } tcp dport 53 accept
-        iifname { "end0" } udp dport 53 accept
-
-        # allow NTP
-        iifname { "end0" } udp dport 123 accept
-
-        reject with icmpx type admin-prohibited
-    }
-
-    chain forward-internet-to-lan {
-        # allow ICMP
-        meta l4proto { icmp, ipv6-icmp } accept
-
-        # allow return traffic
-        ct state established,related accept
-
-        reject with icmpx type admin-prohibited
-    }
-
-    chain forward-internet-to-live {
-        # allow ICMP
-        meta l4proto { icmp, ipv6-icmp } accept
-
-        # allow all traffic
-        accept
-    }
-
-    chain forward {
-        type filter hook forward priority 0; policy drop;
-
-        # allow ICMP
-        meta l4proto { icmp, ipv6-icmp } accept
-
-        iifname "usb0" oifname "end0" jump forward-internet-to-lan
-        #iifname "usb0" oifname "enp3s0" jump forward-internet-to-live
-
-        # allow from lan to internet, live
-        iifname "end0" oifname { "usb0" } accept
-
-        # allow return traffic
-        ct state established,related accept
-
-        reject with icmpx type admin-prohibited
-    }
-}
-
-table ip nat {
-    chain postrouting {
-        type nat hook postrouting priority 0;
-
-        ip saddr 192.168.0.0/16 oifname "usb0" masquerade fully-random
-    }
-}
-
 EOL

@@ -14,7 +14,8 @@ function main {
     read -n 1 -p "
     server tools
     ===================
-    d) Docker Base
+    a) Docker Base - Arch
+    b) Docker Base - Debian/Arbmain
     r) Docker Remove All
     4) route port to 80
     5) docker pipe
@@ -23,7 +24,8 @@ function main {
     :" ans;
     reset
     case $ans in 
-        d) fn_docker_base ;;
+        a) fn_docker_base_arch ;;
+        b) fn_docker_base_debian ;;
         r) fn_remove_all ;;
         4) fn_nftables ;;
         5) fn_dockerpipe ;;
@@ -142,7 +144,34 @@ EOL
 }
 
 
-function fn_docker_base {
+function fn_docker_base_debian {
+    # https://docs.docker.com/engine/install/debian/
+
+    # https://download.docker.com/linux/debian/dists/
+    VERSION_CODENAME = bookworm
+    
+    # remove old
+    ./util.sh -u docker.io docker-compose
+
+    # Add Docker's official GPG key:
+    sudo apt-get update
+    sudo apt-get install ca-certificates curl
+    sudo install -m 0755 -d /etc/apt/keyrings
+    sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+    sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+    # Add the repository to Apt sources:
+    echo \
+    "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+    $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    sudo apt-get update
+
+    # add user
+    sudo usermod -aG docker ${USER}
+}
+
+function fn_docker_base_arch {
     ./util.sh -i docker docker-compose
     sudo systemctl enable docker
     sudo systemctl start docker
