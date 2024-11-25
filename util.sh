@@ -62,6 +62,10 @@ function install {
                 sudo ${bin} -n install ${pkg}
                 ;;
 
+            'apt')
+                sudo ${bin} install -y ${pkg}
+                ;;
+
             *)
                 echo -n "unknown"
                 ;;
@@ -87,6 +91,10 @@ function remove {
                 
             'zypper')
                 sudo ${bin} -n rm ${pkg}
+                ;;
+
+            'apt')
+                sudo ${bin} remove -y ${pkg}
                 ;;
 
             *)

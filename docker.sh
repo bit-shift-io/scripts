@@ -152,7 +152,8 @@ function fn_docker_base_debian {
     echo "install docker for debian: $VERSION"
 
     # remove old
-    for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do sudo apt remove $pkg; done
+    ./util.sh -u docker.io docker-doc docker-compose podman-docker containerd runc
+    sudo apt autoremove -y
 
     # Add Docker's official GPG key:
     sudo apt update
@@ -169,7 +170,7 @@ function fn_docker_base_debian {
     sudo apt update
 
     # install
-    sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    ./util.sh -i docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
     # add user
     sudo usermod -aG docker ${USER}
