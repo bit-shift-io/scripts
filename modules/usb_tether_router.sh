@@ -5,6 +5,9 @@
 # https://wiki.nftables.org/wiki-nftables/index.php/Simple_ruleset_for_a_home_router
 # https://github.com/gene-git/blog/tree/master/nftables
 
+# https://blog.ghostinashell.com/linux/nftables/2020/03/07/nftables.html <- todo!
+# https://docs.docker.com/engine/network/packet-filtering-firewalls/
+
 ## ==== MAIN CODE ====
 
 
@@ -95,7 +98,13 @@ sudo systemctl restart systemd-networkd
 # need system reboot here
 
 
-
+# disable docker adding rules to nftables
+sudo tee /etc/docker/daemon.json > /dev/null << EOL
+{
+  "iptables": false,
+  "ip6tables": false
+}
+EOL
 
 # nftables routing
 sudo mkdir /etc/nftables.d
@@ -104,21 +113,13 @@ sudo tee /etc/nftables.d/nat.conf > /dev/null << EOL
 table inet filter {
         chain input {
                 type filter hook input priority 0; policy accept;
-                #icmp type { echo-request, echo-reply } limit rate 4/second accept
         }
     
         chain forward {
                 type filter hook forward priority filter; policy accept;
                 #iifname "usb0" oifname "end0" ct state established,related accept
-                iifname "usb0" oifname "end0" accept # dont need?
-                iifname "end0" oifname "usb0" accept # dont need?
-        }
-
-        # added docker forward accept
-        chain DOCKER-USER {
-                type filter hook forward priority filter; policy accept;
-                iifname "usb0" oifname "end0" accept # dont need?
-                iifname "end0" oifname "usb0" accept # dont need?
+                #iifname "usb0" oifname "end0" accept # dont need?
+                #iifname "end0" oifname "usb0" accept # dont need?
         }
 }
 
@@ -134,12 +135,111 @@ table ip nat {
 }
 EOL
 
+# todo: setup docker to work without needing host mode...
+# this is the default rules for docker, but it breaks routing
+sudo tee /etc/nftables.d/docker.conf.bk > /dev/null << EOL
+table ip nat {
+        chain DOCKER {
+                iifname "docker0" counter packets 0 bytes 0 return
+        }
+
+        chain POSTROUTING {
+                type nat hook postrouting priority srcnat; policy accept;
+                ip saddr 172.17.0.0/16 oifname != "docker0" counter packets 0 bytes 0 masquerade
+        }
+
+        chain PREROUTING {
+                type nat hook prerouting priority dstnat; policy accept;
+                fib daddr type local counter packets 1 bytes 60 jump DOCKER
+        }
+
+        chain OUTPUT {
+                type nat hook output priority dstnat; policy accept;
+                ip daddr != 127.0.0.0/8 fib daddr type local counter packets 0 bytes 0 jump DOCKER
+        }
+}
+
+table ip filter {
+        chain DOCKER {
+        }
+
+        chain DOCKER-ISOLATION-STAGE-1 {
+                iifname "docker0" oifname != "docker0" counter packets 0 bytes 0 jump DOCKER-ISOLATION-STAGE-2
+                counter packets 0 bytes 0 return
+        }
+
+        chain DOCKER-ISOLATION-STAGE-2 {
+                oifname "docker0" counter packets 0 bytes 0 drop
+                counter packets 0 bytes 0 return
+        }
+
+        chain FORWARD {
+                type filter hook forward priority filter; policy drop;
+                counter packets 0 bytes 0 jump DOCKER-USER
+                counter packets 0 bytes 0 jump DOCKER-ISOLATION-STAGE-1
+                oifname "docker0" ct state related,established counter packets 0 bytes 0 accept
+                oifname "docker0" counter packets 0 bytes 0 jump DOCKER
+                iifname "docker0" oifname != "docker0" counter packets 0 bytes 0 accept
+                iifname "docker0" oifname "docker0" counter packets 0 bytes 0 accept
+        }
+
+        chain DOCKER-USER {
+                # todo, policy accpet here for routing??
+                # type filter hook forward priority filter; policy accept;
+                counter packets 0 bytes 0 return
+        }
+}
+
+table ip6 nat {
+        chain DOCKER {
+        }
+}
+
+table ip6 filter {
+        chain DOCKER {
+        }
+
+        chain DOCKER-ISOLATION-STAGE-1 {
+                iifname "docker0" oifname != "docker0" counter packets 0 bytes 0 jump DOCKER-ISOLATION-STAGE-2
+                counter packets 0 bytes 0 return
+        }
+
+        chain DOCKER-ISOLATION-STAGE-2 {
+                oifname "docker0" counter packets 0 bytes 0 drop
+                counter packets 0 bytes 0 return
+        }
+
+        chain FORWARD {
+                type filter hook forward priority filter; policy drop;
+                counter packets 0 bytes 0 jump DOCKER-USER
+        }
+
+        chain DOCKER-USER {
+                counter packets 0 bytes 0 return
+        }
+}
+EOL
+
 
 # add include to the bottom of nftables.conf
 echo 'include "/etc/nftables.d/*.conf"' | sudo tee -a /etc/nftables.conf
 sudo nft -f /etc/nftables.conf
 #sudo nft -f /etc/nftables.d/nat.conf
 sudo nft list ruleset
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
