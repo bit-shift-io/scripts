@@ -177,7 +177,8 @@ function fn_docker_base_debian {
 }
 
 function fn_docker_base_arch {
-    ./util.sh -i docker docker-compose
+    ./util.sh -i docker 
+    # old? docker-compose
     sudo systemctl enable docker
     sudo systemctl start docker
     # add user
