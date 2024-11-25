@@ -168,6 +168,9 @@ function fn_docker_base_debian {
     sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     sudo apt-get update
 
+    # install
+    ./util.sh -i docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
     # add user
     sudo usermod -aG docker ${USER}
 }
