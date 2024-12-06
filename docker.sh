@@ -14,9 +14,9 @@ function main {
     read -n 1 -p "
     server tools
     ===================
-    a) Docker Base - Arch
-    b) Docker Base - Debian/Arbmain
-    r) Docker Remove All
+    1) Docker Base - Arch
+    2) Docker Base - Debian/Arbmain
+    3) Docker Remove All
     4) route port to 80
     5) docker pipe
     b) backup docker folder
@@ -24,9 +24,9 @@ function main {
     :" ans;
     reset
     case $ans in 
-        a) fn_docker_base_arch ;;
-        b) fn_docker_base_debian ;;
-        r) fn_remove_all ;;
+        1) fn_docker_base_arch ;;
+        2) fn_docker_base_debian ;;
+        4) fn_remove_all ;;
         4) fn_nftables ;;
         5) fn_dockerpipe ;;
         b) fn_backup ;;
@@ -35,6 +35,8 @@ function main {
     done
 }
 
+
+fnc
 function fn_backup {
     hostname=$(hostname)
     archive=$HOME/Backups/docker-${hostname}.tar.gz

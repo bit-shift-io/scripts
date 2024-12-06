@@ -76,9 +76,9 @@ sudo tee /etc/systemd/network/10-lan.network > /dev/null << EOL
 Name=end0
 
 [Network]
-Address=192.168.1.6/24
-Gateway=192.168.1.1
-DNS=192.168.1.3
+Address=192.168.1.1/24
+#Gateway=192.168.1.1
+#DNS=192.168.1.3
 
 #IPv4Forwarding=yes
 #IPv6Forwarding=yes
