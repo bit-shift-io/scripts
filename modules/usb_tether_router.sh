@@ -7,6 +7,7 @@
 
 # https://blog.ghostinashell.com/linux/nftables/2020/03/07/nftables.html <- todo!
 # https://docs.docker.com/engine/network/packet-filtering-firewalls/
+# https://www.naturalborncoder.com/2024/10/installing-docker-on-debian-with-nftables/
 
 ## ==== MAIN CODE ====
 
@@ -99,12 +100,22 @@ sudo systemctl restart systemd-networkd
 
 
 # disable docker adding rules to nftables
+# set routable ip range on docker network
 sudo tee /etc/docker/daemon.json > /dev/null << EOL
 {
-  "iptables": false,
-  "ip6tables": false
+  "iptables" : false,
+  "ip6tables" : false,
+  "bip": "10.0.0.1/24",
+  "fixed-cidr": "10.0.0.0/25",
+  "default-address-pools": [
+    {
+      "base":"10.10.0.0/16",
+      "size":24
+    }
+  ]
 }
 EOL
+# sudo docker network inspect bridge
 
 # nftables routing
 sudo mkdir /etc/nftables.d

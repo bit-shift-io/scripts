@@ -290,7 +290,7 @@ function fn_setup_steam {
 
 function fn_pacman_mirror {
     # setup pacman mirror
-    echo "Local pacman mirror computer name/ip (eg: computer.local): "
+    echo "Local pacman mirror computer name/ip (eg: update.lan): "
     read computer_name
 
     echo "Local pacman mirror repo (manjaro or archlinux): "
@@ -314,15 +314,15 @@ function fn_pacman_mirror {
 }
 
 function fn_general_config {
-    # disable broken kde search
-    balooctl disable
-    
     # fix systemd shutdown timeout
     sudo sed -i -e "s/#DefaultTimeoutStopSec=90s/DefaultTimeoutStopSec=5s/g" /etc/systemd/system.conf
     sudo sed -i -e "s/#DefaultTimeoutStartSec=90s/DefaultTimeoutStartSec=5s/g" /etc/systemd/system.conf
     
     # fix logs to be no more than 50mb
     sudo sed -i -e "s/#SystemMaxUse=/SystemMaxUse=50M/g"  /etc/systemd/journald.conf
+
+    # disable broken kde search
+    balooctl disable
 
     notify-send 'Config' 'General config complete'
 }
@@ -393,6 +393,10 @@ function fn_base_apps {
     # install software
     echo -e '\n\nInstalling packages...'
     ./util.sh -i yay base-devel openssh kio-extras plasma-browser-integration libreoffice firefox keepassxc git rustup vulkan-radeon lib32-vulkan-radeon
+
+    # install zsh shell
+    ./util.sh -i zsh zsh-completions zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search
+    chsh -s $(which zsh)
     
     # aur software
     echo -e '\n\nInstalling AUR packages...'
