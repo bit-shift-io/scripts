@@ -393,13 +393,6 @@ function fn_base_apps {
     # install software
     echo -e '\n\nInstalling packages...'
     ./util.sh -i yay base-devel openssh kio-extras plasma-browser-integration libreoffice firefox keepassxc git rustup vulkan-radeon lib32-vulkan-radeon
-
-    # install fish shell
-    ./util.sh -i fish
-    chsh -s $(which fish)
-    # install zsh shell
-    #./util.sh -i zsh zsh-completions zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search
-    #chsh -s $(which zsh)
     
     # aur software
     echo -e '\n\nInstalling AUR packages...'

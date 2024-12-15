@@ -14,13 +14,16 @@ function main {
     read -n 1 -p "
     apps
     ===================
-    1) cockpit
+    c) cockpit
+    s) fish shell
+    
     
     *) Any key to exit
     :" ans;
     reset
     case $ans in
-        1) ./modules/install_cockpit.sh ;;
+        c) ./modules/install_cockpit.sh ;;
+        f) ./modules/install_fish.sh ;;
         *) $SHELL ;;
     esac
     done
