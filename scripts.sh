@@ -23,7 +23,7 @@ function main {
     reset
     case $ans in
         c) ./modules/install_cockpit.sh ;;
-        f) ./modules/install_fish.sh ;;
+        s) ./modules/install_fish.sh ;;
         *) $SHELL ;;
     esac
     done
