@@ -176,15 +176,16 @@ function fn_docker_base_debian {
 
     # add user
     sudo usermod -aG docker ${USER}
+    echo "reboot required!"
 }
 
 function fn_docker_base_arch {
-    ./util.sh -i docker 
-    # old? docker-compose
+    ./util.sh -i docker docker-compose
     sudo systemctl enable docker
     sudo systemctl start docker
     # add user
     sudo usermod -aG docker ${USER}
+    echo "reboot required!"
 }
 
 
