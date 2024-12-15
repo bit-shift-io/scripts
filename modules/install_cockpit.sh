@@ -32,6 +32,7 @@ function main {
 function fn_arch {
 ./util.sh -i cockpit cockpit-files cockpit-packagekit cockpit-storaged
 ./util.sh -i cockpit-docker # this needs aur/yay
+echo "Complete"
 }
 
 
@@ -41,6 +42,7 @@ function fn_debian {
 wget https://launchpad.net/ubuntu/+source/cockpit/215-1~ubuntu19.10.1/+build/18889196/+files/cockpit-docker_215-1~ubuntu19.10.1_all.deb
 sudo dpkg -i cockpit-docker_215-1~ubuntu19.10.1_all.deb
 # cockpit-networkmanager
+echo "Complete"
 }
 
 
