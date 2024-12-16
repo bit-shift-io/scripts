@@ -45,12 +45,14 @@ cd $HOME
 
 # docker
 wget -c https://github.com/chabad360/cockpit-docker/releases/download/16/cockpit-docker-16.tar.xz
-sudo tar xf cockpit-docker-16.tar.xz -C /usr/share/cockpit
+echo "Extracting:"
+sudo tar -xf cockpit-docker-16.tar.xz -C /usr/share/cockpit --checkpoint=.
 #sudo sed -i 's/v1\.12/v1\.24/g' /usr/share/cockpit/docker/docker.js
 
 # files, should be available in future repo
 wget -c https://github.com/cockpit-project/cockpit-files/releases/download/13/cockpit-files-13.tar.xz
-sudo tar xf cockpit-files-13.tar.xz -C /usr/share/cockpit
+echo "Extracting:"
+sudo tar -xf cockpit-files-13.tar.xz -C /usr/share/cockpit --checkpoint=.
 
 sudo systemctl enable cockpit.socket --now
 echo "Complete"
