@@ -49,6 +49,7 @@ cd $HOME
 # docker
 wget -c https://github.com/mrevjd/cockpit-docker/releases/download/v2.0.3/cockpit-docker.tar.gz
 sudo tar xf cockpit-docker.tar.gz -C /usr/share/cockpit
+sudo sed -i 's/v1\.12/v1\.24/g' /usr/share/cockpit/docker/docker.js
 
 # files, should be available in future repo
 
