@@ -51,7 +51,7 @@ wget https://github.com/mrevjd/cockpit-docker/releases/download/v2.0.3/cockpit-d
 sudo tar xf cockpit-docker.tar.gz -C /usr/share/cockpit
 
 # files, should be available in future repo
-./util.sh xz-utils
+./util.sh -i xz-utils
 wget https://github.com/cockpit-project/cockpit-files/releases/download/13/cockpit-files-13.tar.xz
 sudo tar xf cockpit-files-13.tar.xz -C /usr/share/cockpit
 
