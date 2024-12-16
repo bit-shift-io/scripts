@@ -17,6 +17,10 @@ function main {
     c) cockpit
     s) fish shell
     
+    tools
+    ===================
+    y) youtube download
+    
     
     *) Any key to exit
     :" ans;
@@ -24,6 +28,7 @@ function main {
     case $ans in
         c) ./modules/install_cockpit.sh ;;
         s) ./modules/install_fish.sh ;;
+        y) ./modules/youtube_download.sh ;;
         *) $SHELL ;;
     esac
     done

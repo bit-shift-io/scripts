@@ -32,6 +32,7 @@ function main {
 function fn_arch {
 ./util.sh -i cockpit cockpit-files cockpit-packagekit cockpit-storaged
 ./util.sh -i cockpit-docker # this needs aur/yay
+sudo systemctl enable cockpit.socket --now
 echo "Complete"
 }
 
@@ -57,6 +58,7 @@ wget -c https://github.com/cockpit-project/cockpit-files/releases/download/13/co
 sudo tar xf cockpit-files-13.tar.xz -C /usr/share/cockpit
 
 # cockpit-networkmanager
+sudo systemctl enable cockpit.socket --now
 echo "Complete"
 }
 
