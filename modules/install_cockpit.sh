@@ -39,20 +39,23 @@ echo "Complete"
 
 function fn_debian {
 ./util.sh -i cockpit cockpit-files cockpit-packagekit cockpit-storaged #cockpit-networkmanager
-./util.sh -i xz-utils
+./util.sh -i git gettext nodejs make
 
-cd $HOME
 
 # docker
-wget -c https://github.com/chabad360/cockpit-docker/releases/download/16/cockpit-docker-16.tar.xz
-echo "Extracting:"
-sudo tar -xf cockpit-docker-16.tar.xz -C /usr/share/cockpit --checkpoint=.
-#sudo sed -i 's/v1\.12/v1\.24/g' /usr/share/cockpit/docker/docker.js
+cd $HOME
+git clone https://github.com/chabad360/cockpit-docker.git
+cd cockpit-docker
+make
+sudo make install
+
 
 # files, should be available in future repo
-wget -c https://github.com/cockpit-project/cockpit-files/releases/download/13/cockpit-files-13.tar.xz
-echo "Extracting:"
-sudo tar -xf cockpit-files-13.tar.xz -C /usr/share/cockpit --checkpoint=.
+cd $HOME
+git clone https://github.com/cockpit-project/cockpit-files.git
+cd cockpit-files
+make
+sudo make install
 
 sudo systemctl enable cockpit.socket --now
 echo "Complete"
