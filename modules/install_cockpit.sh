@@ -39,6 +39,7 @@ echo "Complete"
 function fn_debian {
 ./util.sh -i cockpit cockpit-files cockpit-packagekit cockpit-storaged
 
+
 # docker
 #wget https://launchpad.net/ubuntu/+source/cockpit/215-1~ubuntu19.10.1/+build/18889196/+files/cockpit-docker_215-1~ubuntu19.10.1_all.deb
 #sudo dpkg -i cockpit-docker_215-1~ubuntu19.10.1_all.deb
@@ -50,8 +51,9 @@ wget https://github.com/mrevjd/cockpit-docker/releases/download/v2.0.3/cockpit-d
 sudo tar xf cockpit-docker.tar.gz -C /usr/share/cockpit
 
 # files, should be available in future repo
+./util.sh xz-utils
 wget https://github.com/cockpit-project/cockpit-files/releases/download/13/cockpit-files-13.tar.xz
-sudo tar cockpit-files-13.tar.xz -C /usr/share/cockpit
+sudo tar xf cockpit-files-13.tar.xz -C /usr/share/cockpit
 
 # cockpit-networkmanager
 echo "Complete"
