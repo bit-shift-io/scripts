@@ -265,6 +265,8 @@ function fn_cec {
 
 
 function fn_setup_steam {
+    ./util.sh -i steam
+    
     #mkdir
     mkdir -p $HOME/Games/Steam
 
@@ -392,7 +394,7 @@ function fn_base_apps {
 
     # install software
     echo -e '\n\nInstalling packages...'
-    ./util.sh -i yay base-devel openssh partitionmanager kio-extras plasma-browser-integration libreoffice firefox keepassxc git rustup vulkan-radeon lib32-vulkan-radeon
+    ./util.sh -i yay base-devel openssh partitionmanager filelight kio-extras plasma-browser-integration libreoffice firefox keepassxc git rustup vulkan-radeon lib32-vulkan-radeon
     
     # aur software
     echo -e '\n\nInstalling AUR packages...'
