@@ -19,6 +19,7 @@ function main {
     
     tools
     ===================
+    m) mount samba
     y) youtube download
     
     
@@ -28,6 +29,7 @@ function main {
     case $ans in
         c) ./modules/install_cockpit.sh ;;
         s) ./modules/install_fish.sh ;;
+        m) ./modules/mount_smb.sh ;;
         y) ./modules/youtube_download.sh ;;
         *) $SHELL ;;
     esac

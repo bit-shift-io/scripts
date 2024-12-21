@@ -18,7 +18,7 @@ function add_mount {
 # mount
 sudo tee /etc/systemd/system/$path_name.mount > /dev/null << EOL 
     [Unit]
-    Description=sshfs network mount
+    Description=sshfs mount
     Before=remote-fs.target
 
     [Mount]
@@ -40,7 +40,7 @@ EOL
 # autmount
 sudo tee /etc/systemd/system/$path_name.automount > /dev/null << EOL   
     [Unit]
-    Description=sshfs network mount
+    Description=sshfs mount
 
     [Automount]
     Where=$local_path
