@@ -36,12 +36,15 @@ function main {
 }
 
 
-fnc
 function fn_backup {
+    echo "backup docker folder..."
     hostname=$(hostname)
     archive=$HOME/Backups/docker-${hostname}.tar.gz
     backup=$HOME/Docker
+    
+    echo "listing containers"
     containers=$(docker container list -qa)
+    echo $containers
 
     mkdir $HOME/Backups
 
