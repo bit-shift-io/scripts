@@ -19,6 +19,7 @@ function main {
     
     tools
     ===================
+    a) automount
     m) mount samba
     y) youtube download
     
@@ -29,6 +30,7 @@ function main {
     case $ans in
         c) ./modules/install_cockpit.sh ;;
         s) ./modules/install_fish.sh ;;
+        a) ./modules/mount_auto.sh ;;
         m) ./modules/mount_smb.sh ;;
         y) ./modules/youtube_download.sh ;;
         *) $SHELL ;;

@@ -28,7 +28,6 @@ function main {
     
     extras
     ===================
-    a) Automount
     h) HDMI CEC
     b) audio bluetooth
     s) audio network server
@@ -46,7 +45,6 @@ function main {
         4) fn_setup_steam ;;
         5) fn_base_apps ;;
         6) fn_media_development_apps ;;
-        a) fn_automount;;
         h) fn_cec ;;
         b) fn_audio_bluetooth ;;
         s) fn_audio_network_server ;;
@@ -206,45 +204,6 @@ EOL
     sudo systemctl --global enable bt.service
     sudo systemctl start bt.service
 }
-
-function fn_automount {
-    echo "Enter drive label to automount: "
-    read drive_label
-    
-# mount
-sudo tee /etc/systemd/system/mnt-${drive_label}.mount > /dev/null << EOL 
-    [Unit]
-    Description=automount of ${drive_label}
-
-    [Mount]
-    What=LABEL=${drive_label}
-    Where=/mnt/${drive_label}/
-    Options=noauto,nofail
-    TimeoutSec=2
-    ForceUnmount=true
-
-    [Install]
-    WantedBy=multi-user.target
-EOL
-
-# autmount
-sudo tee /etc/systemd/system/mnt-${drive_label}.automount > /dev/null << EOL   
-    [Unit]
-    Description=automount of ${drive_label}
-
-    [Automount]
-    Where=/mnt/${drive_label}/
-    TimeoutIdleSec=1800
-
-    [Install]
-    WantedBy=multi-user.target
-EOL
-
-    sudo systemctl daemon-reload
-    sudo systemctl enable mnt-${drive_label}.automount
-    sudo systemctl restart mnt-${drive_label}.automount
-}
-
 
 function fn_cec {
     # https://wiki.archlinux.org/index.php/Users_and_groups#User_management

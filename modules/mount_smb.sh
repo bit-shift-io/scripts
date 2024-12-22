@@ -30,24 +30,27 @@ sudo chmod 600 /etc/samba/smbcreds
 
 # mount
 sudo tee /etc/systemd/system/$smb_path_name.mount > /dev/null << EOL 
-    [Unit]
-    Description=smb mount
-    Requires=network-online.target
-    After=network-online.service
-    Wants=network-online.target
+[Unit]
+Description=smb mount
+Requires=network-online.target
+After=network-online.service
+Wants=network-online.target
 
-    [Mount]
-    What=$remote_path
-    Where=$local_path
-    #Options=${id}username=${smb_username},password=${smb_password},rw,_netdev,x-systemd.automount
-    #Options=vers=2.1,credentials=/etc/samba/smbcreds,iocharset=utf8,rw,x-systemd.automount,uid=1000
-    Options=${id}credentials=/etc/samba/smbcreds,iocharset=utf8,rw,x-systemd.automount
-    Type=cifs
-    TimeoutSec=2
-    #ForceUnmount=true
+[Mount]
+What=$remote_path
+Where=$local_path
+#Options=${id}username=${smb_username},password=${smb_password},rw,_netdev,x-systemd.automount
+#Options=vers=2.1,credentials=/etc/samba/smbcreds,iocharset=utf8,rw,x-systemd.automount,uid=1000
+Options=${id}credentials=/etc/samba/smbcreds,iocharset=utf8,rw,x-systemd.automount
+Type=cifs
+#TimeoutSec=2
+#ForceUnmount=true
 
-    [Install]
-    WantedBy=multi-user.target
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+TimeoutSec=2s # timeout for the mount
 EOL
 
     #sudo systemctl enable $smb_path_name.mount
@@ -56,15 +59,15 @@ EOL
 
 # autmount
 sudo tee /etc/systemd/system/$smb_path_name.automount > /dev/null << EOL   
-    [Unit]
-    Description=smb mount
+[Unit]
+Description=smb mount
 
-    [Automount]
-    Where=$local_path
-    TimeoutIdleSec=60
+[Automount]
+Where=$local_path
+TimeoutIdleSec=600s # 10 min timeout for unmount
 
-    [Install]
-    WantedBy=multi-user.target
+[Install]
+WantedBy=multi-user.target
 EOL
 
     sudo systemctl daemon-reload
