@@ -357,7 +357,7 @@ function fn_base_apps {
     
     # printer support
     ./util.sh -i cups cups-pdf system-config-printer avahi
-    sudo systemctl enable cups.service
+    sudo systemctl enable --now cups.service
     
     # aur software
     echo -e '\n\nInstalling AUR packages...'
