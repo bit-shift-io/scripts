@@ -2,7 +2,7 @@
 
 
 echo "installing..."
-../util.sh -i waydroid binder_linux-dkms-git weston #wayfire
+../util.sh -i waydroid binder_linux-dkms-git #weston #wayfire
 
 
 echo "sddm config..."
@@ -15,11 +15,16 @@ panel-position=none
 EOL
 
 #/usr/share/xsessions/
+# run via konsole for now as there is a bug
+# https://github.com/waydroid/waydroid/issues/1052
 sudo tee /usr/bin/waydroid-session.sh > /dev/null << EOL
 #!/bin/sh
 #weston &
 kwin_wayland &
-sleep 5
+sleep 1
+export WAYLAND_DISPLAY=wayland-0
+export DISPLAY=:1
+#konsole -e /usr/bin/waydroid show-full-ui
 waydroid show-full-ui
 EOL
 
@@ -32,6 +37,7 @@ Comment=Android
 Exec=/usr/bin/waydroid-session.sh
 Type=Application
 EOL
+
 
 echo "download android tv image..."
 
