@@ -1,8 +1,39 @@
 #!/bin/bash
 
 
-# install waydroid
-../util.sh -i waydroid binder_linux-dkms-git
+echo "installing..."
+../util.sh -i waydroid binder_linux-dkms-git weston #wayfire
+
+
+echo "sddm config..."
+tee $HOME/.config/weston.ini > /dev/null << EOL
+[libinput]
+enable-tap=true
+
+[shell]
+panel-position=none
+EOL
+
+#/usr/share/xsessions/
+sudo tee /usr/bin/waydroid-session.sh > /dev/null << EOL
+#!/bin/sh
+#weston &
+kwin_wayland &
+sleep 5
+waydroid show-full-ui
+EOL
+
+sudo chmod +x /usr/bin/waydroid-session.sh
+
+sudo tee /usr/share/wayland-sessions/android-tv.desktop > /dev/null << EOL
+[Desktop Entry]
+Name=Android TV
+Comment=Android
+Exec=/usr/bin/waydroid-session.sh
+Type=Application
+EOL
+
+echo "download android tv image..."
 
 # download custom image
 cd $HOME
@@ -13,16 +44,8 @@ sudo mkdir -p /etc/waydroid-extra/images/
 sudo unzip -o lineage-20.0-20241215-UNOFFICIAL-SupeChicken666-WaydroidATV.zip -d /etc/waydroid-extra/images/
 sudo waydroid init -f
 
-# create entry in sddm
-#/usr/share/xsessions/
-sudo tee /usr/share/wayland-sessions/android-tv.desktop > /dev/null << EOL
-[Desktop Entry]
-Name=WayDroid
-DesktopNames=WayDroid
-Comment=Android
-Exec=/usr/bin/waydroid
-Type=Application
-EOL
+
+echo "installing extra android stuff..."
 
 # install gapps
 curl -L https://github.com/Waydroid-ATV/androidtv_scripts/raw/refs/heads/main/install-mindthegapps.sh | sudo bash -eu
@@ -30,6 +53,8 @@ curl -L https://github.com/Waydroid-ATV/androidtv_scripts/raw/refs/heads/main/in
 # install widevine
 curl -L https://github.com/Waydroid-ATV/androidtv_scripts/raw/refs/heads/main/install-widevine-a13.sh | sudo bash -eu
 
+# start a session
+waydroid session start
 
 # certify
 # need to do this manually after running waydroid first-launch
