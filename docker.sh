@@ -20,6 +20,7 @@ function main {
     4) route port to 80
     5) docker pipe
     b) backup docker folder
+    u) user permissions
     *) Any key to exit
     :" ans;
     reset
@@ -30,9 +31,16 @@ function main {
         4) fn_nftables ;;
         5) fn_dockerpipe ;;
         b) fn_backup ;;
+        u) fn_user_permissions ;;
         *) $SHELL ;;
     esac
     done
+}
+
+
+function fn_user_permissions {
+    sudo usermod -aG docker $USER
+    newgrp docker # login to group, save reboot!
 }
 
 
