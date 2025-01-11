@@ -18,6 +18,8 @@ function main {
     2) Pacman mirror (pacoloco)
     3) Swap
     4) Steam
+    u) Update pacman
+    f) Fix pacman keys
     
     apps
     ===================
@@ -33,7 +35,7 @@ function main {
     s) audio network server
     c) audio network client
     m) microcontroller udev rules
-    f) fix pacman keys
+    
 
     *) Any key to exit
     :" ans;
@@ -53,6 +55,7 @@ function main {
         7) fn_pinyin ;;
         9) fn_android ;;
         f) fn_fix_pacman ;;
+        u) fn_update_pacman ;;
         *) $SHELL ;;
     esac
     done
@@ -62,7 +65,15 @@ function main {
 function fn_fix_pacman {
     sudo pacman -Syy
     sudo pacman-key --refresh-keys
-    sudo pacman-key --populate archlinux manjaro
+    sudo pacman-key --populate manjaro
+    #sudo pacman-key --populate archlinux manjaro
+    sudo ./util.sh -i archlinux-keyring
+}
+
+
+function fn_update_pacman {
+    sudo ./util.sh -i archlinux-keyring
+    sudo pacman -Syyu
 }
 
 
