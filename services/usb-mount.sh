@@ -32,7 +32,7 @@ do_mount()
     sudo chown 1000:1000 ${MOUNT_POINT}
 
     # Global mount options
-    OPTS="rw,relatime"
+    OPTS="rw,relatime,uid=1000,gid=1000"
 
     # File system type specific mount options
     if [[ ${ID_FS_TYPE} == "vfat" ]]; then
