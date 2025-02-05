@@ -32,7 +32,10 @@ do_mount()
     sudo chown 1000:1000 ${MOUNT_POINT}
 
     # Global mount options
-    OPTS="rw,relatime,uid=1000,gid=1000"
+    OPTS="rw,relatime"
+    
+    # ext4 supports permissions, only need this for exfat etc?
+    # ,uid=1000,gid=1000
 
     # File system type specific mount options
     if [[ ${ID_FS_TYPE} == "vfat" ]]; then
@@ -45,8 +48,8 @@ do_mount()
         exit 1
     fi
 	
-    # Bonus track: send desktop notification to user
-    #sudo -u andrea DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus notify-send "Device ${DEVICE} mounted at ${MOUNT_POINT}"
+    # send desktop notification to user
+    # sudo -u 1000 DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus notify-send "Device ${DEVICE} mounted at ${MOUNT_POINT}"
 }
 
 do_unmount()
