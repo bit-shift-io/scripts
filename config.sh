@@ -364,7 +364,7 @@ function fn_base_apps {
 
     # install software
     echo -e '\n\nInstalling packages...'
-    ./util.sh -i yay base-devel openssh partitionmanager filelight kio-extras plasma-browser-integration libreoffice firefox keepassxc git rustup vulkan-radeon lib32-vulkan-radeon sshfs
+    ./util.sh -i yay base-devel openssh partitionmanager filelight kio-extras plasma-browser-integration libreoffice firefox keepassxc git rustup vulkan-radeon lib32-vulkan-radeon vulkan-intel sshfs
     
     # printer support
     ./util.sh -i cups cups-pdf system-config-printer avahi
