@@ -26,22 +26,34 @@ do_mount()
         # Already in use, make a unique one
         LABEL+="-${DEVBASE}"
     fi
+    
+    # create dir
     MOUNT_POINT="${MOUNT_DIR}/${LABEL}"
-
     /bin/mkdir -p ${MOUNT_POINT}
-    sudo chown 1000:1000 ${MOUNT_POINT}
     
     # Global mount options
-    OPTS="defaults,rw,relatime"
+    # see fstab settings for what can be used here
+    OPTS="defaults"
   
-    # File system type specific mount options
+    # File system mount options:
+    
     # vat = fat32
     if [[ ${ID_FS_TYPE} == "vfat" ]]; then
-        OPTS+=",users,uid=1000,gid=1000,umask=000,shortname=mixed,utf8=1,flush"
+        OPTS+=",uid=1000,gid=1000"
+        #OPTS+=",users,uid=1000,gid=1000,umask=000,shortname=mixed,utf8=1,flush"
     fi
-
+    
+    # exfat
+    if [[ ${ID_FS_TYPE} == "exfat" ]]; then
+        OPTS+=",uid=1000,gid=1000"
+    fi
+    
+    # ext4
+    sudo chmod 777 ${MOUNT_POINT}
+    
+    
+    # remove dir on error
     if ! /bin/mount -o ${OPTS} ${DEVICE} ${MOUNT_POINT}; then
-        # Error during mount process: cleanup mountpoint
         /bin/rmdir ${MOUNT_POINT}
         exit 1
     fi
