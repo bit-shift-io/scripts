@@ -22,8 +22,8 @@ function main {
     :" ans;
     reset
     case $ans in
-        2) fn_min ;;
-        1) fn_full ;;
+        1) fn_min ;;
+        2) fn_full ;;
         *) $SHELL ;;
     esac
     done
