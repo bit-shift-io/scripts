@@ -30,5 +30,8 @@ EOL
 sudo udevadm control --reload-rules
 sudo systemctl daemon-reload
 
+# systemctl status usb-mount@sda1
+
+
 echo "Mount service installed"
 notify-send 'Mount' 'Mount Completed'

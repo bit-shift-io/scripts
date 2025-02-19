@@ -31,18 +31,13 @@ do_mount()
     /bin/mkdir -p ${MOUNT_POINT}
     sudo chown 1000:1000 ${MOUNT_POINT}
     
-    #exit 1
-
     # Global mount options
-    #OPTS="rw,relatime"
-    OPTS="defaults,uid=1000,gid=1000"
-    
-    # ext4 supports permissions, only need this for exfat etc?
-    # ,uid=1000,gid=1000
-
+    OPTS="defaults,rw,relatime"
+  
     # File system type specific mount options
+    # vat = fat32
     if [[ ${ID_FS_TYPE} == "vfat" ]]; then
-        OPTS+=",users,gid=100,umask=000,shortname=mixed,utf8=1,flush"
+        OPTS+=",users,uid=1000,gid=1000,umask=000,shortname=mixed,utf8=1,flush"
     fi
 
     if ! /bin/mount -o ${OPTS} ${DEVICE} ${MOUNT_POINT}; then

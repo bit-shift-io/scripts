@@ -1,13 +1,74 @@
 #!/bin/bash
 
-DEST_DIR_1="/mnt/offsite/backups/bronson" # external hdd backup
-SRC_DIR_1="s@living.lan:/home/s"
 
-echo "Start backup up from '$SRC_DIR_1' to '$DEST_DIR_1'...."
+function main {
+    # loop args
+    if [[ $# -ne 0 ]] ; then
+        for var in "$@" ; do
+            eval $var
+        done
+        exit 1
+    fi
+    
+    # menu
+    while true; do
+    read -n 1 -p "
+    backup
+    ===================
+    1) Minimal
+    2) Full
 
-rsync -va $SRC_DIR_1/Bronson $DEST_DIR_1 --exclude=".*" --delete
-rsync -va $SRC_DIR_1/Haoying $DEST_DIR_1 --exclude=".*" --delete
-rsync -va $SRC_DIR_1/Misc $DEST_DIR_1 --exclude=".*" --delete
-rsync -va $SRC_DIR_1/Photos $DEST_DIR_1 --exclude=".*" --delete
+    *) Any key to exit
+    :" ans;
+    reset
+    case $ans in
+        2) fn_min ;;
+        1) fn_full ;;
+        *) $SHELL ;;
+    esac
+    done
+}
 
-echo "Backup complete."
+function fn_min {
+    ls /mnt/
+    echo "Which drive to backup to (eg: offsite) : "
+    read drive
+
+    DEST_DIR_1="/mnt/${drive}/backups/bronson" # external hdd backup
+    SRC_DIR_1="s@living.lan:/home/s"
+
+    echo "Start backup up from '$SRC_DIR_1' to '$DEST_DIR_1'...."
+
+    rsync -va $SRC_DIR_1/Bronson $DEST_DIR_1 --exclude=".*" --delete
+    rsync -va $SRC_DIR_1/Haoying $DEST_DIR_1 --exclude=".*" --delete
+    rsync -va $SRC_DIR_1/Misc $DEST_DIR_1 --exclude=".*" --delete
+    rsync -va $SRC_DIR_1/Photos $DEST_DIR_1 --exclude=".*" --delete
+
+    echo "Backup complete."
+}
+
+function fn_full {
+    ls /mnt/
+    echo "Which drive to backup to (eg: offsite) : "
+    read drive
+
+    DEST_DIR_1="/mnt/${drive}/backups/bronson" # external hdd backup
+    SRC_DIR_1="s@living.lan:/home/s"
+
+    echo "Start backup up from '$SRC_DIR_1' to '$DEST_DIR_1'...."
+
+    rsync -va $SRC_DIR_1/Bronson $DEST_DIR_1 --exclude=".*" --delete
+    rsync -va $SRC_DIR_1/Haoying $DEST_DIR_1 --exclude=".*" --delete
+    rsync -va $SRC_DIR_1/Misc $DEST_DIR_1 --exclude=".*" --delete
+    rsync -va $SRC_DIR_1/Photos $DEST_DIR_1 --exclude=".*" --delete
+    rsync -va $SRC_DIR_1/Audio Books $DEST_DIR_1 --exclude=".*" --delete
+    rsync -va $SRC_DIR_1/Backups $DEST_DIR_1 --exclude=".*" --delete
+    rsync -va $SRC_DIR_1/Bible $DEST_DIR_1 --exclude=".*" --delete
+    rsync -va $SRC_DIR_1/Music $DEST_DIR_1 --exclude=".*" --delete
+    rsync -va $SRC_DIR_1/Video $DEST_DIR_1 --exclude=".*" --delete
+
+    echo "Backup complete."
+}
+
+# pass all args
+main "$@"
