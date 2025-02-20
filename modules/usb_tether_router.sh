@@ -1,54 +1,20 @@
 #!/bin/bash
 
-# https://peppe8o.com/raspberry-pi-portable-hotspot-with-android-usb-tethering/
-# https://oxcrag.net/projects/linux-router-part-1-routing-nat-and-nftables/
-# https://wiki.nftables.org/wiki-nftables/index.php/Simple_ruleset_for_a_home_router
-# https://github.com/gene-git/blog/tree/master/nftables
-
-# https://blog.ghostinashell.com/linux/nftables/2020/03/07/nftables.html <- todo!
-# https://docs.docker.com/engine/network/packet-filtering-firewalls/
-# https://www.naturalborncoder.com/2024/10/installing-docker-on-debian-with-nftables/
-
-## ==== MAIN CODE ====
-
-
-
-# armbian only, not arch
-sudo apt install nftables
-sudo systemctl enable nftables
-sudo systemctl restart nftables
-
-sudo apt remove netplan.io
-sudo apt autoremove
-
-
-# make sure adguard is running via docker
-
-
-# enable forwarding/routing - can be done in the network files now?
-#sudo nano /etc/sysctl.conf
-#net.ipv4.ip_forward=1
-#sysctl net.ipv4.conf.all.rp_filter=0
-#sudo sysctl -p
-#cat /proc/sys/net/ipv4/ip_forward
-
 
 # disable systemd resolv (dns server)
 # should we set resolve to use 127.0.0.1?
+echo "disable systemd-resolved..."
 sudo mkdir -p /etc/systemd/resolved.conf.d/
 sudo tee /etc/systemd/resolved.conf.d/disable-stub.conf > /dev/null << EOL
 [Resolve]
 DNSStubListener=no
 EOL
 sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
-sudo systemctl restart systemd-resolved
+#sudo systemctl restart systemd-resolved
 sudo systemctl enable systemd-resolved --now
 
 
-
-####### CONFIG USB ETHERNET ########
-# link file
-# this renames the device to a better name
+echo "set internet name to usb0..."
 sudo tee /etc/systemd/network/10-internet-usb.link > /dev/null << EOL
 [Match] 
 Path=*-usb-*
@@ -58,9 +24,8 @@ Property=ID_NET_NAME_MAC=*
 Name=usb0
 EOL
 
-# setup network
-# networkctl status
-# networkctl status usb0
+
+echo "config usb internet..."
 sudo tee /etc/systemd/network/10-internet-usb.network > /dev/null << EOL
 [Match]
 Name=usb*
@@ -74,60 +39,33 @@ IPv4Forwarding=yes
 IPv6Forwarding=yes
 
 # DNS for systemd-resolved
-DNS=8.8.8.8
-DNS=8.8.4.4
+DNS=192.168.1.1
+#DNS=8.8.8.8
+#DNS=8.8.4.4
 
 [DHCPv4] 
-# lower route metric is higher priority 1024 default? or 100?
-#RouteMetric=100
 UseMTU=true
 EOL
 
-####### END CONFIG USB ETHERNET ########
 
-
-
-
-####### CONFIG LAN ETHERNET ########
+echo "config lan..."
 sudo tee /etc/systemd/network/10-lan.network > /dev/null << EOL
 [Match]
 Name=enp4s*
 
 [Network]
 Address=192.168.1.1/24
-
-#Gateway=192.168.1.1
-#DNS=192.168.1.3
+DNS=192.168.1.1
 
 IPv4Forwarding=yes
 IPv6Forwarding=yes
 IPMasquerade=yes
-
-#[Route]
-#Gateway=192.168.1.6
-#Destination=0.0.0.0/0
-#GatewayOnLink=yes
 EOL
-
-
-sudo systemctl daemon-reload
-sudo systemctl enable systemd-networkd
-sudo systemctl restart systemd-networkd
-
-sudo systemctl disable NetworkManager
-
-
-# need system reboot here
-####### END CONFIG LAN ETHERNET ########
-
-#ensure network is configured:
-networkctl
-# enp* & usb0 should be "routable" and "configured"
-
 
 
 # disable docker adding rules to nftables
 # set routable ip range on docker network
+echo "disable docker stuff..."
 sudo tee /etc/docker/daemon.json > /dev/null << EOL
 {
   "iptables" : false,
@@ -142,7 +80,28 @@ sudo tee /etc/docker/daemon.json > /dev/null << EOL
   ]
 }
 EOL
-# sudo docker network inspect bridge
+
+
+echo "restart network..."
+sudo systemctl daemon-reload
+sudo systemctl enable systemd-networkd --now
+#sudo systemctl restart systemd-networkd
+sudo systemctl disable NetworkManager
+
+#ensure network is configured:
+networkctl
+
+echo ""
+echo "enp* & usb0 should be routable & configured"
+echo "make sure adguard is running for dhcp & DNS"
+echo ""
+echo "useful commands:"
+echo "networkctl"
+echo "networkctl status"
+echo "networkctl status usb0"
+echo ""
+echo "you may need to restart the computer"
+echo "done"
 
 
 
@@ -156,10 +115,28 @@ EOL
 
 
 
+function fn_old {
 
 
 ### OLD ####
 
+
+# enable forwarding/routing - can be done in the network files now?
+#sudo nano /etc/sysctl.conf
+#net.ipv4.ip_forward=1
+#sysctl net.ipv4.conf.all.rp_filter=0
+#sudo sysctl -p
+#cat /proc/sys/net/ipv4/ip_forward
+
+
+
+# armbian only, not arch
+sudo apt install nftables
+sudo systemctl enable nftables
+sudo systemctl restart nftables
+
+sudo apt remove netplan.io
+sudo apt autoremove
 
 
 # nftables routing
@@ -413,3 +390,7 @@ table ip nat {
 	}
 }
 EOL
+
+
+}
+
