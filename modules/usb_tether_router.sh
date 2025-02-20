@@ -12,12 +12,17 @@
 ## ==== MAIN CODE ====
 
 
+
+# armbian only, not arch
 sudo apt install nftables
 sudo systemctl enable nftables
 sudo systemctl restart nftables
 
 sudo apt remove netplan.io
 sudo apt autoremove
+
+
+# make sure adguard is running via docker
 
 
 # enable forwarding/routing - can be done in the network files now?
@@ -37,8 +42,11 @@ DNSStubListener=no
 EOL
 sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
 sudo systemctl restart systemd-resolved
+sudo systemctl enable systemd-resolved --now
 
 
+
+####### CONFIG USB ETHERNET ########
 # link file
 # this renames the device to a better name
 sudo tee /etc/systemd/network/10-internet-usb.link > /dev/null << EOL
@@ -62,9 +70,12 @@ DHCP=yes
 LinkLocalAddressing=ipv6
 IPv6PrivacyExtensions=yes
 
-#IPv4Forwarding=yes
-#IPv6Forwarding=yes
-#IPMasquerade=both
+IPv4Forwarding=yes
+IPv6Forwarding=yes
+
+# DNS for systemd-resolved
+DNS=8.8.8.8
+DNS=8.8.4.4
 
 [DHCPv4] 
 # lower route metric is higher priority 1024 default? or 100?
@@ -72,18 +83,25 @@ IPv6PrivacyExtensions=yes
 UseMTU=true
 EOL
 
+####### END CONFIG USB ETHERNET ########
+
+
+
+
+####### CONFIG LAN ETHERNET ########
 sudo tee /etc/systemd/network/10-lan.network > /dev/null << EOL
 [Match]
-Name=end0
+Name=enp4s*
 
 [Network]
 Address=192.168.1.1/24
+
 #Gateway=192.168.1.1
 #DNS=192.168.1.3
 
-#IPv4Forwarding=yes
-#IPv6Forwarding=yes
-#IPMasquerade=both
+IPv4Forwarding=yes
+IPv6Forwarding=yes
+IPMasquerade=yes
 
 #[Route]
 #Gateway=192.168.1.6
@@ -96,7 +114,16 @@ sudo systemctl daemon-reload
 sudo systemctl enable systemd-networkd
 sudo systemctl restart systemd-networkd
 
+sudo systemctl disable NetworkManager
+
+
 # need system reboot here
+####### END CONFIG LAN ETHERNET ########
+
+#ensure network is configured:
+networkctl
+# enp* & usb0 should be "routable" and "configured"
+
 
 
 # disable docker adding rules to nftables
@@ -116,6 +143,24 @@ sudo tee /etc/docker/daemon.json > /dev/null << EOL
 }
 EOL
 # sudo docker network inspect bridge
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### OLD ####
+
+
 
 # nftables routing
 sudo mkdir /etc/nftables.d
@@ -145,6 +190,8 @@ table ip nat {
         }
 }
 EOL
+
+
 
 # todo: setup docker to work without needing host mode...
 # this is the default rules for docker, but it breaks routing

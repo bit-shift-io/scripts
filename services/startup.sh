@@ -5,7 +5,7 @@ function main {
     #xrandr --output HDMI1 --set audio force-dvi --mode 1920x1080
 
     # wake up the screen
-    echo 'on 0' | cec-client -s
+    #echo 'on 0' | cec-client -s
     
     #sleep 5s
     #/bin/python $HOME/Projects/scripts/services/cec.py &
