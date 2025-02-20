@@ -122,11 +122,10 @@ sudo tee $HOME/Docker/pipe/start_pipe.sh > /dev/null << EOL
 while true; do eval "\$(cat pipe_in)" > pipe_out; done
 EOL
 
-#  $HOME/Docker/pipe/
 sudo tee $HOME/Docker/pipe/run.sh > /dev/null << EOL
 #!/bin/bash
-echo "\$@" > pipe_in
-cat pipe_out
+echo "\$@" > $HOME/Docker/pipe/pipe_in
+cat $HOME/Docker/pipe/pipe_out
 EOL
 
     sudo chmod +x $HOME/Docker/pipe/start_pipe.sh
