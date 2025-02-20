@@ -116,16 +116,17 @@ function fn_dockerpipe {
     mkfifo $HOME/Docker/pipe/pipe_in
     mkfifo $HOME/Docker/pipe/pipe_out
 
-    # create script
+# create script
 sudo tee $HOME/Docker/pipe/start_pipe.sh > /dev/null << EOL
 #!/bin/bash
 while true; do eval "\$(cat pipe_in)" > pipe_out; done
 EOL
 
+# mount as /pipe in docker
 sudo tee $HOME/Docker/pipe/run.sh > /dev/null << EOL
 #!/bin/bash
-echo "\$@" > $HOME/Docker/pipe/pipe_in
-cat $HOME/Docker/pipe/pipe_out
+echo "\$@" > /pipe/pipe_in
+cat /pipe/pipe_out
 EOL
 
     sudo chmod +x $HOME/Docker/pipe/start_pipe.sh
@@ -152,7 +153,7 @@ EOL
 
     sudo systemctl reset-failed pipe
     sudo systemctl enable pipe
-    sudo systemctl start pipe
+    sudo systemctl start pipe --now
     systemctl status pipe.service
 }
 
