@@ -21,6 +21,8 @@ monitor.alsa.rules = [
     actions = {
       update-props = {
         session.suspend-timeout-seconds = 0
+        dither.method = "wannamaker3", # add dither of desired shape
+        dither.noise = 2, # add additional bits of noise
       }
     }
   }
