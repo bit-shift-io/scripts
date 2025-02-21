@@ -1,7 +1,11 @@
 #!/bin/bash
 
 # https://wiki.archlinux.org/title/PipeWire#Noticeable_audio_delay_or_audible_pop/crack_when_starting_playback
-sudo tee /etc/wireplumber/wireplumber.conf.d/51-disable-suspension.conf > /dev/null << EOL
+mkdir -p $HOME/.config/wireplumber/wireplumber.conf.d/
+
+# /etc/wireplumber/wireplumber.conf.d/51-disable-suspension.conf
+# ~/.config/wireplumber/wireplumber.conf.d/51-disable-suspension.conf
+tee $HOME/.config/wireplumber/wireplumber.conf.d/51-disable-suspension.conf > /dev/null << EOL
 monitor.alsa.rules = [
   {
     matches = [
@@ -42,6 +46,8 @@ monitor.bluez.rules = [
   }
 ]
 EOL
+
+
 #systemctl restart --user pipewire.service
 #systemctl restart --user wireplumber.service
 systemctl restart pipewire.service
