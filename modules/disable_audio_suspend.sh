@@ -48,7 +48,7 @@ monitor.bluez.rules = [
 EOL
 
 
-#systemctl restart --user pipewire.service
-#systemctl restart --user wireplumber.service
-systemctl restart pipewire.service
-systemctl restart wireplumber.service
+systemctl restart --user pipewire.service
+systemctl restart --user wireplumber.service
+#systemctl restart pipewire.service
+#systemctl restart wireplumber.service
