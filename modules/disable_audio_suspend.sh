@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# requires reboot
+echo 0 | sudo tee /sys/module/snd_hda_intel/parameters/power_save
+
+
 # https://wiki.archlinux.org/title/PipeWire#Noticeable_audio_delay_or_audible_pop/crack_when_starting_playback
 mkdir -p $HOME/.config/wireplumber/wireplumber.conf.d/
 
