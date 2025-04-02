@@ -7,6 +7,9 @@ function main {
     # wake up the screen
     #echo 'on 0' | cec-client -s
     
+    # turn on tv on media pc
+    irsend SEND_ONCE Samsung KEY_POWER
+
     #sleep 5s
     #/bin/python $HOME/Projects/scripts/services/cec.py &
 
