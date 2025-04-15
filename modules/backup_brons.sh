@@ -62,11 +62,11 @@ function fn_full {
     rsync -va $SRC_DIR_1/Misc $DEST_DIR_1 --exclude=".*" --delete
     rsync -va $SRC_DIR_1/Emulators $DEST_DIR_1 --exclude=".*" --delete
     rsync -va $SRC_DIR_1/Photos $DEST_DIR_1 --exclude=".*" --delete
-    rsync -va $SRC_DIR_1/Audio Books $DEST_DIR_1 --exclude=".*" --delete
+    rsync -va $SRC_DIR_1/Audiobooks $DEST_DIR_1 --exclude=".*" --delete
     rsync -va $SRC_DIR_1/Backups $DEST_DIR_1 --exclude=".*" --delete
     rsync -va $SRC_DIR_1/Bible $DEST_DIR_1 --exclude=".*" --delete
     rsync -va $SRC_DIR_1/Music $DEST_DIR_1 --exclude=".*" --delete
-    rsync -va $SRC_DIR_1/Video $DEST_DIR_1 --exclude=".*" --delete
+    rsync -va $SRC_DIR_1/Videos $DEST_DIR_1 --exclude=".*" --delete
 
     echo "Backup complete."
 }
