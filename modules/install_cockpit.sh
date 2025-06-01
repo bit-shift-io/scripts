@@ -30,7 +30,7 @@ function main {
 
 
 function fn_arch {
-./util.sh -i cockpit cockpit-files cockpit-packagekit cockpit-storaged
+./util.sh -i cockpit cockpit-files cockpit-packagekit cockpit-storaged cockpit-podman
 ./util.sh -i cockpit-docker # this needs aur/yay
 sudo systemctl enable cockpit.socket --now
 echo "Complete"
