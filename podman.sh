@@ -83,7 +83,7 @@ function fn_install_debian {
 
 
 function fn_install_arch {
-    ./util.sh -i podman
+    ./util.sh -i podman crun
     
     # podlet: need rust to compile, untile a bin version is released
     rustup default stable
