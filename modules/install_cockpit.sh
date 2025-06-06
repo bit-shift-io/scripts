@@ -31,7 +31,7 @@ function main {
 
 function fn_arch {
 ./util.sh -i cockpit cockpit-files cockpit-packagekit cockpit-storaged cockpit-podman
-./util.sh -i cockpit-docker # this needs aur/yay
+#./util.sh -i cockpit-docker # this needs aur/yay
 sudo systemctl enable cockpit.socket --now
 echo "Complete"
 }
@@ -43,11 +43,11 @@ function fn_debian {
 
 
 # docker
-cd $HOME
-wget -c https://github.com/chabad360/cockpit-docker/releases/download/16/cockpit-docker-16.tar.xz
-sudo tar xf cockpit-docker-16.tar.xz -C /tmp/
-sudo mkdir -p /usr/share/cockpit/docker
-sudo mv /tmp/cockpit-docker/dist/* /usr/share/cockpit/docker
+#cd $HOME
+#wget -c https://github.com/chabad360/cockpit-docker/releases/download/16/cockpit-docker-16.tar.xz
+#sudo tar xf cockpit-docker-16.tar.xz -C /tmp/
+#sudo mkdir -p /usr/share/cockpit/docker
+#sudo mv /tmp/cockpit-docker/dist/* /usr/share/cockpit/docker
 
 # files, should be available in future repo
 cd $HOME
