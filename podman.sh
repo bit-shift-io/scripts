@@ -52,8 +52,25 @@ EOL
 # mount as /pipe in docker
 sudo tee $HOME/Containers/pipe/run.sh > /dev/null << EOL
 #!/bin/bash
-echo "\$@" > /pipe/pipe_in
-cat /pipe/pipe_out
+
+# Get the directory this script is in
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Paths relative to the script directory
+PIPE_IN="$SCRIPT_DIR/pipe_in"
+PIPE_OUT="$SCRIPT_DIR/pipe_out"
+
+# Show script directory
+echo "$SCRIPT_DIR"
+
+# Echo arguments
+echo "$@"
+
+# Send to pipe_in
+echo "$@" > "$PIPE_IN"
+
+# Read from pipe_out
+cat "$PIPE_OUT"
 EOL
 
     sudo chmod +x $HOME/Containers/pipe/start_pipe.sh
