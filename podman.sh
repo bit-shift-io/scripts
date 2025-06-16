@@ -19,6 +19,7 @@ function main {
     r) Remove All Containers
     b) Backup podman folder
     u) Update containers
+    p) Pipe Service
     *) Any key to exit
     :" ans;
     reset
@@ -28,9 +29,59 @@ function main {
         r) fn_remove_all ;;
         b) fn_backup ;;
         u) fn_update ;;
+        p) fn_pipe ;;
         *) $SHELL ;;
     esac
     done
+}
+
+
+
+function fn_pipe {
+    # pipe
+    mkdir $HOME/Containers/pipe
+    mkfifo $HOME/Containers/pipe/pipe_in
+    mkfifo $HOME/Containers/pipe/pipe_out
+
+# create script
+sudo tee $HOME/Containers/pipe/start_pipe.sh > /dev/null << EOL
+#!/bin/bash
+while true; do eval "\$(cat pipe_in)" > pipe_out; done
+EOL
+
+# mount as /pipe in docker
+sudo tee $HOME/Containers/pipe/run.sh > /dev/null << EOL
+#!/bin/bash
+echo "\$@" > /pipe/pipe_in
+cat /pipe/pipe_out
+EOL
+
+    sudo chmod +x $HOME/Containers/pipe/start_pipe.sh
+    sudo chmod +x $HOME/Containers/pipe/run.sh
+
+    # create service
+sudo tee /etc/systemd/system/pipe.service > /dev/null << EOL
+    [Unit]
+    Description=container pipe
+    After=sound.target
+
+    [Service]
+    ExecStart=$HOME/Containers/pipe/start_pipe.sh
+    WorkingDirectory=$HOME/Containers/pipe/
+    StandardOutput=inherit
+    StandardError=inherit
+    Restart=always
+    User=$USER
+    Environment="PULSE_RUNTIME_PATH=/run/user/1000/pulse/"
+
+    [Install]
+    WantedBy=default.target
+EOL
+
+    sudo systemctl reset-failed pipe
+    sudo systemctl enable pipe
+    sudo systemctl start --now pipe 
+    systemctl status pipe.service
 }
 
 
