@@ -52,7 +52,7 @@ for FILE in "${FILES[@]}"; do
     LRA=$(grep 'input_lra' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
     THRESH=$(grep 'input_thresh' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
     OFFSET=$(grep 'target_offset' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
-    PERCENT=$(awk -v o="$OFFSET" 'BEGIN { printf "%.1f", (10^(o/10)) * 100 }')
+    PERCENT=$(awk -v o="$OFFSET" 'BEGIN { printf "%.1f", (10^(o/20)) * 100 }')
     
     echo "Volume adjustment: ${OFFSET} LU (from ${I} LUFS to ${TARGET_I} LUFS)"
     echo "Volume change: $PERCENT%"
@@ -104,8 +104,7 @@ for FILE in "${FILES[@]}"; do
         -c:d copy \
         "$OUTFILE"
 
-    echo "Done: $OUTFILE"
-    echo "------------------------------------"
+    echo "Complete"
     echo ""
 done
 
