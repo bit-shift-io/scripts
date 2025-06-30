@@ -26,7 +26,7 @@ done < <(find . -maxdepth 1 -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -inam
 for FILE in "${FILES[@]}"; do
  
     FILE="${FILE#./}"  # remove leading ./ from filename
-    echo "Processing: $FILE"
+    echo "$FILE"
     BASENAME="${FILE%.*}"
     EXT="${FILE##*.}"
     ANALYSIS_FILE="${BASENAME}.loudnorm.json"
@@ -52,11 +52,27 @@ for FILE in "${FILES[@]}"; do
     LRA=$(grep 'input_lra' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
     THRESH=$(grep 'input_thresh' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
     OFFSET=$(grep 'target_offset' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
-    PERCENT=$(awk -v o="$OFFSET" 'BEGIN { printf "%.1f", (10^(o/20)) * 100 }')
     
-    echo "Volume adjustment: ${OFFSET} LU (from ${I} LUFS to ${TARGET_I} LUFS)"
-    echo "Volume change: $PERCENT%"
-    
+        
+    # Calculate simple LUFS difference
+    LU_DIFFERENCE=$(awk -v i="$I" -v t="$TARGET_I" 'BEGIN { printf "%.2f", t - i }')
+
+    # Calculate volume change based on LUFS difference (not offset)
+    PERCENT=$(awk -v o="$LU_DIFFERENCE" 'BEGIN { printf "%.1f", (10^(o/20)) * 100 }')
+    CHANGE=$(awk -v p="$PERCENT" 'BEGIN { printf "%.1f", (p > 100) ? p - 100 : 100 - p }')
+
+    # Determine increase or decrease
+    if awk "BEGIN {exit !($PERCENT > 100)}"; then
+        echo "Volume adjustment: ${LU_DIFFERENCE} LU (from ${I} LUFS to ${TARGET_I} LUFS)"
+        echo "Volume change: $CHANGE% increase"
+    else
+        echo "Volume adjustment: ${LU_DIFFERENCE} LU (from ${I} LUFS to ${TARGET_I} LUFS)"
+        echo "Volume change: $CHANGE% decrease"
+        echo "Skipping"
+        echo ""
+    continue
+    fi
+
     
     # Get original audio codec and bitrate (bitrate might be empty for some formats)
     AUDIO_CODEC=$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "$FILE")
