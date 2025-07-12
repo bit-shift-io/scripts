@@ -15,6 +15,11 @@ TARGET_I=-16
 TARGET_TP=-1.5
 TARGET_LRA=11
 
+# log fn
+function log() {
+    echo "$@" | tee -a "$logfile"
+}
+
 # collect file list
 FILES=()
 while IFS= read -r -d '' FILE; do
@@ -24,26 +29,34 @@ done < <(find . -maxdepth 1 -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -inam
 
 # normalise
 for FILE in "${FILES[@]}"; do
- 
     FILE="${FILE#./}"  # remove leading ./ from filename
-    echo "$FILE"
     BASENAME="${FILE%.*}"
     EXT="${FILE##*.}"
     ANALYSIS_FILE="${BASENAME}.loudnorm.json"
     OUTFILE="clean-${BASENAME}.${EXT}"
+    logfile="${BASENAME}.log"
+    
+    log "$FILE"
+    
+    # check channels
+    # possibly downmix
+    CHANNELS=$(ffprobe -v error -select_streams a:0 -show_entries stream=channels -of default=noprint_wrappers=1:nokey=1 "$FILE")
+    if [[ "$CHANNELS" -gt 2 ]]; then
+        log "Warn: File has $CHANNELS audio channels (not stereo). Consider downmixing."
+    fi
 
     # fix timestamp/skipping issues
-    #echo "Fixing timestamps..."
+    #log "Fixing timestamps..."
     #ffmpeg -fflags +genpts -i "$FILE" -c copy -avoid_negative_ts make_zero "fixed-$FILE"
     
     # normalization
     if [[ ! -f "$ANALYSIS_FILE" ]]; then
-        echo "Running loudnorm analysis..."
+        log "Running loudnorm analysis..."
         ffmpeg -hide_banner -nostdin -i "$FILE" \
             -af loudnorm=I=$TARGET_I:TP=$TARGET_TP:LRA=$TARGET_LRA:print_format=json \
             -f null - 2>&1 | tee "$ANALYSIS_FILE" > /dev/null
     else
-        echo "Using existing analysis: $ANALYSIS_FILE"
+        log "Skip loudnorm. Using existing analysis."
     fi
         
     # Extract loudnorm values from analysis JSON
@@ -63,14 +76,32 @@ for FILE in "${FILES[@]}"; do
 
     # Determine increase or decrease
     if awk "BEGIN {exit !($PERCENT > 100)}"; then
-        echo "Volume adjustment: ${LU_DIFFERENCE} LU (from ${I} LUFS to ${TARGET_I} LUFS)"
-        echo "Volume change: $CHANGE% increase"
+        log "Volume adjustment: ${LU_DIFFERENCE} LU from ${I} LUFS to ${TARGET_I} LUFS"
+        log "Volume change: $CHANGE% increase"
     else
-        echo "Volume adjustment: ${LU_DIFFERENCE} LU (from ${I} LUFS to ${TARGET_I} LUFS)"
-        echo "Volume change: $CHANGE% decrease"
-        echo "Skipping"
-        echo ""
-    continue
+        log "Volume adjustment: ${LU_DIFFERENCE} LU from ${I} LUFS to ${TARGET_I} LUFS"
+        log "Volume change: $CHANGE% decrease"
+        log "Skipping"
+        log ""
+        continue
+    fi
+    
+    # skip if close
+    if awk "BEGIN {exit !(sqrt(($LU_DIFFERENCE)^2) < 0.5)}"; then
+        log "Input already close to target loudness."
+        log "Skipping"
+        log ""
+        continue
+    fi
+    
+    
+    # Warn if input True Peak is dangerously high (from .json)
+    if awk "BEGIN {exit !($TP > 1.0)}"; then
+        log "Warn: Input audio likely clipped (TP = ${TP} dBTP)"
+        log "Consider remastering or applying stronger compression first."
+        #log "Skipping"
+        #log ""
+        #continue
     fi
 
     
@@ -80,7 +111,7 @@ for FILE in "${FILES[@]}"; do
 
     # Check codec is valid
     if [[ -z "$AUDIO_CODEC" ]]; then
-        echo "Warn: Audio codec not detected. Using default 'aac'."
+        log "Warn: Audio codec not detected. Using default 'aac'."
         AUDIO_CODEC="aac"
     fi
 
@@ -105,27 +136,41 @@ for FILE in "${FILES[@]}"; do
                 AUDIO_BITRATE="160k"
                 ;;
         esac
-        echo "Warn: Bitrate unavailable. Using default: $AUDIO_BITRATE"
+        log "Warn: Bitrate unavailable. Using default: $AUDIO_BITRATE"
     fi
 
 
+    # Convert TARGET_TP (in dB) to linear gain for alimiter
+    TP_LIMIT=$(awk -v db="$TARGET_TP" 'BEGIN { printf "%.3f", 10^(db / 20) }')
+    
     # apply final normalization
-    echo "Normalizing and encoding..."
+    log "Normalizing and encoding..."
     ffmpeg -nostdin -loglevel error -stats -i "$FILE" \
         -map 0 \
-        -af loudnorm=I=$TARGET_I:TP=$TARGET_TP:LRA=$TARGET_LRA:measured_I=$I:measured_TP=$TP:measured_LRA=$LRA:measured_thresh=$THRESH:offset=$OFFSET:linear=true:print_format=summary \
+        -af "volume=-3dB,acompressor=threshold=-12dB:ratio=3:attack=10:release=250,loudnorm=I=$TARGET_I:TP=$TARGET_TP:LRA=$TARGET_LRA:measured_I=$I:measured_TP=$TP:measured_LRA=$LRA:measured_thresh=$THRESH:offset=$OFFSET:linear=false,alimiter=limit=$TP_LIMIT" \
         -c:v copy \
         -c:a "$AUDIO_CODEC" -b:a "$AUDIO_BITRATE" \
         -c:s copy \
         -c:d copy \
         "$OUTFILE"
-
-    echo "Complete"
-    echo ""
+        
+    log "Complete"
+    
+    # Post-normalization loudness check
+    log "Verifying normalized output loudness..."
+    TMP_LOUDNESS_CHECK=$(mktemp)
+    ffmpeg -hide_banner -nostdin -i "$OUTFILE" \
+        -af loudnorm=I=$TARGET_I:TP=$TARGET_TP:LRA=$TARGET_LRA:print_format=summary \
+        -f null - 2>&1 | tee "$TMP_LOUDNESS_CHECK" > /dev/null
+    # Extract only the summary (non-ffmpeg noise) and append to the log
+    log "Post-check summary:"
+    grep -E 'Input|Output|Normalization Type|Target Offset' "$TMP_LOUDNESS_CHECK" | tee -a "$logfile" > /dev/null
+    rm -f "$TMP_LOUDNESS_CHECK"
+    log ""
 done
 
 
 # Cleanup
 #rm -f "$TMPFILE"
 
-echo "DONE!"
+log "DONE!"
