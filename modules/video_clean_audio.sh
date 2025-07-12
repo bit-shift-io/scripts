@@ -42,7 +42,7 @@ for FILE in "${FILES[@]}"; do
     # possibly downmix
     CHANNELS=$(ffprobe -v error -select_streams a:0 -show_entries stream=channels -of default=noprint_wrappers=1:nokey=1 "$FILE")
     if [[ "$CHANNELS" -gt 2 ]]; then
-        log "Warn: File has $CHANNELS audio channels (not stereo). Consider downmixing."
+        log "Warn: File has $CHANNELS audio channels (not stereo), consider downmixing."
     fi
 
     # fix timestamp/skipping issues
@@ -56,7 +56,7 @@ for FILE in "${FILES[@]}"; do
             -af loudnorm=I=$TARGET_I:TP=$TARGET_TP:LRA=$TARGET_LRA:print_format=json \
             -f null - 2>&1 | tee "$ANALYSIS_FILE" > /dev/null
     else
-        log "Skip loudnorm. Using existing analysis."
+        log "Skip loudnorm, use existing analysis."
     fi
         
     # Extract loudnorm values from analysis JSON
@@ -65,11 +65,33 @@ for FILE in "${FILES[@]}"; do
     LRA=$(grep 'input_lra' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
     THRESH=$(grep 'input_thresh' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
     OFFSET=$(grep 'target_offset' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
+    OUTPUT_I=$(grep '"output_i"' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
+    OUTPUT_TP=$(grep '"output_tp"' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
+    OUTPUT_LRA=$(grep '"output_lra"' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
+    OUTPUT_THRESH=$(grep '"output_thresh"' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
+    NORMALIZATION_TYPE=$(grep '"normalization_type"' "$ANALYSIS_FILE" | sed 's/.*: "//;s/".*//')
     
-        
+    log ""
+    log "Pre-normalization loudness:"
+    {
+        echo "Input Integrated:    ${I} LUFS"
+        echo "Input True Peak:     ${TP} dBTP"
+        echo "Input LRA:           ${LRA} LU"
+        echo "Input Threshold:     ${THRESH} LUFS"
+        echo "Output Integrated:   ${OUTPUT_I} LUFS"
+        echo "Output True Peak:    ${OUTPUT_TP} dBTP"
+        echo "Output LRA:          ${OUTPUT_LRA} LU"
+        echo "Output Threshold:    ${OUTPUT_THRESH} LUFS"
+        echo "Normalization Type:  ${NORMALIZATION_TYPE}"
+        echo "Target Offset:       ${OFFSET} LU"
+    } | tee -a "$logfile"
+    log ""
+    
+    
     # Calculate simple LUFS difference
+    log ""
+    log "Changes to make:"
     LU_DIFFERENCE=$(awk -v i="$I" -v t="$TARGET_I" 'BEGIN { printf "%.2f", t - i }')
-
     # Calculate volume change based on LUFS difference (not offset)
     PERCENT=$(awk -v o="$LU_DIFFERENCE" 'BEGIN { printf "%.1f", (10^(o/20)) * 100 }')
     CHANGE=$(awk -v p="$PERCENT" 'BEGIN { printf "%.1f", (p > 100) ? p - 100 : 100 - p }')
@@ -94,14 +116,9 @@ for FILE in "${FILES[@]}"; do
         continue
     fi
     
-    
     # Warn if input True Peak is dangerously high (from .json)
     if awk "BEGIN {exit !($TP > 1.0)}"; then
-        log "Warn: Input audio likely clipped (TP = ${TP} dBTP)"
-        log "Consider remastering or applying stronger compression first."
-        #log "Skipping"
-        #log ""
-        #continue
+        log "Warn: Input audio likely clipped (TP = ${TP} dBTP), consider remastering or applying stronger compression first."
     fi
 
     
@@ -144,6 +161,7 @@ for FILE in "${FILES[@]}"; do
     TP_LIMIT=$(awk -v db="$TARGET_TP" 'BEGIN { printf "%.3f", 10^(db / 20) }')
     
     # apply final normalization
+    log ""
     log "Normalizing and encoding..."
     ffmpeg -nostdin -loglevel error -stats -i "$FILE" \
         -map 0 \
@@ -154,18 +172,29 @@ for FILE in "${FILES[@]}"; do
         -c:d copy \
         "$OUTFILE"
         
-    log "Complete"
+    # Move and rename the normalized file
+    mkdir -p clean
+    mv "$OUTFILE" "clean/${BASENAME}.${EXT}"
+    log "Normalize complete"
+
     
     # Post-normalization loudness check
+    log ""
     log "Verifying normalized output loudness..."
     TMP_LOUDNESS_CHECK=$(mktemp)
     ffmpeg -hide_banner -nostdin -i "$OUTFILE" \
         -af loudnorm=I=$TARGET_I:TP=$TARGET_TP:LRA=$TARGET_LRA:print_format=summary \
-        -f null - 2>&1 | tee "$TMP_LOUDNESS_CHECK" > /dev/null
+        -f null - 2> "$TMP_LOUDNESS_CHECK"
+    #ffmpeg -hide_banner -nostdin -i "$OUTFILE" \
+    #    -af loudnorm=I=$TARGET_I:TP=$TARGET_TP:LRA=$TARGET_LRA:print_format=summary \
+    #    -f null - 2>&1 | tee "$TMP_LOUDNESS_CHECK" > /dev/null
+        
     # Extract only the summary (non-ffmpeg noise) and append to the log
+    log ""
     log "Post-check summary:"
-    grep -E 'Input|Output|Normalization Type|Target Offset' "$TMP_LOUDNESS_CHECK" | tee -a "$logfile" > /dev/null
-    rm -f "$TMP_LOUDNESS_CHECK"
+    grep -E 'Input (Integrated|True Peak|LRA|Threshold)|Output (Integrated|True Peak|LRA|Threshold)|Normalization Type|Target Offset' "$TMP_LOUDNESS_CHECK" | tee -a "$logfile" > /dev/null
+    #rm -f "$TMP_LOUDNESS_CHECK"
+    echo "$TMP_LOUDNESS_CHECK"
     log ""
 done
 
@@ -173,4 +202,4 @@ done
 # Cleanup
 #rm -f "$TMPFILE"
 
-log "DONE!"
+echo "DONE!"
