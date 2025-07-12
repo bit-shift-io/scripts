@@ -1,13 +1,12 @@
 #!/bin/bash
 
-# copy into folder with files
-# they will be normalized
+# copy this script into the folder with media video files
+# they will be normalized and cleaned
 
 # Requires
 # ffmpeg
 
 # https://superuser.com/questions/852400/properly-downmix-5-1-to-stereo-using-ffmpeg#1410620
-# 
 
 
 # Set normalization targets
@@ -26,6 +25,8 @@ while IFS= read -r -d '' FILE; do
     FILES+=("$FILE")
 done < <(find . -maxdepth 1 -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.webm" \) -not -name "clean-*" -print0)
 
+# create ouput folder
+mkdir -p clean
 
 # normalise
 for FILE in "${FILES[@]}"; do
@@ -85,9 +86,8 @@ for FILE in "${FILES[@]}"; do
         echo "Normalization Type:  ${NORMALIZATION_TYPE}"
         echo "Target Offset:       ${OFFSET} LU"
     } | tee -a "$logfile"
-    log ""
     
-    
+
     # Calculate simple LUFS difference
     log ""
     log "Changes to make:"
@@ -165,16 +165,13 @@ for FILE in "${FILES[@]}"; do
     log "Normalizing and encoding..."
     ffmpeg -nostdin -loglevel error -stats -i "$FILE" \
         -map 0 \
-        -af "volume=-3dB,acompressor=threshold=-12dB:ratio=3:attack=10:release=250,loudnorm=I=$TARGET_I:TP=$TARGET_TP:LRA=$TARGET_LRA:measured_I=$I:measured_TP=$TP:measured_LRA=$LRA:measured_thresh=$THRESH:offset=$OFFSET:linear=false,alimiter=limit=$TP_LIMIT" \
+        -af "acompressor=threshold=-12dB:ratio=3:attack=10:release=250,loudnorm=I=$TARGET_I:TP=$TARGET_TP:LRA=$TARGET_LRA:measured_I=$I:measured_TP=$TP:measured_LRA=$LRA:measured_thresh=$THRESH:offset=$OFFSET:linear=false,alimiter=limit=$TP_LIMIT" \
         -c:v copy \
         -c:a "$AUDIO_CODEC" -b:a "$AUDIO_BITRATE" \
         -c:s copy \
         -c:d copy \
         "$OUTFILE"
         
-    # Move and rename the normalized file
-    mkdir -p clean
-    mv "$OUTFILE" "clean/${BASENAME}.${EXT}"
     log "Normalize complete"
 
     
@@ -185,21 +182,16 @@ for FILE in "${FILES[@]}"; do
     ffmpeg -hide_banner -nostdin -i "$OUTFILE" \
         -af loudnorm=I=$TARGET_I:TP=$TARGET_TP:LRA=$TARGET_LRA:print_format=summary \
         -f null - 2> "$TMP_LOUDNESS_CHECK"
-    #ffmpeg -hide_banner -nostdin -i "$OUTFILE" \
-    #    -af loudnorm=I=$TARGET_I:TP=$TARGET_TP:LRA=$TARGET_LRA:print_format=summary \
-    #    -f null - 2>&1 | tee "$TMP_LOUDNESS_CHECK" > /dev/null
         
-    # Extract only the summary (non-ffmpeg noise) and append to the log
-    log ""
+    # Extract only the summary
     log "Post-check summary:"
-    grep -E 'Input (Integrated|True Peak|LRA|Threshold)|Output (Integrated|True Peak|LRA|Threshold)|Normalization Type|Target Offset' "$TMP_LOUDNESS_CHECK" | tee -a "$logfile" > /dev/null
-    #rm -f "$TMP_LOUDNESS_CHECK"
-    echo "$TMP_LOUDNESS_CHECK"
+    grep -E '^\s*(Input|Output) (Integrated|True Peak|LRA|Threshold)|^\s*Normalization Type|^\s*Target Offset' "$TMP_LOUDNESS_CHECK" | tee -a "$logfile"
     log ""
+
+
+    # Move and clean
+    rm -f "$TMP_LOUDNESS_CHECK"
+    mv "$OUTFILE" "clean/${BASENAME}.${EXT}"
 done
-
-
-# Cleanup
-#rm -f "$TMPFILE"
 
 echo "DONE!"
