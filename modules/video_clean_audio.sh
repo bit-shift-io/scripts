@@ -3,16 +3,13 @@
 # copy this script into the folder with media video files
 # they will be normalized and cleaned
 
-# Requires
+# Requires:
 # ffmpeg
+# sox
 
-# https://superuser.com/questions/852400/properly-downmix-5-1-to-stereo-using-ffmpeg#1410620
-
-
-# Set normalization targets
-TARGET_I=-16
-TARGET_TP=-1.5
-TARGET_LRA=11
+# Thresholds
+PEAK_THRESHOLD_DBFS=-1.1          # Needs gain if below this
+DYN_RANGE_COMPAND_THRESHOLD=-30   # Needs compand if wider than this
 
 # log fn
 function log() {
@@ -28,171 +25,92 @@ done < <(find . -maxdepth 1 -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -inam
 # create ouput folder
 mkdir -p clean
 
-# normalise
+# process files
 for FILE in "${FILES[@]}"; do
     FILE="${FILE#./}"  # remove leading ./ from filename
     BASENAME="${FILE%.*}"
-    EXT="${FILE##*.}"
-    ANALYSIS_FILE="${BASENAME}.loudnorm.json"
-    OUTFILE="clean-${BASENAME}.${EXT}"
+    OUTFILE="clean/${BASENAME}.mp4"
+    TMP_WAV="${BASENAME}.wav"
+    TMP_PROC="${BASENAME}_proc.wav"
+    TMP_LOG="${BASENAME}.sox"
     logfile="${BASENAME}.log"
-    
+    : > "$logfile"   # Clear previous log content
     log "$FILE"
     
-    # check channels
-    # possibly downmix
-    CHANNELS=$(ffprobe -v error -select_streams a:0 -show_entries stream=channels -of default=noprint_wrappers=1:nokey=1 "$FILE")
-    if [[ "$CHANNELS" -gt 2 ]]; then
-        log "Warn: File has $CHANNELS audio channels (not stereo), consider downmixing."
-    fi
-
-    # fix timestamp/skipping issues
-    #log "Fixing timestamps..."
-    #ffmpeg -fflags +genpts -i "$FILE" -c copy -avoid_negative_ts make_zero "fixed-$FILE"
-    
-    # normalization
-    if [[ ! -f "$ANALYSIS_FILE" ]]; then
-        log "Running loudnorm analysis..."
-        ffmpeg -hide_banner -nostdin -i "$FILE" \
-            -af loudnorm=I=$TARGET_I:TP=$TARGET_TP:LRA=$TARGET_LRA:print_format=json \
-            -f null - 2>&1 | tee "$ANALYSIS_FILE" > /dev/null
+    # Step 1: Extract audio to WAV
+    if [[ ! -f "$TMP_WAV" ]]; then
+        log "Extract audio..."
+        ffmpeg -loglevel error -hide_banner -nostdin -stats -y -i "$FILE" -vn -acodec pcm_s16le -ar 44100 -ac 2 "$TMP_WAV"
     else
-        log "Skip loudnorm, use existing analysis."
+        log "Audio already extracted"
     fi
-        
-    # Extract loudnorm values from analysis JSON
-    I=$(grep 'input_i' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
-    TP=$(grep 'input_tp' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
-    LRA=$(grep 'input_lra' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
-    THRESH=$(grep 'input_thresh' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
-    OFFSET=$(grep 'target_offset' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
-    OUTPUT_I=$(grep '"output_i"' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
-    OUTPUT_TP=$(grep '"output_tp"' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
-    OUTPUT_LRA=$(grep '"output_lra"' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
-    OUTPUT_THRESH=$(grep '"output_thresh"' "$ANALYSIS_FILE" | sed 's/.*: //;s/[",]//g')
-    NORMALIZATION_TYPE=$(grep '"normalization_type"' "$ANALYSIS_FILE" | sed 's/.*: "//;s/".*//')
     
-    log ""
-    log "Pre-normalization loudness:"
-    {
-        echo "Input Integrated:    ${I} LUFS"
-        echo "Input True Peak:     ${TP} dBTP"
-        echo "Input LRA:           ${LRA} LU"
-        echo "Input Threshold:     ${THRESH} LUFS"
-        echo "Output Integrated:   ${OUTPUT_I} LUFS"
-        echo "Output True Peak:    ${OUTPUT_TP} dBTP"
-        echo "Output LRA:          ${OUTPUT_LRA} LU"
-        echo "Output Threshold:    ${OUTPUT_THRESH} LUFS"
-        echo "Normalization Type:  ${NORMALIZATION_TYPE}"
-        echo "Target Offset:       ${OFFSET} LU"
-    } | tee -a "$logfile"
+    # Step 2: Analyze audio
+    log "Analyzing..."
+    sox "$TMP_WAV" -n stats 2> "$TMP_LOG"
     
+    MIN_VOL=$(awk '/^Min level/ {print $3}' "$TMP_LOG")
+    MAX_VOL=$(awk '/^Max level/ {print $3}' "$TMP_LOG")
+     
+    if [[ -z "$MIN_VOL" || -z "$MAX_VOL" ]]; then
+        log "Failed to detect volume. Will process anyway."
+    fi
+    
+    # Calculate values
+    RANGE=$(awk -v min="$MIN_VOL" -v max="$MAX_VOL" 'BEGIN { printf "%.6f", max - min }')
+    ABS_MIN=$(awk -v v="$MIN_VOL" 'BEGIN { print (v < 0) ? -v : v }')
+    ABS_MAX=$(awk -v v="$MAX_VOL" 'BEGIN { print (v < 0) ? -v : v }')
+    ABS_RANGE=$(awk -v min="$ABS_MIN" -v max="$ABS_MAX" 'BEGIN { printf "%.6f", max - min }')
 
-    # Calculate simple LUFS difference
-    log ""
-    log "Changes to make:"
-    LU_DIFFERENCE=$(awk -v i="$I" -v t="$TARGET_I" 'BEGIN { printf "%.2f", t - i }')
-    # Calculate volume change based on LUFS difference (not offset)
-    PERCENT=$(awk -v o="$LU_DIFFERENCE" 'BEGIN { printf "%.1f", (10^(o/20)) * 100 }')
-    CHANGE=$(awk -v p="$PERCENT" 'BEGIN { printf "%.1f", (p > 100) ? p - 100 : 100 - p }')
+    # Convert to dBFS
+    MIN_DBFS=$(awk -v a="$ABS_MIN" 'BEGIN { a = (a < 0) ? -a : a; if (a == 0) print "-inf"; else printf "%.2f", 20 * log(a)/log(10) }')
+    MAX_DBFS=$(awk -v a="$ABS_MAX" 'BEGIN { a = (a < 0) ? -a : a; if (a == 0) print "-inf"; else printf "%.2f", 20 * log(a)/log(10) }')
+    RANGE_DBFS=$(awk -v a="$ABS_RANGE" 'BEGIN { a = (a < 0) ? -a : a; if (a == 0) print "-inf"; else printf "%.2f", 20 * log(a)/log(10) }')
 
-    # Determine increase or decrease
-    if awk "BEGIN {exit !($PERCENT > 100)}"; then
-        log "Volume adjustment: ${LU_DIFFERENCE} LU from ${I} LUFS to ${TARGET_I} LUFS"
-        log "Volume change: $CHANGE% increase"
+    log "Min amplitude     : $MIN_VOL ($MIN_DBFS dBFS)"
+    log "Max amplitude     : $MAX_VOL ($MAX_DBFS dBFS)"
+    log "Range             : $RANGE (approx $RANGE_DBFS dB)"
+    log "Absolute range    : $ABS_RANGE ($RANGE_DBFS dBFS)"
+
+    
+    # Step 3: Decide if gain is needed based on peak level
+    NEEDS_GAIN=false
+    awk -v maxdb="$MAX_DBFS" -v thr="$PEAK_THRESHOLD_DBFS" 'BEGIN { if (maxdb < thr) exit 1 }'
+    if [[ $? -eq 1 ]]; then
+        NEEDS_GAIN=true
+    fi
+    
+    
+    # Step 4: Decide if compand is needed based on dynamic range
+    NEEDS_COMPAND=false
+    awk -v range="$RANGE_DBFS" -v comp="$DYN_RANGE_COMPAND_THRESHOLD" 'BEGIN { if (range < comp) exit 1 }'
+    if [[ $? -eq 1 ]]; then
+        NEEDS_COMPAND=true
+    fi
+
+
+    # Step 5: Apply appropriate processing
+    if [[ "$NEEDS_GAIN" == true && "$NEEDS_COMPAND" == true ]]; then
+        log "Applying compand + gain normalization..."
+        sox "$TMP_WAV" "$TMP_PROC" compand 0.3,1 6:-70,-60,-20 -5 -90 0.2 gain -n
+    elif [[ "$NEEDS_GAIN" == true ]]; then
+        log "Applying gain only..."
+        sox "$TMP_WAV" "$TMP_PROC" gain -n
     else
-        log "Volume adjustment: ${LU_DIFFERENCE} LU from ${I} LUFS to ${TARGET_I} LUFS"
-        log "Volume change: $CHANGE% decrease"
-        log "Skipping"
-        log ""
-        continue
-    fi
-    
-    # skip if close
-    if awk "BEGIN {exit !(sqrt(($LU_DIFFERENCE)^2) < 0.5)}"; then
-        log "Input already close to target loudness."
-        log "Skipping"
-        log ""
-        continue
-    fi
-    
-    # Warn if input True Peak is dangerously high (from .json)
-    if awk "BEGIN {exit !($TP > 1.0)}"; then
-        log "Warn: Input audio likely clipped (TP = ${TP} dBTP), consider remastering or applying stronger compression first."
+        log "Audio is already loud and compact. Copying original..."
+        cp "$TMP_WAV" "$TMP_PROC"
     fi
 
     
-    # Get original audio codec and bitrate (bitrate might be empty for some formats)
-    AUDIO_CODEC=$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "$FILE")
-    AUDIO_BITRATE_RAW=$(ffprobe -v error -select_streams a:0 -show_entries stream=bit_rate -of default=noprint_wrappers=1:nokey=1 "$FILE" || true)
+    # Step 6: Replace original audio with processed audio
+    log "Replacing audio track in video..."
+    ffmpeg -loglevel error -hide_banner -nostdin -y -i "$FILE" -i "$TMP_PROC" -map 0:v -map 1:a -c:v copy -c:a aac -b:a 192k "$OUTFILE"
 
-    # Check codec is valid
-    if [[ -z "$AUDIO_CODEC" ]]; then
-        log "Warn: Audio codec not detected. Using default 'aac'."
-        AUDIO_CODEC="aac"
-    fi
+    log "Ok"
 
-    # Map 'opus' codec to ffmpeg encoder name
-    if [[ "$AUDIO_CODEC" == "opus" ]]; then
-        AUDIO_CODEC="libopus"
-    fi
-
-    # Check and assign bitrate
-    if [[ "$AUDIO_BITRATE_RAW" =~ ^[0-9]+$ ]]; then
-        AUDIO_BITRATE="$((AUDIO_BITRATE_RAW / 1000))k"
-    else
-        # Set sensible defaults based on codec
-        case "$AUDIO_CODEC" in
-            libopus|opus)
-                AUDIO_BITRATE="128k"
-                ;;
-            aac)
-                AUDIO_BITRATE="192k"
-                ;;
-            *)
-                AUDIO_BITRATE="160k"
-                ;;
-        esac
-        log "Warn: Bitrate unavailable. Using default: $AUDIO_BITRATE"
-    fi
-
-
-    # Convert TARGET_TP (in dB) to linear gain for alimiter
-    TP_LIMIT=$(awk -v db="$TARGET_TP" 'BEGIN { printf "%.3f", 10^(db / 20) }')
+    # Clean up
+    rm -f "$TMP_WAV" "$TMP_PROC" "$TMP_LOG"
     
-    # apply final normalization
-    log ""
-    log "Normalizing and encoding..."
-    ffmpeg -nostdin -loglevel error -stats -i "$FILE" \
-        -map 0 \
-        -af "acompressor=threshold=-12dB:ratio=3:attack=10:release=250,loudnorm=I=$TARGET_I:TP=$TARGET_TP:LRA=$TARGET_LRA:measured_I=$I:measured_TP=$TP:measured_LRA=$LRA:measured_thresh=$THRESH:offset=$OFFSET:linear=false,alimiter=limit=$TP_LIMIT" \
-        -c:v copy \
-        -strict -2 \
-        -c:a "$AUDIO_CODEC" -b:a "$AUDIO_BITRATE" \
-        -c:s copy \
-        -c:d copy \
-        "$OUTFILE"
-        
-    log "Normalize complete"
-
-    
-    # Post-normalization loudness check
-    log ""
-    log "Verifying normalized output loudness..."
-    TMP_LOUDNESS_CHECK=$(mktemp)
-    ffmpeg -hide_banner -nostdin -i "$OUTFILE" \
-        -af loudnorm=I=$TARGET_I:TP=$TARGET_TP:LRA=$TARGET_LRA:print_format=summary \
-        -f null - 2> "$TMP_LOUDNESS_CHECK"
-        
-    # Extract only the summary
-    log "Post-check summary:"
-    grep -E '^\s*(Input|Output) (Integrated|True Peak|LRA|Threshold)|^\s*Normalization Type|^\s*Target Offset' "$TMP_LOUDNESS_CHECK" | tee -a "$logfile"
-    log ""
-
-
-    # Move and clean
-    rm -f "$TMP_LOUDNESS_CHECK"
-    mv "$OUTFILE" "clean/${BASENAME}.${EXT}"
 done
 
 echo "DONE!"
