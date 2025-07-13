@@ -167,6 +167,7 @@ for FILE in "${FILES[@]}"; do
         -map 0 \
         -af "acompressor=threshold=-12dB:ratio=3:attack=10:release=250,loudnorm=I=$TARGET_I:TP=$TARGET_TP:LRA=$TARGET_LRA:measured_I=$I:measured_TP=$TP:measured_LRA=$LRA:measured_thresh=$THRESH:offset=$OFFSET:linear=false,alimiter=limit=$TP_LIMIT" \
         -c:v copy \
+        -strict -2 \
         -c:a "$AUDIO_CODEC" -b:a "$AUDIO_BITRATE" \
         -c:s copy \
         -c:d copy \
