@@ -10,11 +10,12 @@
 # Thresholds
 PEAK_THRESHOLD_DBFS=-1.1         # Needs gain if below this
 DYN_RANGE_COMPAND_THRESHOLD=30   # Needs compand if wider than this
-
-
+LOG_FILE="video_clean_audio.log"
+TMPDIR="tmp"
+CLEANDIR="clean"
 
 function log() {
-    echo "$@" | tee -a "$logfile"
+    echo "$@" | tee -a "$LOG_FILE"
 }
 
 
@@ -57,6 +58,10 @@ function analyze_audio_stats() {
 }
 
 
+function clean_temp_files() {
+    rm -rf "$TMPDIR"
+}
+trap cleanup_temp_files EXIT
 
 # collect file list
 FILES=()
@@ -64,21 +69,21 @@ while IFS= read -r -d '' FILE; do
     FILES+=("$FILE")
 done < <(find . -maxdepth 1 -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.webm" \) -not -name "clean-*" -print0)
 
-# create ouput folder
-mkdir -p clean
+# create ouput folders
+mkdir -p "$TMPDIR" "$CLEANDIR"
+: > "$LOG_FILE"   # Clear previous log content
 
 # process files
 for FILE in "${FILES[@]}"; do
     FILE="${FILE#./}"  # remove leading ./ from filename
     BASENAME="${FILE%.*}"
-    OUTFILE="clean/${BASENAME}.mp4"
-    TMP_WAV="${BASENAME}.wav"
-    TMP_PROC="${BASENAME}_proc.wav"
-    TMP_LOG="${BASENAME}.sox"
-    logfile="${BASENAME}.log"
-    : > "$logfile"   # Clear previous log content
-    echo "--------------------"
-    echo ""
+    OUTFILE="$CLEANDIR/${BASENAME}.mp4"
+    TMP_WAV="$TMPDIR/${BASENAME}.wav"
+    TMP_PROC="$TMPDIR/${BASENAME}_proc.wav"
+    TMP_LOG="$TMPDIR/${BASENAME}.sox"
+    
+    log "--------------------"
+    log ""
     log "$FILE"
     
 
@@ -128,10 +133,12 @@ for FILE in "${FILES[@]}"; do
     log ""
     if [[ "$NEEDS_GAIN" == true && "$NEEDS_COMPAND" == true ]]; then
         log "Applying compression + gain..."
-        sox "$TMP_WAV" "$TMP_PROC" compand 0.3,1 6:-70,-60,-20 -5 -90 0.2 gain -n -1
+        # for now, just do the gain
+        #sox "$TMP_WAV" "$TMP_PROC" compand 0.3,1 6:-70,-60,-20 -5 -90 0.2 gain -n -0.1
+        sox "$TMP_WAV" "$TMP_PROC" gain -n -0.1
     elif [[ "$NEEDS_GAIN" == true ]]; then
         log "Applying gain..."
-        sox "$TMP_WAV" "$TMP_PROC" gain -n -1
+        sox "$TMP_WAV" "$TMP_PROC" gain -n -0.1
     else
         log "Audio is already loud and within range. Skipping"
         continue
@@ -147,11 +154,11 @@ for FILE in "${FILES[@]}"; do
     log "Replacing audio in video..."
     ffmpeg -loglevel error -hide_banner -nostdin -y -i "$FILE" -i "$TMP_PROC" -map 0:v -map 1:a -c:v copy -c:a aac -b:a 192k "$OUTFILE"
 
-    # Clean up
-    rm -f "$TMP_WAV" "$TMP_PROC" "$TMP_LOG"
     log "Ok"
-    echo ""
-    echo "--------------------"
+    log ""
+    
 done
 
-echo "DONE!"
+clean_temp_files
+log "--------------------"
+log "DONE!"
