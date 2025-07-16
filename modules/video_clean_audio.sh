@@ -63,11 +63,11 @@ function clean_temp_files() {
 }
 trap cleanup_temp_files EXIT
 
-# collect file list
+# collect and sort file list by name
 FILES=()
 while IFS= read -r -d '' FILE; do
     FILES+=("$FILE")
-done < <(find . -maxdepth 1 -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.webm" \) -not -name "clean-*" -print0)
+done < <(find . -maxdepth 1 -type f \( -iname "*.mp4" -o -iname "*.mkv" -o -iname "*.webm" \) -print0 | sort -z)
 
 # create ouput folders
 mkdir -p "$TMPDIR" "$CLEANDIR"
@@ -77,7 +77,8 @@ mkdir -p "$TMPDIR" "$CLEANDIR"
 for FILE in "${FILES[@]}"; do
     FILE="${FILE#./}"  # remove leading ./ from filename
     BASENAME="${FILE%.*}"
-    OUTFILE="$CLEANDIR/${BASENAME}.mp4"
+    EXT="${FILE##*.}"
+    OUTFILE="$CLEANDIR/${BASENAME}.${EXT}"
     TMP_WAV="$TMPDIR/${BASENAME}.wav"
     TMP_PROC="$TMPDIR/${BASENAME}_proc.wav"
     TMP_LOG="$TMPDIR/${BASENAME}.sox"
