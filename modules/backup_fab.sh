@@ -22,6 +22,7 @@ sudo tee fabian_backup_excludes.txt > /dev/null << EOL
 + /Melissa/
 + /Pictures/
 + /Docker/
++ /factorio/
 - /*
 EOL
 
