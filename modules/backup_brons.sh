@@ -34,7 +34,8 @@ function fn_min {
     echo "Which drive to backup to (eg: offsite) : "
     read drive
 
-    DEST_DIR_1="/mnt/${drive}/backups/bronson" # external hdd backup
+    DEST_DIR_1="/run/media/bronson/${drive}/backups/bronson" # external hdd backup
+    #DEST_DIR_1="/mnt/${drive}/backups/bronson" # external hdd backup
     SRC_DIR_1="s@living.lan:/home/s"
 
     echo "Start backup up from '$SRC_DIR_1' to '$DEST_DIR_1'...."
