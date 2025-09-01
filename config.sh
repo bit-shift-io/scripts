@@ -364,7 +364,7 @@ function fn_base_apps {
 
     # install software
     echo -e '\n\nInstalling packages...'
-    ./util.sh -i yay base-devel openssh partitionmanager skanlite filelight kio-extras plasma-browser-integration libreoffice firefox keepassxc git rustup vulkan-radeon lib32-vulkan-radeon vulkan-intel sshfs isoimagewriter
+    ./util.sh -i yay base-devel openssh partitionmanager skanlite filelight kio-extras plasma-browser-integration libreoffice firefox keepassxc git rustup vulkan-radeon lib32-vulkan-radeon vulkan-intel sshfs isoimagewriter qbittorrent
     
     # printer support
     ./util.sh -i cups cups-pdf system-config-printer avahi
@@ -393,7 +393,7 @@ function fn_base_apps {
 
 function fn_media_development_apps {
     echo -e '\n\nInstalling media development apps...'
-    ./util.sh -i blender audacity krita obs-studio inkscape handbrake
+    ./util.sh -i blender audacity krita obs-studio inkscape handbrake pixieditor-bin
 
     echo -e '\n\ninstall complete'
     notify-send 'Applications' 'Install completed'
