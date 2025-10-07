@@ -104,9 +104,24 @@ EOL
 
 function fn_update {
     echo "Pulling latest images for all running containers..."
+    echo
 
     # Get all running container names and their images
     while read -r cname img; do
+        # Skip containers with no image (e.g., infra containers)
+        if [[ -z "$img" ]]; then
+            echo "Skipping container '$cname' (no image; likely infra)"
+            echo
+            continue
+        fi
+
+        # Skip if it's an infra container
+        if podman inspect "$cname" --format '{{.IsInfra}}' 2>/dev/null | grep -q 'true'; then
+            echo "Skipping infra container '$cname'"
+            echo
+            continue
+        fi
+    
         echo "Processing container: $cname with image: $img"
 
         # Pull latest image
