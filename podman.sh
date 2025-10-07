@@ -103,20 +103,35 @@ EOL
 
 
 function fn_update {
-    echo "available updates:"
-    podman auto-update --dry-run
-    
-    echo -n "apply all updates? [y/N]"
-    read -r answer
-    
-    if [[ "$answer" =~ ^[Yy]$ ]]; then
-        echo "Applying updates..."
-        podman auto-update
-        echo "Updates applied."
-    else
-        echo "Skipping updates."
-    fi
+    echo "Pulling latest images for all running containers..."
+
+    # Get all running container names and their images
+    while read -r cname img; do
+        echo "Processing container: $cname with image: $img"
+
+        # Pull latest image
+        podman pull --quiet "$img"
+
+        # Stop the container's systemd service by removing systemd- prefix if present
+        unit_base="${cname#systemd-}"
+        echo "Stopping systemd service: $unit_base"
+        systemctl --user stop "$unit_base"
+
+        # Force remove the container
+        echo "Removing container: $cname"
+        podman rm -f "$cname"
+
+        # Start the systemd service to recreate the container from updated image
+        echo "Starting systemd service: $unit_base"
+        systemctl --user start "$unit_base"
+
+        echo "Updated and restarted $unit_base"
+        echo
+    done < <(podman ps --format "{{.Names}} {{.Image}}")
+
+    echo "All running containers have been force updated."
 }
+
 
 
 function fn_backup {
