@@ -5,7 +5,8 @@
 # yazi file manager
 # niri tiling wm
 # brightnessctl laptop display
-./util.sh -i noctalia-shell 
+./util.sh -i noctalia-shell fuzzel
+
 # fish niri yazi alaricitty brightnessctl
 
 # dank material shell - noctalia is better
