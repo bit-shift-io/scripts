@@ -6,7 +6,7 @@ function main {
     type="${1}"
     
     # array of utils
-    install_utils=(pacman yay apt zypper)
+    install_utils=(pacman paru yay apt zypper)
     
     # get package tool
     for util in ${install_utils[@]};
@@ -54,6 +54,10 @@ function install {
                 sudo ${bin} -S --noconfirm --needed ${pkg}
                 ;;
                 
+            'paru')
+                ${bin} -S --noconfirm --needed ${pkg}
+                ;;
+                
             'yay')
                 ${bin} -S --noconfirm --needed ${pkg}
                 ;;
@@ -83,6 +87,10 @@ function remove {
         case ${bin} in
             'pacman')
                 sudo ${bin} -Rs --noconfirm ${pkg}
+                ;;
+                
+            'paru')
+                ${bin} -Rs --noconfirm ${pkg}
                 ;;
                 
             'yay')
