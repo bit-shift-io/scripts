@@ -1,11 +1,10 @@
 #!/bin/bash
 
 # fish shell
-# alaricitty shell
 # yazi file manager
 # niri tiling wm
 # brightnessctl laptop display
-./util.sh -i noctalia-shell fuzzel
+./util.sh -i niri noctalia-shell
 
 # fish niri yazi alaricitty brightnessctl
 
@@ -18,7 +17,7 @@ if status is-interactive
    # Commands to run in interactive sessions can go here
 end
 
-# Created by `pipx` on 2025-05-23 00:57:46
+# Created by pipx on 2025-05-23 00:57:46
 set PATH $PATH $HOME/.local/bin
 
 # yazi exit in current dir
@@ -30,9 +29,9 @@ function y
    end
    rm -f -- "$tmp"
 end
-EOF
+EOL
 
-echo "add the following to your ~./bashrc"
-echo 'eval "fish"'
+#echo "add the following to your ~./bashrc"
+#echo 'eval "fish"'
 
 echo "Complete"
