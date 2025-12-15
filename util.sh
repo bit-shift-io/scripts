@@ -5,24 +5,25 @@ function main {
     # pacman, yay, zipper
     type="${1}"
     
-    # array of utils
-    install_utils=(pacman paru yay apt zypper)
+    # array of utils ordered by preference
+    install_utils=(paru yay pacman apt zypper)
+    
+    # Reset install_util to ensure a selection is made
+    install_util=""
     
     # get package tool
     for util in ${install_utils[@]};
     do
-        bin_exits=$(which ${util} 2> /dev/null | grep ${util} -c)
-
-        if [[ ${bin_exits} == "1" ]]; then
-            # install yay
-            #if [[ ${util} == "pacman" ]]; then
-             #   sudo pacman -S yay --noconfirm --needed
-              #  util=(yay)
-            #fi
+    
+        # Check if the utility binary exists
+        #bin_exits=$(which ${util} 2> /dev/null | grep ${util} -c)
+        #if [[ ${bin_exits} == "1" ]]; then
+        if which "${util}" > /dev/null 2>&1; then
             
-            # return binary
+            # return first found binary
             install_util=${util}
             echo "found: ${install_util}"
+            break
         fi
     done
     
@@ -45,20 +46,15 @@ function main {
 
 function install {
     bin="${1}"
-    arr="${@:2}"
     
-    for pkg in ${arr}
+    for pkg in "${@:2}"
     do
         case ${bin} in
             'pacman')
                 sudo ${bin} -S --noconfirm --needed ${pkg}
                 ;;
                 
-            'paru')
-                ${bin} -S --noconfirm --needed ${pkg}
-                ;;
-                
-            'yay')
+            'paru'|'yay')
                 ${bin} -S --noconfirm --needed ${pkg}
                 ;;
                 
@@ -80,20 +76,15 @@ function install {
 
 function remove {
     bin="${1}"
-    arr="${@:2}"
     
-    for pkg in ${arr}
+    for pkg in "${@:2}"
     do
         case ${bin} in
             'pacman')
                 sudo ${bin} -Rs --noconfirm ${pkg}
                 ;;
                 
-            'paru')
-                ${bin} -Rs --noconfirm ${pkg}
-                ;;
-                
-            'yay')
+            'paru'|'yay')
                 ${bin} -Rs --noconfirm ${pkg}
                 ;;
                 
