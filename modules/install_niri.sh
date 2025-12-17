@@ -4,7 +4,7 @@
 # yazi file manager
 # niri tiling wm
 # brightnessctl laptop display
-./util.sh -i niri noctalia-shell
+./util.sh -i niri noctalia-shell swayidle
 
 # fish niri yazi alaricitty brightnessctl
 
