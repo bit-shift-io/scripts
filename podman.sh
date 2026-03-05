@@ -8,7 +8,7 @@ function main {
         done
         exit 1
     fi
-    
+
     # menu
     while true; do
     read -n 1 -p "
@@ -19,22 +19,75 @@ function main {
     r) Remove All Containers
     b) Backup podman folder
     u) Update containers
+    x) Update containers (root)
     p) Pipe Service
     *) Any key to exit
     :" ans;
     reset
-    case $ans in 
+    case $ans in
         1) fn_install_arch ;;
         2) fn_install_debian ;;
         r) fn_remove_all ;;
         b) fn_backup ;;
         u) fn_update ;;
+        x) fn_update_root ;;
         p) fn_pipe ;;
         *) $SHELL ;;
     esac
     done
 }
 
+
+function fn_update_root {
+    echo "Pulling latest images for all running containers..."
+    echo
+
+    # 2. Capture the root container list into a variable first
+    # This prevents 'sudo' from getting stuck in a pipe
+    local container_data
+    container_data=$(sudo podman ps --format "{{.Names}}|{{.Image}}")
+    if [[ -z "$container_data" ]]; then
+        echo "No running root containers found."
+        return 0
+    fi
+    echo "Containers found. Starting updates..."
+    echo "--------------------------------------"
+
+    # 3. Loop through the captured list
+    for entry in $container_data; do
+        # Split name and image by the '|' character
+        local cname="${entry%|*}"
+        local img="${entry#*|}"
+
+        # Skip if it's an infra container
+        if sudo podman inspect "$cname" --format '{{.IsInfra}}' 2>/dev/null | grep -q 'true'; then
+            continue
+        fi
+
+        echo "Updating Root Container: $cname"
+
+        # Pull latest image
+        sudo podman pull --quiet "$img"
+
+        # Handle systemd service
+        local unit_base="${cname#systemd-}"
+        echo "Stopping system service: $unit_base"
+        sudo systemctl stop "$unit_base"
+
+        # FORCE remove the container (-f is critical here)
+        echo "Removing container: $cname"
+        sudo podman rm -f "$cname"
+
+        # Restart service
+        echo "Starting system service: $unit_base"
+        sudo systemctl start "$unit_base"
+
+        echo "Finished $unit_base"
+        echo "--------------------------------------"
+    done
+
+    echo "All root containers processed."
+}
 
 
 function fn_pipe {
@@ -97,7 +150,7 @@ EOL
 
     sudo systemctl reset-failed pipe
     sudo systemctl enable pipe
-    sudo systemctl start --now pipe 
+    sudo systemctl start --now pipe
     systemctl status pipe.service
 }
 
@@ -121,7 +174,7 @@ function fn_update {
             echo
             continue
         fi
-    
+
         echo "Processing container: $cname with image: $img"
 
         # Pull latest image
@@ -154,7 +207,7 @@ function fn_backup {
     hostname=$(hostname)
     archive=$HOME/Backups/podman-${hostname}.tar.gz
     backup=$HOME/Containers
-    
+
     #echo "listing containers"
     #containers=$(docker container list -qa)
     #echo $containers
@@ -182,11 +235,11 @@ function fn_install_debian {
 
 function fn_install_arch {
     ./util.sh -i podman crun
-    
+
     # podlet: need rust to compile, untile a bin version is released
     rustup default stable
     ./util.sh -i podlet # yay
-    
+
     sudo systemctl start podman --now
 }
 
