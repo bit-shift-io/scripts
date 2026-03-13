@@ -8,7 +8,7 @@ function main {
         done
         exit 1
     fi
-    
+
     # menu
     while true; do
     read -n 1 -p "
@@ -20,14 +20,14 @@ function main {
     4) Steam
     u) Update pacman
     f) Fix pacman keys
-    
+
     apps
     ===================
     5) Base Apps
     6) Media Development Apps
     7) Chinese pinyin virtual keyboard support
     9) Android SDK/NDK
-    
+
     extras
     ===================
     h) HDMI CEC
@@ -35,7 +35,7 @@ function main {
     s) audio network server
     c) audio network client
     m) microcontroller udev rules
-    
+
 
     *) Any key to exit
     :" ans;
@@ -79,7 +79,7 @@ function fn_update_pacman {
 
 function fn_android {
     ./util.sh -i android-ndk android-tools clang llvm lld jdk17-openjdk
-    
+
     # todo:
     # bash rc env paths for java, sdk, ndk
     # reboot
@@ -95,12 +95,12 @@ function fn_pinyin {
 
 function fn_microcontroller {
 # arduino
-sudo tee /etc/udev/rules.d/01-ttyusb.rules > /dev/null << EOL 
+sudo tee /etc/udev/rules.d/01-ttyusb.rules > /dev/null << EOL
 SUBSYSTEMS=="usb-serial", TAG+="uaccess"
 EOL
 
 # NRF
-sudo tee /etc/udev/rules.d/71-nrf.rules > /dev/null << EOL 
+sudo tee /etc/udev/rules.d/71-nrf.rules > /dev/null << EOL
 ACTION!="add", SUBSYSTEM!="usb_device", GOTO="nrf_rules_end"
 
 # Set /dev/bus/usb/*/* as read-write for all users (0666) for Nordic Semiconductor devices
@@ -114,7 +114,7 @@ LABEL="nrf_rules_end"
 EOL
 
 # NRF
-sudo tee /etc/udev/rules.d/99-mm-nrf-blacklist.rules > /dev/null << EOL 
+sudo tee /etc/udev/rules.d/99-mm-nrf-blacklist.rules > /dev/null << EOL
 # 99-modemmmanager-acm-fix.rules
 # Previously flagged nRF USB CDC ACM devices shall be ignored by ModemManager
 ENV{NRF_CDC_ACM}=="1", ENV{ID_MM_CANDIDATE}="0", ENV{ID_MM_DEVICE_IGNORE}="1"
@@ -131,12 +131,12 @@ EOL
 
 function fn_audio_network_server {
     ./util.sh -i pipewire-zeroconf
-    
+
     sudo systemctl enable avahi-daemon
     sudo systemctl start avahi-daemon
 
 
-    sudo tee /etc/pipewire/pipewire-pulse.conf.d/50-network-party.conf > /dev/null << EOL 
+    sudo tee /etc/pipewire/pipewire-pulse.conf.d/50-network-party.conf > /dev/null << EOL
 context.exec = [
     { path = "pactl" args = "load-module module-native-protocol-tcp" }
     { path = "pactl" args = "load-module module-zeroconf-discover" }
@@ -153,11 +153,11 @@ function fn_audio_network_client {
 
     #mkdir -p $HOME/.config/pipewire/pipewire.conf.d/
 
-    # pw-cli load-module libpipewire-module-raop-discover 
+    # pw-cli load-module libpipewire-module-raop-discover
     # PIPEWIRE_DEBUG=3 pw-cli -m load-module libpipewire-module-raop-discover
     # https://gitlab.freedesktop.org/pipewire/pipewire/-/issues/1542
 
-    sudo tee /etc/pipewire/pipewire.conf.d/raop-discover.conf > /dev/null << EOL 
+    sudo tee /etc/pipewire/pipewire.conf.d/raop-discover.conf > /dev/null << EOL
 context.modules = [
     {
         name = libpipewire-module-raop-discover
@@ -181,7 +181,7 @@ function fn_audio_bluetooth {
 
     # bluetooth config
     # double qoutes to expand variable
-    sudo sed -i "s/.*Name =.*/Name = ${bluetooth_name}/" /etc/bluetooth/main.conf 
+    sudo sed -i "s/.*Name =.*/Name = ${bluetooth_name}/" /etc/bluetooth/main.conf
     sudo sed -i 's/#DiscoverableTimeout = 0/DiscoverableTimeout = 0/' /etc/bluetooth/main.conf
     sudo sed -i 's/#AlwaysPairable = false/AlwaysPairable = true/' /etc/bluetooth/main.conf
     sudo sed -i 's/#PairableTimeout = 0/PairableTimeout = 0/' /etc/bluetooth/main.conf
@@ -194,7 +194,7 @@ function fn_audio_bluetooth {
     #sudo hciconfig hci0 noauth
 
 #/etc/systemd/system/
-sudo tee /usr/lib/systemd/user/bt.service > /dev/null << EOL 
+sudo tee /usr/lib/systemd/user/bt.service > /dev/null << EOL
 [Unit]
 Description=Bluetooth speaker agent
 After=network.target bluetooth.service dbus.service
@@ -223,9 +223,9 @@ function fn_cec {
     #id -Gn
     #stat /dev/ttyACM0 <- should show which user group has access to device
     ./util.sh -i libcec
-    
+
     USER=$(id -un)
-    sudo gpasswd -a $USER uucp 
+    sudo gpasswd -a $USER uucp
     sudo gpasswd -a $USER lock
     # might not need a reboot, test it
     getent group uucp
@@ -236,16 +236,16 @@ function fn_cec {
 
 function fn_setup_steam {
     ./util.sh -i steam
-    
+
     #mkdir
     mkdir -p $HOME/Games/Steam
 
     # move existing install
     mv $HOME/.local/share/Steam $HOME/Games
-    
+
     # create compat tools dir
     mkdir $HOME/Games/Steam/compatibilitytools.d
-    
+
     # remove unused
     rm -r $HOME/.local/share/Steam
 
@@ -289,7 +289,7 @@ function fn_general_config {
     # fix systemd shutdown timeout
     sudo sed -i -e "s/#DefaultTimeoutStopSec=90s/DefaultTimeoutStopSec=5s/g" /etc/systemd/system.conf
     sudo sed -i -e "s/#DefaultTimeoutStartSec=90s/DefaultTimeoutStartSec=5s/g" /etc/systemd/system.conf
-    
+
     # fix logs to be no more than 50mb
     sudo sed -i -e "s/#SystemMaxUse=/SystemMaxUse=50M/g"  /etc/systemd/journald.conf
 
@@ -310,19 +310,19 @@ function fn_swap {
     swap_path_name="${local_path////-}"
     swap_path_name="${swap_path_name:1:${#swap_path_name}}"
     echo "Mounting: $local_path as $swap_path_name"
-    
+
     # create 16gb swap
     # 1024bytes * 1024mb * xxxgb
     sudo swapoff -a
-    
+
     echo "How much swap in GB (eg 16 = 16GB): "
     read swap_size
-    
+
     # btrfs specific
     sudo truncate -s 0 $local_path
     sudo chattr +C $local_path
     sudo btrfs property set $local_path compression none
-    
+
     sudo fallocate -l ${swap_size}G $local_path
     #sudo dd if=/dev/zero of=$local_path bs=1M count=8000
     #sudo chown root:root /swapfile
@@ -332,7 +332,7 @@ function fn_swap {
     sudo mkswap $local_path
     sudo swapon $local_path
 
-sudo bash -c "cat > /etc/systemd/system/$swap_path_name.swap" << EOL 
+sudo bash -c "cat > /etc/systemd/system/$swap_path_name.swap" << EOL
     [Unit]
     Description=mount swap
 
@@ -344,14 +344,14 @@ sudo bash -c "cat > /etc/systemd/system/$swap_path_name.swap" << EOL
 EOL
 
     # adjust swappiness here?
-    
+
     # enable swap
     sudo systemctl enable $swap_path_name.swap
 
     # show status
     free -m
     #swapon
-    
+
     notify-send 'Swap' 'Created'
 }
 
@@ -364,23 +364,23 @@ function fn_base_apps {
 
     # install software
     echo -e '\n\nInstalling packages...'
-    ./util.sh -i yay base-devel openssh partitionmanager skanlite filelight kio-extras plasma-browser-integration libreoffice firefox keepassxc git rustup vulkan-radeon lib32-vulkan-radeon vulkan-intel sshfs isoimagewriter qbittorrent
-    
+    ./util.sh -i yay base-devel openssh partitionmanager skanlite filelight kio-extras plasma-browser-integration libreoffice firefox keepassxc git rustup vulkan-radeon lib32-vulkan-radeon vulkan-intel sshfs isoimagewriter qbittorrent zed
+
     # printer support
     ./util.sh -i cups cups-pdf system-config-printer avahi
     sudo systemctl enable --now cups.service
-    
+
     # aur software
-    echo -e '\n\nInstalling AUR packages...'
-    ./util.sh -i visual-studio-code-bin
-    
+    #echo -e '\n\nInstalling AUR packages...'
+    #./util.sh -i visual-studio-code-bin
+
     # enable ssh
     sudo systemctl enable sshd.service
     sudo systemctl start sshd.service
-    
+
     # enable bluetooth
     sudo systemctl enable bluetooth
-    
+
     # disable firewall - endevour
     sudo systemctl stop firewalld
     sudo systemctl disable --now firewalld
