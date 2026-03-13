@@ -50,16 +50,12 @@ cd $HOME
 sudo waydroid init -s GAPPS
 sudo waydroid init -f
 
-
-echo "installing extra android stuff..."
-
-# install gapps
-#curl -L https://github.com/Waydroid-ATV/androidtv_scripts/raw/refs/heads/main/install-mindthegapps.sh | sudo bash -eu
-
-# install widevine
-#curl -L https://github.com/Waydroid-ATV/androidtv_scripts/raw/refs/heads/main/install-widevine-a13.sh | sudo bash -eu
+# start and run
+echo "starting..."
+sudo systemctl enable --now waydroid-container
 
 # start a session
+waydroid session start
 waydroid show-full-ui
 
 echo "Complete"
