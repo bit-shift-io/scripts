@@ -2,7 +2,7 @@
 
 
 echo "installing..."
-../util.sh -i waydroid waydroid-image-gapps binder_linux-dkms #weston #wayfire
+../util.sh -i waydroid binder_linux-dkms #weston #wayfire
 
 
 echo "sddm config..."
@@ -40,6 +40,10 @@ EOL
 
 
 echo "download/init android image..."
+
+# remove these dirs so waydroid can download its own images
+sudo rm -r /etc/waydroid-extra
+sudo rm -r /usr/share/waydroid-extra
 
 # download custom image
 cd $HOME
