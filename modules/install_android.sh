@@ -2,7 +2,7 @@
 
 
 echo "installing..."
-../util.sh -i waydroid binder_linux-dkms-git #weston #wayfire
+../util.sh -i waydroid waydroid-image-gapps binder_linux-dkms #weston #wayfire
 
 
 echo "sddm config..."
