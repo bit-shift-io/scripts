@@ -359,20 +359,21 @@ EOL
 function fn_base_apps {
     # remove old stuff
     # use pactree qt4 - to list packages dependancies
-    echo -e '\n\nRemoving packages...'
-    ./util.sh -r yakuake
+    #echo -e '\n\nRemoving packages...'
+    #./util.sh -r yakuake
 
     # install software
     echo -e '\n\nInstalling packages...'
-    ./util.sh -i yay base-devel openssh partitionmanager skanlite filelight kio-extras plasma-browser-integration libreoffice firefox keepassxc git rustup vulkan-radeon lib32-vulkan-radeon vulkan-intel sshfs isoimagewriter qbittorrent zed
+    ./util.sh -i yay base-devel openssh partitionmanager skanlite filelight kio-extras plasma-browser-integration libreoffice firefox keepassxc git rustup vulkan-radeon lib32-vulkan-radeon vulkan-intel sshfs isoimagewriter qbittorrent zed paru
 
     # printer support
     ./util.sh -i cups cups-pdf system-config-printer avahi
     sudo systemctl enable --now cups.service
 
     # aur software
-    #echo -e '\n\nInstalling AUR packages...'
+    echo -e '\n\nInstalling AUR packages...'
     #./util.sh -i visual-studio-code-bin
+    ./util.sh -i brave-bin
 
     # enable ssh
     sudo systemctl enable sshd.service
