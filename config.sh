@@ -288,31 +288,31 @@ function fn_pacman_mirror_cache {
     fi
 
     # 5. Inject for Standard Repos (Arch/Manjaro)
-    if grep -q "Include = /etc/pacman.d/mirrorlist" /etc/pacman.conf; then
+    if grep -q "^Include = /etc/pacman.d/mirrorlist" /etc/pacman.conf; then
         local std_server="Server = http://${computer_name}:9129/repo/${base_repo}/${std_suffix}"
-        sudo sed -i "/Include = \/etc\/pacman.d\/mirrorlist/i ${std_server}" /etc/pacman.conf
+        sudo sed -i "/^Include = \/etc\/pacman.d\/mirrorlist/i ${std_server}" /etc/pacman.conf
         echo "Added priority server for ${base_repo}."
     fi
 
     # 6. Auto-Detect and Handle CachyOS Sections
     # CachyOS-v4
-    if grep -q "cachyos-v4-mirrorlist" /etc/pacman.conf; then
+    if grep -q "^cachyos-v4-mirrorlist" /etc/pacman.conf; then
         local v4_server="Server = http://${computer_name}:9129/repo/cachyos-v4/repo/\$arch_v4/\$repo"
-        sudo sed -i "/Include = \/etc\/pacman.d\/cachyos-v4-mirrorlist/i ${v4_server}" /etc/pacman.conf
+        sudo sed -i "/^Include = \/etc\/pacman.d\/cachyos-v4-mirrorlist/i ${v4_server}" /etc/pacman.conf
         echo "Added priority for CachyOS-v4."
     fi
 
     # CachyOS v3
-    if grep -q "cachyos-v3-mirrorlist" /etc/pacman.conf; then
+    if grep -q "^cachyos-v3-mirrorlist" /etc/pacman.conf; then
         local v3_server="Server = http://${computer_name}:9129/repo/cachyos-v3/repo/\$arch_v3/\$repo"
-        sudo sed -i "/Include = \/etc\/pacman.d\/cachyos-v3-mirrorlist/i ${v3_server}" /etc/pacman.conf
+        sudo sed -i "/^Include = \/etc\/pacman.d\/cachyos-v3-mirrorlist/i ${v3_server}" /etc/pacman.conf
         echo "Added priority for CachyOS v3."
     fi
 
     # Standard CachyOS
-    if grep -q "Include = /etc/pacman.d/cachyos-mirrorlist" /etc/pacman.conf; then
+    if grep -q "^Include = /etc/pacman.d/cachyos-mirrorlist" /etc/pacman.conf; then
         local cachy_server="Server = http://${computer_name}:9129/repo/cachyos/repo/\$arch/\$repo"
-        sudo sed -i "/Include = \/etc\/pacman.d\/cachyos-mirrorlist/i ${cachy_server}" /etc/pacman.conf
+        sudo sed -i "/^Include = \/etc\/pacman.d\/cachyos-mirrorlist/i ${cachy_server}" /etc/pacman.conf
         echo "Added priority for CachyOS."
     fi
 
