@@ -15,7 +15,7 @@ function main {
     server tools
     ===================
     1) Podman Install - Arch
-    2) Podman Install - Debian/Arbmain
+    2) Podman Install - Debian/Armbian/DietPi
     r) Remove All Containers
     b) Backup podman folder
     u) Update containers
@@ -229,14 +229,20 @@ function fn_backup {
 
 
 function fn_install_debian {
-    echo "todo"
+    ./util.sh -i podman
+
+    # rust for podlets
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    cargo install podlet
+
+    sudo systemctl start podman --now
 }
 
 
 function fn_install_arch {
     ./util.sh -i podman crun
 
-    # podlet: need rust to compile, untile a bin version is released
+    # podlet: need rust to compile, until a bin version is released
     rustup default stable
     ./util.sh -i podlet # yay
 
