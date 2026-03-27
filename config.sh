@@ -12,14 +12,17 @@ function main {
     # menu
     while true; do
     read -n 1 -p "
+    arch
+    ===================
+    p) Pacman mirror cache (pacoloco)
+    u) Update pacman
+    f) Fix pacman keys
+
     config
     ===================
     1) General config (systemd timeout, kde index)
-    2) Pacman mirror (pacoloco)
     3) Swap
     4) Steam
-    u) Update pacman
-    f) Fix pacman keys
 
     apps
     ===================
@@ -41,7 +44,7 @@ function main {
     :" ans;
     reset
     case $ans in
-        2) fn_pacman_mirror ;;
+        p) fn_pacman_mirror_cache ;;
         1) fn_general_config ;;
         3) fn_swap ;;
         4) fn_setup_steam ;;
@@ -260,30 +263,64 @@ function fn_setup_steam {
 }
 
 
-function fn_pacman_mirror {
-    # setup pacman mirror
-    echo "Local pacman mirror computer name/ip (eg: update.lan): "
-    read computer_name
+function fn_pacman_mirror_cache {
+    # 1. Input with Default Value
+    read -p "Local mirror IP/Hostname [default: update.lan]: " computer_name
+    computer_name="${computer_name:-update.lan}"
 
-    echo "Local pacman mirror repo (manjaro or archlinux): "
-    read repo_name
+    # 2. Safety: Create a backup of the config
+    sudo cp /etc/pacman.conf /etc/pacman.conf.bak
+    echo "Backup created at /etc/pacman.conf.bak"
 
-    # replace
-    # Include = /etc/pacman.d/mirrorlist
-    # with
-    # Server = http://${computer_name}:9129/repo/${repo_name}/\$repo/\$arch
-    # manjaro needs /os removed
-    if [ $repo_name = 'manjaro' ]; then
-        sudo sed -i "s,Include = /etc/pacman.d/mirrorlist,Server = http://${computer_name}:9129/repo/${repo_name}/\$repo/\$arch,g" /etc/pacman.conf
+    # 3. Cleanup: Remove any existing local Server entries for this port
+    # We use a regex that catches any 'Server = http://...:9129' line
+    sudo sed -i "\|Server = http://.*:9129|d" /etc/pacman.conf
+
+    # 4. Auto-Detect OS Type (Manjaro vs Arch)
+    if grep -iq "manjaro" /etc/pacman.conf; then
+        local base_repo="manjaro"
+        local std_suffix="\$repo/\$arch"
+        echo "Detected Manjaro configuration..."
     else
-        sudo sed -i "s,Include = /etc/pacman.d/mirrorlist,Server = http://${computer_name}:9129/repo/${repo_name}/\$repo/os/\$arch,g" /etc/pacman.conf
+        local base_repo="archlinux"
+        local std_suffix="\$repo/os/\$arch"
+        echo "Detected Arch Linux configuration..."
     fi
-#sudo bash -c "cat > /etc/pacman.d/mirrorlist" << EOL
-#Server = http://${computer_name}:9129/repo/${repo_name}/\$repo/\$arch
-#EOL
 
-    notify-send 'Config' 'Pacman cache updated'
+    # 5. Inject for Standard Repos (Arch/Manjaro)
+    if grep -q "Include = /etc/pacman.d/mirrorlist" /etc/pacman.conf; then
+        local std_server="Server = http://${computer_name}:9129/repo/${base_repo}/${std_suffix}"
+        sudo sed -i "/Include = \/etc\/pacman.d\/mirrorlist/i ${std_server}" /etc/pacman.conf
+        echo "Added priority server for ${base_repo}."
+    fi
+
+    # 6. Auto-Detect and Handle CachyOS Sections
+    # CachyOS-v4
+    if grep -q "cachyos-v4-mirrorlist" /etc/pacman.conf; then
+        local v4_server="Server = http://${computer_name}:9129/repo/cachyos-v4/repo/\$arch_v4/\$repo"
+        sudo sed -i "/Include = \/etc\/pacman.d\/cachyos-v4-mirrorlist/i ${v4_server}" /etc/pacman.conf
+        echo "Added priority for CachyOS-v4."
+    fi
+
+    # CachyOS v3
+    if grep -q "cachyos-v3-mirrorlist" /etc/pacman.conf; then
+        local v3_server="Server = http://${computer_name}:9129/repo/cachyos-v3/repo/\$arch_v3/\$repo"
+        sudo sed -i "/Include = \/etc\/pacman.d\/cachyos-v3-mirrorlist/i ${v3_server}" /etc/pacman.conf
+        echo "Added priority for CachyOS v3."
+    fi
+
+    # Standard CachyOS
+    if grep -q "Include = /etc/pacman.d/cachyos-mirrorlist" /etc/pacman.conf; then
+        local cachy_server="Server = http://${computer_name}:9129/repo/cachyos/repo/\$arch/\$repo"
+        sudo sed -i "/Include = \/etc\/pacman.d\/cachyos-mirrorlist/i ${cachy_server}" /etc/pacman.conf
+        echo "Added priority for CachyOS."
+    fi
+
+    # 7. Finalize
+    notify-send 'Config' "Local mirrors prioritized to ${computer_name}"
+    echo "Done! Local cache is now prioritized. Run 'sudo pacman -Syy' to refresh."
 }
+
 
 function fn_general_config {
     # fix systemd shutdown timeout
