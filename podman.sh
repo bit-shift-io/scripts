@@ -229,13 +229,27 @@ function fn_backup {
 
 
 function fn_install_debian {
-    ./util.sh -i podman
+    # dietpit doesnt have dbus user access, which we need
+    ./util.sh -i podman dbus-user-session
+
+    # enable logind and bus access
+    sudo systemctl unmask systemd-logind.service
+    sudo systemctl unmask dbus.service
+    sudo systemctl daemon-reload
+    sudo loginctl enable-linger $USER
+
+    # Append to .bashrc if they don't already exist
+    LINE1="export XDG_RUNTIME_DIR=/run/user/\$(id -u)"
+    LINE2="export DBUS_SESSION_BUS_ADDRESS=unix:path=\$XDG_RUNTIME_DIR/bus"
+    grep -qF "$LINE1" ~/.bashrc || echo "$LINE1" >> ~/.bashrc
+    grep -qF "$LINE2" ~/.bashrc || echo "$LINE2" >> ~/.bashrc
 
     # rust for podlets
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
     cargo install podlet
 
     sudo systemctl start podman --now
+    echo "reboot now and run again"
 }
 
 
