@@ -239,10 +239,12 @@ function fn_install_debian {
     sudo loginctl enable-linger $USER
 
     # Append to .bashrc if they don't already exist
-    LINE1="export XDG_RUNTIME_DIR=/run/user/\$(id -u)"
-    LINE2="export DBUS_SESSION_BUS_ADDRESS=unix:path=\$XDG_RUNTIME_DIR/bus"
-    grep -qF "$LINE1" ~/.bashrc || echo "$LINE1" >> ~/.bashrc
-    grep -qF "$LINE2" ~/.bashrc || echo "$LINE2" >> ~/.bashrc
+    # Get the actual numeric ID (usually 1000)
+    USER_ID=$(id -u)
+    VAR1="XDG_RUNTIME_DIR=/run/user/$USER_ID"
+    VAR2="DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$USER_ID/bus"
+    sudo sh -c "grep -qF '$VAR1' /etc/environment || echo '$VAR1' >> /etc/environment"
+    sudo sh -c "grep -qF '$VAR2' /etc/environment || echo '$VAR2' >> /etc/environment"
 
     # rust for podlets
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
