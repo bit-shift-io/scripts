@@ -264,19 +264,19 @@ function fn_setup_steam {
 
 
 function fn_pacman_mirror_cache {
-    # 1. Input with Default Value
+    # Input with Default Value
     read -p "Local mirror IP/Hostname [default: update.lan]: " computer_name
     computer_name="${computer_name:-update.lan}"
 
-    # 2. Safety: Create a backup of the config
+    # Safety: Create a backup of the config
     sudo cp /etc/pacman.conf /etc/pacman.conf.bak
     echo "Backup created at /etc/pacman.conf.bak"
 
-    # 3. Cleanup: Remove any existing local Server entries for this port
+    # Cleanup: Remove any existing local Server entries for this port
     # We use a regex that catches any 'Server = http://...:9129' line
     sudo sed -i "\|Server = http://.*:9129|d" /etc/pacman.conf
 
-    # 4. Auto-Detect OS Type (Manjaro vs Arch)
+    # Auto-Detect OS Type (Manjaro vs Arch)
     if grep -iq "manjaro" /etc/pacman.conf; then
         local base_repo="manjaro"
         local std_suffix="\$repo/\$arch"
@@ -287,36 +287,27 @@ function fn_pacman_mirror_cache {
         echo "Detected Arch Linux configuration..."
     fi
 
-    # 5. Inject for Standard Repos (Arch/Manjaro)
-    if grep -q "^Include = /etc/pacman.d/mirrorlist" /etc/pacman.conf; then
-        local std_server="Server = http://${computer_name}:9129/repo/${base_repo}/${std_suffix}"
-        sudo sed -i "/^Include = \/etc\/pacman.d\/mirrorlist/i ${std_server}" /etc/pacman.conf
-        echo "Added priority server for ${base_repo}."
-    fi
+    # Injection Logic
+    # We use 's' (substitute) with the 'g' (global) flag to ensure EVERY
+    # active instance of these mirrorlists gets a Server line above it.
 
-    # 6. Auto-Detect and Handle CachyOS Sections
-    # CachyOS-v4
-    if grep -q "^cachyos-v4-mirrorlist" /etc/pacman.conf; then
-        local v4_server="Server = http://${computer_name}:9129/repo/cachyos-v4/repo/\$arch_v4/\$repo"
-        sudo sed -i "/^Include = \/etc\/pacman.d\/cachyos-v4-mirrorlist/i ${v4_server}" /etc/pacman.conf
-        echo "Added priority for CachyOS-v4."
-    fi
+    # --- Standard Repos (Arch/Manjaro) ---
+    local std_server="Server = http://${computer_name}:9129/repo/${base_repo}/${std_suffix}"
+    sudo sed -i "s|^\(Include = /etc/pacman.d/mirrorlist\)|${std_server}\n\1|g" /etc/pacman.conf
 
-    # CachyOS v3
-    if grep -q "^cachyos-v3-mirrorlist" /etc/pacman.conf; then
-        local v3_server="Server = http://${computer_name}:9129/repo/cachyos-v3/repo/\$arch_v3/\$repo"
-        sudo sed -i "/^Include = \/etc\/pacman.d\/cachyos-v3-mirrorlist/i ${v3_server}" /etc/pacman.conf
-        echo "Added priority for CachyOS v3."
-    fi
+    # --- CachyOS v4 (Covers core-v4, extra-v4, etc.) ---
+    local v4_server="Server = http://${computer_name}:9129/repo/cachyos-v4/repo/\$arch_v4/\$repo"
+    sudo sed -i "s|^\(Include = /etc/pacman.d/cachyos-v4-mirrorlist\)|${v4_server}\n\1|g" /etc/pacman.conf
 
-    # Standard CachyOS
-    if grep -q "^Include = /etc/pacman.d/cachyos-mirrorlist" /etc/pacman.conf; then
-        local cachy_server="Server = http://${computer_name}:9129/repo/cachyos/repo/\$arch/\$repo"
-        sudo sed -i "/^Include = \/etc\/pacman.d\/cachyos-mirrorlist/i ${cachy_server}" /etc/pacman.conf
-        echo "Added priority for CachyOS."
-    fi
+    # --- CachyOS v3 (Covers core-v3, extra-v3, etc.) ---
+    local v3_server="Server = http://${computer_name}:9129/repo/cachyos-v3/repo/\$arch_v3/\$repo"
+    sudo sed -i "s|^\(Include = /etc/pacman.d/cachyos-v3-mirrorlist\)|${v3_server}\n\1|g" /etc/pacman.conf
 
-    # 7. Finalize
+    # --- CachyOS Standard ---
+    local cachy_server="Server = http://${computer_name}:9129/repo/cachyos/repo/\$arch/\$repo"
+    sudo sed -i "s|^\(Include = /etc/pacman.d/cachyos-mirrorlist\)|${cachy_server}\n\1|g" /etc/pacman.conf
+
+    # Finalize
     notify-send 'Config' "Local mirrors prioritized to ${computer_name}"
     echo "Done! Local cache is now prioritized. Run 'sudo pacman -Syy' to refresh."
 }
