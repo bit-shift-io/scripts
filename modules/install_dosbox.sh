@@ -2,443 +2,212 @@
 
 
 echo "installing..."
-../util.sh -i dosbox-x
+../util.sh -i dosbox-staging
 
 mkdir -p $HOME/Games/dosbox
+mkdir -p $HOME/.config/dosbox
 
 echo "config..."
-tee $HOME/.config/dosbox-x/dosbox-x-2026.01.02.conf > /dev/null << EOL
+tee $HOME/.config/dosbox/dosbox-staging.conf > /dev/null << EOL
 [sdl]
-fullscreen        = false
-fulldouble        = false
-fullresolution    = desktop
-windowresolution  = original
-windowposition    = -
-display           = 0
-output            = openglpp
-videodriver       =
-transparency      = 0
-maximize          = true
-autolock          = false
-autolock_feedback = beep
-middle_unlock     = manual
-clip_mouse_button = right
-clip_key_modifier = shift
-clip_paste_bios   = default
-clip_paste_speed  = 30
-sensitivity       = 100
-usesystemcursor   = false
-mouse_emulation   = locked
-mouse_wheel_key   = -1
-waitonerror       = true
-priority          = higher,normal
-mapperfile        = mapper-dosbox-x.map
-usescancodes      = auto
-overscan          = 0
-titlebar          =
-showbasic         = true
-showdetails       = false
-showmenu          = true
-[log]
-logfile     =
-debuggerrun = debugger
+output              = opengl
+texture_renderer    = auto
+display             = 0
+fullscreen          = false
+fullresolution      = desktop
+windowresolution    = default
+window_position     = auto
+window_decorations  = true
+window_titlebar     = program=name dosbox=auto cycles=on mouse=full
+transparency        = 0
+host_rate           = auto
+vsync               = auto
+vsync_skip          = 0
+presentation_mode   = auto
+waitonerror         = true
+priority            = auto auto
+mute_when_inactive  = false
+pause_when_inactive = false
+mapperfile          = mapper-sdl2-0.82.2.map
+screensaver         = auto
 [dosbox]
-language                  =
-title                     =
-logo text                 =
-logo                      =
-fastbioslogo              = false
-startbanner               = true
-bannercolortheme          = default
-configuration tool theme  =
-dpi aware                 = auto
-quit warning              = auto
-working directory option  = default
-working directory default =
-show advanced options     = false
-resolve config path       = true
-hostkey                   = ctrlalt
-mapper send key           = ctrlaltdel
-ime                       = auto
-synchronize time          = false
-machine                   = svga_s3
-captures                  = capture
-autosave                  =
-saveslot                  = 1
-savefile                  =
-saveremark                = true
-forceloadstate            = false
-a20                       = mask
-memory file               =
-memsize                   = 16
-nocachedir                = false
-freesizecap               = cap
-convertdrivefat           = true
+language                    =
+machine                     = svga_s3
+memsize                     = 16
+mcb_fault_strategy          = repair
+vmemsize                    = auto
+vmem_delay                  = off
+dos_rate                    = default
+vesa_modes                  = compatible
+vga_8dot_font               = false
+vga_render_per_scanline     = true
+speed_mods                  = true
+autoexec_section            = join
+automount                   = true
+startup_verbosity           = auto
+allow_write_protected_files = true
+shell_config_shortcuts      = true
 [render]
-frameskip      = 0
-aspect         = false
-aspect_ratio   = 0:0
-char9          = true
-euro           = -1
-doublescan     = true
-scaler         = normal2x
-glshader       = none
-pixelshader    = none
-autofit        = true
-monochrome_pal = green
-[pc98]
-pc-98 BIOS copyright string     = false
-pc-98 fm board                  = auto
-pc-98 enable 256-color          = true
-pc-98 enable 16-color           = true
-pc-98 enable grcg               = true
-pc-98 enable egc                = true
-pc-98 bus mouse                 = true
-pc-98 force ibm keyboard layout = auto
-pc-98 force JIS keyboard layout = false
-pc-98 try font rom              = true
-pc-98 anex86 font               =
-[dosv]
-dosv             = off
-getsysfont       = true
-fontxsbcs        =
-fontxsbcs16      =
-fontxsbcs24      =
-fontxdbcs        =
-fontxdbcs14      =
-fontxdbcs24      =
-showdbcsnodosv   = auto
-yen              = false
-fepcontrol       = both
-vtext1           = svga
-vtext2           = xga
-use20pixelfont   = false
-j3100            = off
-j3100type        = default
-j3100colorscroll = false
-[video]
-vmemsize                       = -1
-vmemsizekb                     = 0
-high intensity blinking        = true
-memory io optimization 1       = true
-skip render if nothing changed = auto
-scanline render on demand      = auto
-[vsync]
-vsyncmode = off
-vsyncrate = 75
+glshader           = crt-auto
+aspect             = auto
+integer_scaling    = auto
+viewport           = fit
+monochrome_palette = amber
+cga_colors         = default
+[composite]
+composite   = auto
+era         = auto
+hue         = 0
+saturation  = 100
+contrast    = 100
+brightness  = 0
+convergence = 0
 [cpu]
-core               = auto
-fpu                = true
-rdtsc rate         = 0
-segment limits     = true
-lds wraparound     = true
-cputype            = auto
-cycles             = auto
-cycleup            = 10
-cycledown          = 20
-turbo              = false
-apmbios            = true
-integration device = false
-isapnpbios         = true
-[keyboard]
-aux                     = true
-allow output port reset = true
-controllertype          = auto
-auxdevice               = intellimouse
-[ttf]
-font         =
-fontbold     =
-fontital     =
-fontboit     =
-colors       =
-outputswitch = auto
-winperc      = 60
-ptsize       = 0
-lins         = 0
-cols         = 0
-righttoleft  = false
-wp           =
-bold         = true
-italic       = true
-underline    = true
-strikeout    = false
-printfont    = true
-autodbcs     = true
-blinkc       = true
-gbk          = false
-chinasea     = false
-dosvfunc     = false
+core                 = auto
+cputype              = auto
+cpu_cycles           = 3000
+cpu_cycles_protected = 60000
+cpu_throttle         = false
+cycleup              = 10
+cycledown            = 20
 [voodoo]
-voodoo_card   = auto
-voodoo_maxmem = true
-glide         = false
-lfb           = full_noaux
-splash        = true
+voodoo                    = true
+voodoo_memsize            = 4
+voodoo_threads            = auto
+voodoo_bilinear_filtering = true
+[capture]
+capture_dir                   = capture
+default_image_capture_formats = upscaled
+[mouse]
+mouse_capture             = onclick
+mouse_middle_release      = true
+mouse_multi_display_aware = true
+mouse_sensitivity         = 100
+mouse_raw_input           = true
+dos_mouse_driver          = true
+dos_mouse_immediate       = false
+ps2_mouse_model           = explorer
+com_mouse_model           = wheel+msm
+vmware_mouse              = true
+virtualbox_mouse          = true
 [mixer]
-nosound         = false
-sample accurate = false
-swapstereo      = false
-rate            = 48000
-blocksize       = 1024
-prebuffer       = 25
+nosound    = false
+rate       = 48000
+blocksize  = 512
+prebuffer  = 20
+negotiate  = true
+compressor = true
+crossfeed  = off
+reverb     = off
+chorus     = off
 [midi]
-mpu401          = intelligent
-mpubase         = 0
-mididevice      = default
+mididevice      = auto
 midiconfig      =
-samplerate      = 48000
-mpuirq          = -1
-mt32.romdir     =
-mt32.model      = auto
-fluid.driver    = default
-fluid.soundfont =
+mpu401          = intelligent
+raw_midi_output = false
+[fluidsynth]
+soundfont     = default.sf2
+fsynth_chorus = auto
+fsynth_reverb = auto
+fsynth_filter = off
+[mt32]
+model       = auto
+romdir      =
+mt32_filter = off
 [sblaster]
-sbtype                       = sb16
-sbbase                       = 220
-irq                          = 7
-listen to recording source   = false
-recording source             = silence
-dma                          = 1
-hdma                         = 5
-enable speaker               = false
-sbmixer                      = true
-oplmode                      = auto
-oplemu                       = default
-oplrate                      = 48000
-oplport                      =
-retrowave_bus                = serial
-retrowave_port               =
-hardwarebase                 = 220
-goldplay                     = true
-blaster environment variable = true
-[sblaster2]
-sbtype                       = none
-sbbase                       = 260
-irq                          = 3
-listen to recording source   = false
-recording source             = silence
-dma                          = 0
-hdma                         = 7
-enable speaker               = false
-sbmixer                      = true
-oplmode                      = none
-oplemu                       = default
-oplrate                      = 48000
-oplport                      =
-retrowave_bus                = serial
-retrowave_port               =
-hardwarebase                 = 220
-goldplay                     = true
-blaster environment variable = false
+sbtype              = sb16
+sbbase              = 220
+irq                 = 7
+dma                 = 1
+hdma                = 5
+sbmixer             = true
+sbwarmup            = 100
+sb_filter           = modern
+sb_filter_always_on = false
+oplmode             = auto
+opl_fadeout         = off
+opl_remove_dc_bias  = false
+opl_filter          = auto
+cms                 = auto
+cms_filter          = on
 [gus]
-gus                        = false
-global register read alias = auto
-gusrate                    = 48000
-gusmemsize                 = -1
-gus master volume          = 0.00
-gusbase                    = 240
-gusirq                     = 5
-gusdma                     = 3
-gustype                    = classic
-ultradir                   = C:\ULTRASND
-[innova]
-innova     = false
-samplerate = 22050
-sidbase    = 280
-quality    = 0
+gus        = false
+gusbase    = 240
+gusirq     = 5
+gusdma     = 3
+gus_filter = on
+ultradir   = C:\ULTRASND
 [imfc]
+imfc        = false
+imfc_base   = 2a20
+imfc_irq    = 3
+imfc_filter = on
+[innovation]
+sidmodel          = none
+sidclock          = default
+sidport           = 280
+6581filter        = 50
+8580filter        = 50
+innovation_filter = off
 [speaker]
-pcspeaker    = true
-pcrate       = 65536
-tandy        = auto
-tandyrate    = 48000
-disney       = false
-ps1audio     = off
-ps1audiorate = 22050
+pcspeaker           = impulse
+pcspeaker_filter    = on
+tandy               = auto
+tandy_fadeout       = off
+tandy_filter        = on
+tandy_dac_filter    = on
+lpt_dac             = none
+lpt_dac_filter      = on
+ps1audio            = false
+ps1audio_filter     = on
+ps1audio_dac_filter = on
+[reelmagic]
+reelmagic       = off
+reelmagic_key   = auto
+reelmagic_fcode = 0
 [joystick]
-joysticktype = auto
-timed        = true
-autofire     = false
-swap34       = false
-buttonwrap   = false
-[mapper]
-joy1deadzone0- = 0.60
-joy1deadzone0+ = 0.60
-joy1deadzone1- = 0.60
-joy1deadzone1+ = 0.60
-joy1deadzone2- = 0.60
-joy1deadzone2+ = 0.60
-joy1deadzone3- = 0.60
-joy1deadzone3+ = 0.60
-joy1deadzone4- = 0.60
-joy1deadzone4+ = 0.60
-joy1deadzone5- = 0.60
-joy1deadzone5+ = 0.60
-joy1deadzone6- = 0.60
-joy1deadzone6+ = 0.60
-joy1deadzone7- = 0.60
-joy1deadzone7+ = 0.60
-joy2deadzone0- = 0.60
-joy2deadzone0+ = 0.60
-joy2deadzone1- = 0.60
-joy2deadzone1+ = 0.60
-joy2deadzone2- = 0.60
-joy2deadzone2+ = 0.60
-joy2deadzone3- = 0.60
-joy2deadzone3+ = 0.60
-joy2deadzone4- = 0.60
-joy2deadzone4+ = 0.60
-joy2deadzone5- = 0.60
-joy2deadzone5+ = 0.60
-joy2deadzone6- = 0.60
-joy2deadzone6+ = 0.60
-joy2deadzone7- = 0.60
-joy2deadzone7+ = 0.60
+joysticktype                = auto
+timed                       = true
+autofire                    = false
+swap34                      = false
+buttonwrap                  = false
+circularinput               = false
+deadzone                    = 10
+use_joy_calibration_hotkeys = false
+joy_x_calibration           = auto
+joy_y_calibration           = auto
 [serial]
 serial1       = dummy
 serial2       = dummy
 serial3       = disabled
 serial4       = disabled
-serial5       = disabled
-serial6       = disabled
-serial7       = disabled
-serial8       = disabled
-serial9       = disabled
-phonebookfile = phonebook-dosbox-x.txt
-[parallel]
-parallel1 = printer
-parallel2 = disabled
-parallel3 = disabled
-parallel4 = disabled
-parallel5 = disabled
-parallel6 = disabled
-parallel7 = disabled
-parallel8 = disabled
-parallel9 = disabled
-dongle    = false
-[printer]
-printer     = true
-dpi         = 360
-width       = 85
-height      = 110
-printoutput = png
-multipage   = false
-device      = -
-docpath     = .
-fontpath    = FONTS
-openwith    =
-openerror   =
-printdbcs   = auto
-shellhide   = false
-timeout     = 0
+phonebookfile = phonebook.txt
 [dos]
-xms                                            = true
-xms handles                                    = 0
-shell configuration as commands                = false
-hma                                            = true
-hard drive data rate limit                     = -1
-floppy drive data rate limit                   = -1
-ansi.sys                                       = true
-log console                                    = false
-share                                          = true
-file access tries                              = 0
-network redirector                             = true
-mcb corruption becomes application free memory = false
-minimum mcb free                               = 0
-ems                                            = true
-umb                                            = true
-quick reboot                                   = false
-ver                                            =
-lfn                                            = auto
-fat32setversion                                = ask
-shellhigh                                      = auto
-automount                                      = true
-automountall                                   = false
-mountwarning                                   = true
-autofixwarning                                 = false
-startcmd                                       = false
-starttranspath                                 = true
-startwait                                      = true
-startquiet                                     = false
-startnopause                                   = false
-vmware                                         = true
-int33                                          = true
-mouse report rate                              = 0
-keyboardlayout                                 = auto
-customcodepage                                 =
-dbcs                                           = true
-dos clipboard device enable                    = false
-dos clipboard device name                      = CLIP$
-dos clipboard api                              = false
-dos idle api                                   = true
+xms                   = true
+ems                   = true
+umb                   = true
+pcjr_memory_config    = expanded
+ver                   = 5.0
+locale_period         = modern
+country               = auto
+keyboardlayout        = auto
+expand_shell_variable = auto
+shell_history_file    = shell_history.txt
+setver_table_file     =
+file_locking          = true
 [ipx]
 ipx = false
-[ne2000]
-ne2000  = false
-nicbase = 300
-nicirq  = 3
-macaddr = random
-backend = auto
-[ethernet, pcap]
-realnic = list
-timeout = default
-[ethernet, slirp]
-ipv4_network    = 10.0.2.0
-ipv4_netmask    = 255.255.255.0
-ipv4_host       = 10.0.2.2
-ipv4_nameserver = 10.0.2.3
-ipv4_dhcp_start = 10.0.2.15
-[ide, primary]
-enable = true
-pnp    = true
-[ide, secondary]
-enable = true
-pnp    = true
-[ide, tertiary]
-enable = false
-pnp    = true
-[ide, quaternary]
-enable = false
-pnp    = true
-[ide, quinternary]
-enable = false
-pnp    = true
-[ide, sexternary]
-enable = false
-pnp    = true
-[ide, septernary]
-enable = false
-pnp    = true
-[ide, octernary]
-enable = false
-pnp    = true
-[fdc, primary]
-enable = false
-pnp    = true
-mode   = ps2
-[4dos]
-rem = This section is the 4DOS.INI file, if you use 4DOS as the command shell
-[config]
-rem         = This section is DOS's CONFIG.SYS file, not all CONFIG.SYS options supported
-break       = off
-numlock     =
-shell       =
-dos         = high, umb
-fcbs        = 0
-files       = 0
-country     =
-lastdrive   = a
-set path    = Z:\;Z:\SYSTEM;Z:\BIN;Z:\DOS;Z:\4DOS;Z:\DEBUG;Z:\TEXTUTIL
-set prompt  = $P$G
-set temp    =
-install     =
-installhigh =
-device      =
-devicehigh  =
+[ethernet]
+ne2000            = true
+nicbase           = 300
+nicirq            = 3
+macaddr           = AC:DE:48:88:99:AA
+tcp_port_forwards =
+udp_port_forwards =
 [autoexec]
 mount c $HOME/Games/dosbox/
 c:
-ls
+dir
 EOL
 
 echo "Complete"
