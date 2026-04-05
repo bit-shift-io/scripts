@@ -253,6 +253,8 @@ tee $HOME/.config/environment.d/60-bus-fix.conf > /dev/null << EOL
 XDG_RUNTIME_DIR=/run/user/$USER_ID
 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$USER_ID/bus
 EOL
+#
+
 
     # we dont need podlets!
     # rust for podlets
@@ -260,6 +262,7 @@ EOL
     #cargo install podlet
 
     sudo systemctl start podman --now
+    echo "If your using dietpi with dropbear, use dietpi-software to change to openssh!"
     echo "complete!"
     #echo "reboot now and run again"
 }
