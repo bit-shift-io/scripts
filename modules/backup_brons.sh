@@ -78,7 +78,6 @@ function fn_full {
     rclone sync "${RCLONE_OPTS[@]}" "$SRC_DIR_1/Misc" "$DEST_DIR_1/Misc"
     rclone sync "${RCLONE_OPTS[@]}" "$SRC_DIR_1/Photos" "$DEST_DIR_1/Photos"
 
-    rclone sync "${RCLONE_OPTS[@]}" "$SRC_DIR_1/Emulators" "$DEST_DIR_1/Emulators"
     rclone sync "${RCLONE_OPTS[@]}" "$SRC_DIR_1/Audiobooks" "$DEST_DIR_1/Audiobooks"
     rclone sync "${RCLONE_OPTS[@]}" "$SRC_DIR_1/Bible" "$DEST_DIR_1/Bible"
     rclone sync "${RCLONE_OPTS[@]}" "$SRC_DIR_1/Music" "$DEST_DIR_1/Music"
