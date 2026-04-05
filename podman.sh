@@ -246,12 +246,14 @@ function fn_install_debian {
     sudo sh -c "grep -qF '$VAR1' /etc/environment || echo '$VAR1' >> /etc/environment"
     sudo sh -c "grep -qF '$VAR2' /etc/environment || echo '$VAR2' >> /etc/environment"
 
+    # we dont need podlets!
     # rust for podlets
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-    cargo install podlet
+    #curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    #cargo install podlet
 
     sudo systemctl start podman --now
-    echo "reboot now and run again"
+    echo "complete!"
+    #echo "reboot now and run again"
 }
 
 
