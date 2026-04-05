@@ -229,8 +229,8 @@ function fn_backup {
 
 
 function fn_install_debian {
-    # dietpit doesnt have dbus user access, which we need
-    ./util.sh -i podman dbus-user-session
+    # dietpit doesnt have dbus and other depends for user access, which we need
+    ./util.sh -i podman dbus-user-session uidmap catatonit
 
     # enable logind and bus access
     sudo systemctl unmask systemd-logind.service
@@ -238,28 +238,14 @@ function fn_install_debian {
     sudo systemctl daemon-reload
     sudo loginctl enable-linger $USER
 
-    # Get the actual numeric ID (usually 1000)
-    USER_ID=$(id -u)
-
-    # system env (doesnt work on dietpi)
-    #VAR1="XDG_RUNTIME_DIR=/run/user/$USER_ID"
-    #VAR2="DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$USER_ID/bus"
-    #sudo sh -c "grep -qF '$VAR1' /etc/environment || echo '$VAR1' >> /etc/environment"
-    #sudo sh -c "grep -qF '$VAR2' /etc/environment || echo '$VAR2' >> /etc/environment"
-
     # systemd env variables
+    USER_ID=$(id -u)
     mkdir -p $HOME/.config/environment.d/
+
 tee $HOME/.config/environment.d/60-bus-fix.conf > /dev/null << EOL
 XDG_RUNTIME_DIR=/run/user/$USER_ID
 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$USER_ID/bus
 EOL
-#
-
-
-    # we dont need podlets!
-    # rust for podlets
-    #curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-    #cargo install podlet
 
     sudo systemctl start podman --now
     echo "If your using dietpi with dropbear, use dietpi-software to change to openssh!"
