@@ -261,8 +261,8 @@ function fn_install_arch {
     ./util.sh -i podman crun
 
     # podlet: need rust to compile, until a bin version is released
-    rustup default stable
-    ./util.sh -i podlet # yay
+    #rustup default stable
+    #./util.sh -i podlet # yay
 
     sudo systemctl start podman --now
 }
