@@ -230,7 +230,7 @@ function fn_backup {
 
 function fn_install_debian {
     # dietpit doesnt have dbus and other depends for user access, which we need
-    ./util.sh -i podman dbus-user-session uidmap catatonit
+    ./util.sh -i podman dbus-user-session uidmap catatonit passt
 
     # enable logind and bus access
     sudo systemctl unmask systemd-logind.service
