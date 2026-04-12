@@ -1,5 +1,15 @@
 #!/bin/bash
 
+RCLONE_OPTS=(
+    --exclude ".*"
+    --exclude ".**"
+    -vP
+    --fast-list
+    --transfers 4
+    --checkers 8
+    --delete-excluded
+)
+
 function main {
     # loop args
     if [[ $# -ne 0 ]] ; then
@@ -59,11 +69,10 @@ function fn_min {
 
     SRC_DIR_1=":sftp,ssh='ssh dietpi@media.lan':/mnt/2tb"
     echo "Start backup up from '$SRC_DIR_1' to '$DEST_DIR_1'...."
-    RCLONE_OPTS="--exclude '.*' --exclude '.*/**' -vP --fast-list --transfers 4 --checkers 8 --delete-excluded"
-    rclone sync ${RCLONE_OPTS} "$SRC_DIR_1/Bronson" "$DEST_DIR_1/Bronson"
-    rclone sync ${RCLONE_OPTS} "$SRC_DIR_1/Haoying" "$DEST_DIR_1/Haoying"
-    rclone sync ${RCLONE_OPTS} "$SRC_DIR_1/Misc" "$DEST_DIR_1/Misc"
-    rclone sync ${RCLONE_OPTS} "$SRC_DIR_1/Photos" "$DEST_DIR_1/Photos"
+    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Bronson" "$DEST_DIR_1/Bronson"
+    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Haoying" "$DEST_DIR_1/Haoying"
+    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Misc" "$DEST_DIR_1/Misc"
+    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Photos" "$DEST_DIR_1/Photos"
 
     echo "Backup complete."
 }
@@ -77,16 +86,14 @@ function fn_full {
     SRC_DIR_1=":sftp,ssh='ssh dietpi@media.lan':/mnt/2tb"
     echo "Start backup up from '$SRC_DIR_1' to '$DEST_DIR_1'...."
 
-    RCLONE_OPTS="--exclude '.*' --exclude '.*/**' -vP --fast-list --transfers 4 --checkers 8 --delete-excluded"
+    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Bronson" "$DEST_DIR_1/Bronson"
+    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Haoying" "$DEST_DIR_1/Haoying"
+    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Misc" "$DEST_DIR_1/Misc"
+    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Photos" "$DEST_DIR_1/Photos"
 
-    rclone sync ${RCLONE_OPTS} "$SRC_DIR_1/Bronson" "$DEST_DIR_1/Bronson"
-    rclone sync ${RCLONE_OPTS} "$SRC_DIR_1/Haoying" "$DEST_DIR_1/Haoying"
-    rclone sync ${RCLONE_OPTS} "$SRC_DIR_1/Misc" "$DEST_DIR_1/Misc"
-    rclone sync ${RCLONE_OPTS} "$SRC_DIR_1/Photos" "$DEST_DIR_1/Photos"
-
-    rclone sync ${RCLONE_OPTS} "$SRC_DIR_1/Audiobooks" "$DEST_DIR_1/Audiobooks"
-    rclone sync ${RCLONE_OPTS} "$SRC_DIR_1/Music" "$DEST_DIR_1/Music"
-    rclone sync ${RCLONE_OPTS} "$SRC_DIR_1/Videos" "$DEST_DIR_1/Videos"
+    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Audiobooks" "$DEST_DIR_1/Audiobooks"
+    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Music" "$DEST_DIR_1/Music"
+    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Videos" "$DEST_DIR_1/Videos"
 
     echo "Backup complete."
 }
