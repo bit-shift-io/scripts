@@ -61,6 +61,7 @@ WantedBy=multi-user.target
 EOL
 
 # Create the Auth Agent (Automatically accepts pairing)
+# NoInputNoOutput doesnt work?
 sudo tee /etc/systemd/system/bt-agent.service > /dev/null << EOL
 [Unit]
 Description=Bluetooth Auth Agent
@@ -68,7 +69,7 @@ After=bluetooth.service
 Requires=bluetooth.service
 
 [Service]
-ExecStart=/usr/bin/bt-agent -c NoInputNoOutput
+ExecStart=/usr/bin/bt-agent -c DisplayOnly
 Restart=on-failure
 
 [Install]
