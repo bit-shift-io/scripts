@@ -35,7 +35,7 @@ function main {
 
 function fn_bluetooth_speaker {
     sudo apt update
-    sudo apt install -y bluez-alsa-utils bluez-tools
+    sudo apt install -y bluez-alsa-utils bluez-tools python3-dbus python3-gi
 
 # udev rule to block other ble adapter
 # Only disable the device physically plugged into Bus 1, Port 8 (doesnt have a serial id)
@@ -44,6 +44,14 @@ SUBSYSTEM=="usb", KERNELS=="1-8", ATTR{authorized}="0"
 EOL
 sudo udevadm control --reload-rules
 sudo udevadm trigger
+
+# override defaults
+sudo mkdir -p /etc/systemd/system/bluealsa.service.d/
+sudo tee /etc/systemd/system/bluealsa.service.d/override.conf > /dev/null << EOL
+[Service]
+ExecStart=
+ExecStart=/usr/bin/bluealsa -S -p a2dp-sink
+EOL
 
 # Create the Player (Pipes BT audio to your speakers)
 sudo tee /etc/systemd/system/bluealsa-aplay.service > /dev/null << EOL
@@ -117,15 +125,24 @@ EOL
 
     sudo chmod +x /usr/local/bin/bt-autoconfirm.py
 
+sudo tee /etc/bluetooth/main.conf > /dev/null << EOL
+[General]
+# Force the device to identify as a Speaker
+Class = 0x240428
+# Tells the phone we don't have a screen/keyboard
+Capability = NoInputNoOutput
+# Allow "Just Works" pairing without PIN prompts
+JustWorksRepairing = always
+EOL
 
     # 5. Reload and Start everything
     sudo systemctl daemon-reload
+    sudo systemctl restart bluetooth
     sudo systemctl enable --now bluealsa bt-agent bluealsa-aplay
 
-    sleep 2 # Give udev and services a moment to settle
-    sudo hciconfig hci0 up
+    sleep 2
 
-    # Set Bluetooth
+    sudo hciconfig hci0 up
     echo "Configuring adapter as a Speaker..."
     sudo hciconfig hci0 class 0x240428
     sudo hciconfig hci0 sspmode 1
