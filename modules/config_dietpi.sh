@@ -69,19 +69,60 @@ After=bluetooth.service
 Requires=bluetooth.service
 
 [Service]
-ExecStart=/usr/bin/bt-agent -c DisplayOnly
+ExecStart=/usr/bin/python3 /usr/local/bin/bt-autoconfirm.py
 Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
 EOL
 
+
+sudo tee /usr/local/bin/bt-autoconfirm.py > /dev/null << EOL
+#!/usr/bin/python3
+import dbus
+import dbus.service
+import dbus.mainloop.glib
+from gi.repository import GLib
+
+class Agent(dbus.service.Object):
+    @dbus.service.method("org.bluez.Agent1", in_signature="os", out_signature="")
+    def AuthorizeService(self, device, uuid):
+        return # Auto-authorize
+
+    @dbus.service.method("org.bluez.Agent1", in_signature="ou", out_signature="")
+    def RequestConfirmation(self, device, passkey):
+        return # Auto-confirm passkey
+
+    @dbus.service.method("org.bluez.Agent1", in_signature="o", out_signature="s")
+    def RequestPinCode(self, device):
+        return "0000" # Default PIN if requested
+
+    @dbus.service.method("org.bluez.Agent1", in_signature="", out_signature="")
+    def Release(self):
+        pass
+
+if __name__ == '__main__':
+    dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+    bus = dbus.SystemBus()
+    agent = Agent(bus, "/test/agent")
+
+    obj = bus.get_object("org.bluez", "/org/bluez")
+    manager = dbus.Interface(obj, "org.bluez.AgentManager1")
+    manager.RegisterAgent("/test/agent", "NoInputNoOutput")
+    manager.RequestDefaultAgent("/test/agent")
+
+    print("Bluetooth Yes-Man Agent is active...")
+    GLib.MainLoop().run()
+EOL
+
+    sudo chmod +x /usr/local/bin/bt-autoconfirm.py
+
+
     # 5. Reload and Start everything
     sudo systemctl daemon-reload
     sudo systemctl enable --now bluealsa bt-agent bluealsa-aplay
 
     sleep 2 # Give udev and services a moment to settle
-    sudo rfkill unblock bluetooth
     sudo hciconfig hci0 up
 
     # Set Bluetooth
