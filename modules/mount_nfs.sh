@@ -27,7 +27,7 @@ Wants=network-online.target
 What=$host:$remote_path
 Where=$local_path
 Type=nfs
-Options=_netdev,rw,soft,intr,tcp
+Options=_netdev,rw,hard,intr,tcp,exec,nconnect=8,rsize=1048576,wsize=1048576
 TimeoutSec=30
 
 [Install]

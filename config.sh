@@ -22,7 +22,6 @@ function main {
     ===================
     1) General config (systemd timeout, kde index)
     3) Swap
-    4) Steam
 
     apps
     ===================
@@ -47,7 +46,6 @@ function main {
         p) fn_pacman_mirror_cache ;;
         1) fn_general_config ;;
         3) fn_swap ;;
-        4) fn_setup_steam ;;
         5) fn_base_apps ;;
         6) fn_media_development_apps ;;
         h) fn_cec ;;
@@ -234,32 +232,6 @@ function fn_cec {
     getent group uucp
 
     notify-send 'CEC' 'Please reboot!'
-}
-
-
-function fn_setup_steam {
-    ./util.sh -i steam
-
-    #mkdir
-    mkdir -p $HOME/Games/Steam
-
-    # move existing install
-    mv $HOME/.local/share/Steam $HOME/Games
-
-    # create compat tools dir
-    mkdir $HOME/Games/Steam/compatibilitytools.d
-
-    # remove unused
-    rm -r $HOME/.local/share/Steam
-
-    # create symlink
-    #rm -r $HOME/.local/share/Steam
-    ln -s $HOME/Games/Steam $HOME/.local/share/Steam
-
-    # steam fix
-    # find ~/.steam/root/ \( -name "libgcc_s.so*" -o -name "libstdc++.so*" -o -name "libxcb.so*" -o -name "libgpg-error.so*" \) -print -delete
-
-    notify-send 'Steam' 'Game on!'
 }
 
 
