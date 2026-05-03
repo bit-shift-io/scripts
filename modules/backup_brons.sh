@@ -105,6 +105,14 @@ function fn_home {
     # Define locations
     LOCAL_HOME="/home/bronson"
     REMOTE_DIR=":sftp,ssh='ssh dietpi@media.lan':/mnt/4-pcie/backups/bronson-home"
+    RCLONE_OPTS=(
+        -vP
+        --fast-list
+        --transfers 32
+        --checkers 64
+        --delete-excluded
+        --sftp-chunk-size 64k
+    )
 
     echo "Select an option:"
     echo "1) Backup (Local -> Remote)"
