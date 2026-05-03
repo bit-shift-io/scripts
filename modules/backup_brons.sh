@@ -104,7 +104,7 @@ function fn_full {
 function fn_home {
     # Define locations
     LOCAL_HOME="/home/bronson"
-    REMOTE_DIR=":sftp,ssh='ssh dietpi@media.lan':/mnt/4-pcie/backups/bronson-home"
+    REMOTE_DIR="/mnt/media/4-pcie/backups/bronson-home"
     RCLONE_OPTS=(
         -vP
         --fast-list
@@ -117,18 +117,17 @@ function fn_home {
         --exclude "/.cargo/**"
     )
 
-    echo "Select an option:"
-    echo "1) Backup (Local -> Remote)"
-    echo "2) Restore (Remote -> Local)"
-    read -p "Enter choice [1 or 2]: " choice
+    echo "b) Backup (Local -> Remote)"
+    echo "r) Restore (Remote -> Local)"
+    read -p "Enter choice: " choice
 
     case $choice in
-        1)
+        b)
             SRC_DIR="$LOCAL_HOME"
             DST_DIR="$REMOTE_DIR"
             MODE="BACKUP"
             ;;
-        2)
+        r)
             SRC_DIR="$REMOTE_DIR"
             DST_DIR="$LOCAL_HOME"
             MODE="RESTORE"
@@ -146,8 +145,6 @@ function fn_home {
     echo "------------------------------------------------"
 
     read -n 1 -r -s -p "Press any key to continue..."
-
-    echo "--- Starting Backup $(date) ---"
     rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR" "$DST_DIR"
     echo "--- Finished Backup $(date) ---"
 }
