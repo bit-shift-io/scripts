@@ -37,7 +37,7 @@ function main {
 function fn_nfs {
     #sudo chown -R dietpi:dietpi /mnt
     sudo apt update
-    sudo apt install nfs-kernel-server
+    sudo apt install nfs-kernel-server nfs-common
     # add mnt folder
     sudo tee "/etc/exports" > /dev/null << EOL
 /mnt  *(rw,async,no_root_squash,no_subtree_check,crossmnt)
