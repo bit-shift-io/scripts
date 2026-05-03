@@ -27,7 +27,7 @@ function main {
         a) fn_amd_driver ;;
         h) fn_hostname ;;
         b) fn_bluetooth_speaker ;;
-        n) fn_nfs
+        n) fn_nfs ;;
 
         *) $SHELL ;;
     esac
