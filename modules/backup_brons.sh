@@ -112,6 +112,9 @@ function fn_home {
         --checkers 64
         --delete-excluded
         --sftp-chunk-size 64k
+        --exclude "/.cache/**"
+        --exclude "/.rustup/**"
+        --exclude "/.cargo/**"
     )
 
     echo "Select an option:"
