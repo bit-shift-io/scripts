@@ -66,14 +66,14 @@ function main {
 function fn_fix_pacman {
     sudo pacman -Syy
     sudo pacman-key --refresh-keys
-    sudo pacman-key --populate manjaro
+    sudo pacman-key --populate archlinux cachyos manjaro
     #sudo pacman-key --populate archlinux manjaro
     sudo ./util.sh -i archlinux-keyring
 }
 
 
 function fn_update_pacman {
-    sudo ./util.sh -i archlinux-keyring
+    sudo ./util.sh -i archlinux-keyring cachyos-keyring
     sudo pacman -Syyu
 }
 

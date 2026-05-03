@@ -34,8 +34,8 @@ function fn_nfs {
     rm -r $HOME/.local/share/Steam
 
     # create symlinks
-    ln -s /mnt/media/4-pcie/Games $HOME/Games
-    ln -s $HOME/Games/Steam $HOME/.local/share/Steam
+    ln -sfn /mnt/media/4-pcie/Games $HOME/Games
+    ln -sfn $HOME/Games/Steam $HOME/.local/share/Steam
 
     # create compat tools dir if missing
     mkdir $HOME/Games/Steam/compatibilitytools.d
