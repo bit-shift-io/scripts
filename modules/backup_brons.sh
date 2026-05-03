@@ -26,7 +26,7 @@ function main {
     ===================
     1) Minimal
     2) Full
-    h) Home -> remote
+    h) Home
     i) install rclone
     s) setup shared ssh key
 
@@ -102,10 +102,40 @@ function fn_full {
 
 
 function fn_home {
-    SRC_DIR="/home/bronson"
-    DST_DIR=":sftp,ssh='ssh dietpi@media.lan':/mnt/4-pcie/backups/bronson-home"
-    echo "Start backup up from '$SRC_DIR' to '$DST_DIR'...."
+    # Define locations
+    LOCAL_HOME="/home/bronson"
+    REMOTE_DIR=":sftp,ssh='ssh dietpi@media.lan':/mnt/4-pcie/backups/bronson-home"
+
+    echo "Select an option:"
+    echo "1) Backup (Local -> Remote)"
+    echo "2) Restore (Remote -> Local)"
+    read -p "Enter choice [1 or 2]: " choice
+
+    case $choice in
+        1)
+            SRC_DIR="$LOCAL_HOME"
+            DST_DIR="$REMOTE_DIR"
+            MODE="BACKUP"
+            ;;
+        2)
+            SRC_DIR="$REMOTE_DIR"
+            DST_DIR="$LOCAL_HOME"
+            MODE="RESTORE"
+            ;;
+        *)
+            echo "Invalid option. Exiting."
+            return 1
+            ;;
+    esac
+
+    echo "------------------------------------------------"
+    echo "Action: $MODE"
+    echo "Source: $SRC_DIR"
+    echo "Destination: $DST_DIR"
+    echo "------------------------------------------------"
+
     read -n 1 -r -s -p "Press any key to continue..."
+
     echo "--- Starting Backup $(date) ---"
     rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR" "$DST_DIR"
     echo "--- Finished Backup $(date) ---"
