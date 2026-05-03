@@ -135,6 +135,9 @@ Capability = NoInputNoOutput
 JustWorksRepairing = always
 EOL
 
+# disable hostname plugin
+sudo sed -i 's|ExecStart=/usr/libexec/bluetooth/bluetoothd|ExecStart=/usr/libexec/bluetooth/bluetoothd --noplugin=hostname|g' /lib/systemd/system/bluetooth.service
+
     # 5. Reload and Start everything
     sudo systemctl daemon-reload
     sudo systemctl restart bluetooth

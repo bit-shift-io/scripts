@@ -26,6 +26,7 @@ function main {
     ===================
     1) Minimal
     2) Full
+    h) Home -> remote
     i) install rclone
     s) setup shared ssh key
 
@@ -37,6 +38,7 @@ function main {
         2) fn_full ;;
         i) fn_install ;;
         s) fn_ssh_key ;;
+        h) fn_home ;;
         *) $SHELL ;;
     esac
     done
@@ -96,6 +98,17 @@ function fn_full {
     rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Videos" "$DEST_DIR_1/Videos"
 
     echo "Backup complete."
+}
+
+
+function fn_home {
+    SRC_DIR="/home/bronson"
+    DST_DIR=":sftp,ssh='ssh dietpi@media.lan':/mnt/4-pcie/backups/bronson-home"
+    echo "Start backup up from '$SRC_DIR' to '$DST_DIR'...."
+    read -n 1 -r -s -p "Press any key to continue..."
+    echo "--- Starting Backup $(date) ---"
+    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR" "$DST_DIR"
+    echo "--- Finished Backup $(date) ---"
 }
 
 # pass all args
