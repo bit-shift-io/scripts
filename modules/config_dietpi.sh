@@ -37,7 +37,7 @@ function main {
 function fn_nfs {
     #sudo chown -R dietpi:dietpi /mnt
     sudo apt update
-    sudo apt install nfs-kernel-server nfs-common
+    sudo apt install nfs-kernel-server
     # add mnt folder
     sudo tee "/etc/exports" > /dev/null << EOL
 /mnt  *(rw,async,no_root_squash,no_subtree_check,crossmnt)
@@ -46,7 +46,6 @@ EOL
     sudo exportfs -ra
     sudo systemctl restart nfs-kernel-server
     sudo systemctl enable --now nfs-kernel-server
-    showmount -e localhost
 }
 
 
