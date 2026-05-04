@@ -15,21 +15,21 @@ function main {
     steam
     ===================
     l) Local
-    n) nfs
+    n) NAS/Network
 
     *) Any key to exit
     :" ans;
     reset
     case $ans in
         l) fn_setup_steam ;;
-        n) fn_nfs ;;
+        n) fn_nas ;;
         *) $SHELL ;;
     esac
     done
 }
 
 
-function fn_nfs {
+function fn_nas {
     ./util.sh -i steam
     rm -r $HOME/.local/share/Steam
 
