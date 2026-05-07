@@ -39,7 +39,8 @@ What=$remote_path
 Where=$local_path
 Type=cifs
 TimeoutSec=10
-Options=uid=1000,gid=1000,forceuid,forcegid,credentials=/etc/samba/smbcreds,rw,mfsymlinks,nobrl,noserverino,iocharset=utf8,_netdev
+#Options=uid=1000,gid=1000,forceuid,forcegid,credentials=/etc/samba/smbcreds,rw,mfsymlinks,nobrl,noserverino,iocharset=utf8,_netdev
+Options=uid=1000,gid=1000,forceuid,forcegid,credentials=/etc/samba/smbcreds,rw,file_mode=0755,dir_mode=0755,iocharset=utf8,_netdev
 
 [Install]
 WantedBy=multi-user.target

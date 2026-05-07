@@ -46,6 +46,14 @@ function fn_nas {
     notify-send 'Steam' 'Game on!'
 }
 
+function fn_setup_steam_new {
+    ./util.sh -i steam
+    rm ~/.local/share/Steam
+    rm -rf ~/.steam/steam
+    mkdir -p ~/.local/share/Steam
+    notify-send 'Steam' 'Game on!'
+}
+
 function fn_setup_steam {
     ./util.sh -i steam
 
