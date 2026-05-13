@@ -57,7 +57,7 @@ class CECDaemon:
         try:
             bus = dbus.SystemBus()
 
-            # Monitor systemd-logind for sleep/wake events
+            # Monitor systemd-logind for sleep/wake events (system-level, always works)
             bus.add_signal_receiver(
                 self._on_prepare_for_sleep,
                 dbus_interface="org.freedesktop.login1.Manager",
@@ -67,16 +67,22 @@ class CECDaemon:
             )
             self.logger.info("Listening for systemd sleep signals")
 
-            # Monitor ScreenSaver for screen on/off events
-            session_bus = dbus.SessionBus()
-            session_bus.add_signal_receiver(
-                self._on_screen_saver_active,
-                dbus_interface="org.freedesktop.ScreenSaver",
-                signal_name="ActiveChanged",
-                bus_name="org.freedesktop.ScreenSaver",
-                path="/org/freedesktop/ScreenSaver",
-            )
-            self.logger.info("Listening for ScreenSaver signals")
+            # Try to monitor ScreenSaver for screen on/off events (session-level, optional)
+            try:
+                session_bus = dbus.SessionBus()
+                session_bus.add_signal_receiver(
+                    self._on_screen_saver_active,
+                    dbus_interface="org.freedesktop.ScreenSaver",
+                    signal_name="ActiveChanged",
+                    bus_name="org.freedesktop.ScreenSaver",
+                    path="/org/freedesktop/ScreenSaver",
+                )
+                self.logger.info("Listening for ScreenSaver signals")
+            except dbus.DBusException as session_error:
+                self.logger.warning(
+                    f"Could not connect to session bus (normal for system service): {session_error}"
+                )
+                self.logger.info("Screen on/off detection disabled, sleep detection only")
 
             self.logger.info("CEC Daemon started successfully")
             self._loop.run()
