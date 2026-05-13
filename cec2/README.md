@@ -17,14 +17,19 @@ The CEC2 daemon monitors two main DBus signal sources:
    - Calls `aboutToTurnOff.sh` when screen blanks
    - Calls `wakeUp.sh` when screen turns on
 
-## Why System Service?
+## How It's Designed
 
-The daemon runs as a **system service** rather than a user service. This is important because:
+CEC2 uses **two complementary mechanisms**:
 
-- **Works at login screen** - When your system wakes from sleep and shows the login screen, no user session is running yet. A user service wouldn't be active, so it couldn't call the wake script. The system service runs regardless of login state.
-- **Handles all wake scenarios** - Works for wake-from-sleep before login, screen-unlock after idle, and any other wake event
-- **Always available** - Started automatically at boot and continuously running
-- **Proper signal handling** - Can receive system-level DBus signals that are only available to system services
+1. **User Service + ScreenSaver DBus** - Monitors screen on/off events (idle)
+   - Runs when user is logged in
+   - Catches screen blanking before it becomes a system sleep
+   - Detects manual screen lock/unlock
+
+2. **Systemd Sleep Hook** - Monitors system sleep/wake events
+   - Runs at system level, works at login screen
+   - Guaranteed to execute before and after sleep, even if services stop
+   - Catches all sleep scenarios (suspend, hibernate, sleep)
 
 ## How It Works
 
@@ -90,9 +95,10 @@ cd cec2
 This will:
 1. Install required packages via pacman
 2. Make scripts executable
-3. Create a systemd **system** service (runs at boot, works at login screen)
-4. Enable and start the service
-5. Display the service status
+3. Create a systemd **user** service for screen on/off detection
+4. Create a systemd **sleep hook** for sleep/wake detection
+5. Enable and start both components
+6. Display the service status
 
 ### Manual Installation
 
@@ -113,12 +119,21 @@ This will:
    chmod +x cec_daemon.py aboutToTurnOff.sh wakeUp.sh
    ```
 
-3. **Create systemd system service:**
+3. **Create systemd user service:**
    ```bash
-   sudo cp cec_daemon.service /etc/systemd/system/
-   sudo systemctl daemon-reload
-   sudo systemctl enable cec_daemon.service
-   sudo systemctl start cec_daemon.service
+   mkdir -p ~/.config/systemd/user
+   cp cec_daemon.service ~/.config/systemd/user/
+   systemctl --user daemon-reload
+   systemctl --user enable cec_daemon.service
+   systemctl --user start cec_daemon.service
+   ```
+
+4. **Create systemd sleep hook:**
+   ```bash
+   sudo cp cec-sleep /etc/systemd/system-sleep/
+   sudo chmod +x /etc/systemd/system-sleep/cec-sleep
+   # Update the script to use the correct path to your cec2 directory
+   sudo sed -i "s|/path/to/cec2|$(pwd)|g" /etc/systemd/system-sleep/cec-sleep
    ```
 
 4. **Create cache directory for logs:**
@@ -169,64 +184,99 @@ Device IDs typically:
 
 ### Check Service Status
 
+**User service (screen on/off detection):**
 ```bash
-sudo systemctl status cec_daemon
+systemctl --user status cec_daemon
+```
+
+**Sleep hook (sleep/wake detection):**
+```bash
+sudo systemctl status systemd-sleep
 ```
 
 ### View Live Logs
 
+**User service:**
 ```bash
-sudo journalctl -u cec_daemon -f
+journalctl --user -u cec_daemon -f
+```
+
+**Sleep hook:**
+```bash
+sudo tail -f /var/log/cec_daemon.log
 ```
 
 ### View Historical Logs
 
+**User service:**
 ```bash
-sudo journalctl -u cec_daemon
-# Or if running with fallback log location
-cat /var/log/cec_daemon.log
+journalctl --user -u cec_daemon
 ```
 
-### Stop the Service
-
+**Sleep hook:**
 ```bash
-sudo systemctl stop cec_daemon
+sudo tail -100 /var/log/cec_daemon.log
 ```
 
-### Restart the Service
+### Stop the User Service
 
 ```bash
-sudo systemctl restart cec_daemon
+systemctl --user stop cec_daemon
+```
+
+### Restart the User Service
+
+```bash
+systemctl --user restart cec_daemon
 ```
 
 ### Disable Auto-Start
 
 ```bash
-sudo systemctl disable cec_daemon
+systemctl --user disable cec_daemon
 ```
 
-### Remove the Service
+### Remove Everything
 
 ```bash
-sudo systemctl disable cec_daemon
-sudo systemctl stop cec_daemon
-sudo rm /etc/systemd/system/cec_daemon.service
-sudo systemctl daemon-reload
+systemctl --user disable cec_daemon
+systemctl --user stop cec_daemon
+rm ~/.config/systemd/user/cec_daemon.service
+systemctl --user daemon-reload
+
+sudo rm /etc/systemd/system-sleep/cec-sleep
 ```
 
 ## Troubleshooting
 
-### Service Won't Start
+### User Service Won't Start
 
-Check systemd logs:
+Check user service logs:
 ```bash
-sudo journalctl -u cec_daemon -n 50
+journalctl --user -u cec_daemon -n 50
 ```
 
 Common issues:
 - Missing dependencies: Install python-dbus and python-gobject
 - Script not executable: `chmod +x cec_daemon.py aboutToTurnOff.sh wakeUp.sh`
-- Wrong path in service file: Check `/etc/systemd/system/cec_daemon.service` has correct absolute path
+- Session bus unavailable: User service needs active user session (normal behavior)
+
+### Sleep Hook Not Working
+
+Check if hook is installed:
+```bash
+ls -la /etc/systemd/system-sleep/cec-sleep
+```
+
+Check logs:
+```bash
+sudo tail -50 /var/log/cec_daemon.log
+```
+
+Common issues:
+- Hook not executable: `sudo chmod +x /etc/systemd/system-sleep/cec-sleep`
+- Wrong path in script: Hook should have correct absolute path to cec2 directory
+- cec-client not found: Install libcec/cec-utils
 
 ### DBus Signals Not Being Received
 
