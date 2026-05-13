@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """
-CEC Daemon - Monitors screen on/off events via DBus ScreenSaver interface.
-Executes aboutToTurnOff.sh when screen turns off.
-Executes wakeUp.sh when screen turns on.
+CEC Daemon - Monitor screen on/off events and control TV via CEC.
 
-For sleep/wake events, systemd hooks are used (see /etc/systemd/system-sleep/cec-sleep).
+Listens to org.freedesktop.ScreenSaver DBus signals to detect when:
+- Screen blanks/locks (user idle) → turn off TV
+- Screen wakes/unlocks (user active) → turn on TV
 """
 
 import subprocess
 import sys
 import os
 import logging
+import time
 from pathlib import Path
 
 try:
@@ -19,7 +20,7 @@ try:
     from gi.repository import GLib
 except ImportError as e:
     print(f"Error: Missing required module: {e}")
-    print("Install dependencies with: ./install.sh")
+    print("Install with: sudo pacman -S python-dbus python-gobject")
     sys.exit(1)
 
 

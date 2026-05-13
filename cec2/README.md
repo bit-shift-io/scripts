@@ -1,79 +1,60 @@
-# CEC2 Daemon - DBus-based Screen On/Off Detection
+# CEC2 Daemon - Screen-Based TV Control
 
-A modern replacement for the legacy KWin-based CEC control system. Instead of relying on KWin scripts with deprecated QT signals, this daemon monitors screen and sleep events via standard DBus interfaces and automatically controls CEC devices (like TVs) through the `cec-client` utility.
+A simple, reliable replacement for the legacy KWin-based CEC control system. This daemon monitors screen on/off events via the freedesktop ScreenSaver DBus interface and automatically controls CEC devices (like TVs) through the `cec-client` utility.
 
 ## Overview
 
-The CEC2 daemon monitors two main DBus signal sources:
+The CEC2 daemon monitors screen state changes via the **ScreenSaver DBus interface** (`org.freedesktop.ScreenSaver`):
 
-1. **systemd-logind** (`org.freedesktop.login1`) - Monitors system sleep/wake events
-   - Detects when the system is about to suspend or has just woken up
-   - Calls `aboutToTurnOff.sh` before sleep
-   - Calls `wakeUp.sh` after wake-up
+- **Screen blanks/locks** (user idle) → Calls `aboutToTurnOff.sh` to put TV on standby
+- **Screen activates** (user returns) → Calls `wakeUp.sh` to turn TV on
+- **Works when logged in** → Responds to all screen state changes in the user session
 
-2. **ScreenSaver** (`org.freedesktop.ScreenSaver`) - Monitors screen on/off events
-   - Detects when the screen is locked/blanked
-   - Detects when the screen is unlocked/activated
-   - Calls `aboutToTurnOff.sh` when screen blanks
-   - Calls `wakeUp.sh` when screen turns on
+For system sleep detection, see [RESEARCH_LOG.md](RESEARCH_LOG.md) for details on why system-level wake detection before login is not possible on this system.
 
-## How It's Designed
+## How It Works
 
-CEC2 uses **two complementary mechanisms**:
+CEC2 is a **user-level Python daemon** that:
 
-1. **User Service + ScreenSaver DBus** - Monitors screen on/off events (idle)
-   - Runs when user is logged in
-   - Catches screen blanking before it becomes a system sleep
-   - Detects manual screen lock/unlock
+1. Connects to the freedesktop ScreenSaver DBus interface
+2. Listens for `ActiveChanged` signals
+3. When screen blanks/locks → Turns off TV
+4. When screen wakes/unlocks → Turns on TV
+5. Runs as a systemd user service in your KDE session
 
-2. **Systemd Sleep Hook** - Monitors system sleep/wake events
-   - Runs at system level, works at login screen
-   - Guaranteed to execute before and after sleep, even if services stop
-   - Catches all sleep scenarios (suspend, hibernate, sleep)
+**Simple, reliable, and works perfectly for screen-based control.**
 
 ## How It Works
 
 ### Event Flow
 
 ```
-Screen idles/locks (no activity)
+User stops using computer (idle timeout)
+    ↓
+Screen blanks
     ↓
 ScreenSaver.ActiveChanged(true) signal
     ↓
 Daemon calls: aboutToTurnOff.sh
     ↓
-Your TV/device goes to standby
+TV goes to standby
 ---
-System suspends/hibernates
+User moves mouse or presses key
     ↓
-systemd-logind PrepareForSleep(true) signal
-    ↓
-Daemon calls: aboutToTurnOff.sh
-    ↓
-Your TV/device goes to standby
----
-User presses a key/mouse (screen wakes)
+Screen wakes
     ↓
 ScreenSaver.ActiveChanged(false) signal
     ↓
 Daemon calls: wakeUp.sh
     ↓
-Your TV/device turns on
----
-System wakes from sleep
-    ↓
-systemd-logind PrepareForSleep(false) signal
-    ↓
-Daemon calls: wakeUp.sh
-    ↓
-Your TV/device turns on
+TV turns on
 ```
 
 ### Debouncing
 
-To prevent double-execution when both ScreenSaver and sleep signals fire simultaneously, the daemon implements debounce logic:
-- If the same action (screen_off, screen_on, sleep, wake) is triggered within 2 seconds, it's ignored
-- This prevents your TV from receiving duplicate commands
+The daemon implements debounce logic to prevent rapid re-triggering:
+- If the same action is triggered within 2 seconds, it's ignored
+- Prevents duplicate commands to your TV
 
 ## Installation
 
@@ -95,10 +76,9 @@ cd cec2
 This will:
 1. Install required packages via pacman
 2. Make scripts executable
-3. Create a systemd **user** service for screen on/off detection
-4. Create a systemd **sleep hook** for sleep/wake detection
-5. Enable and start both components
-6. Display the service status
+3. Create a systemd user service
+4. Enable and start the service
+5. Display the service status
 
 ### Manual Installation
 
@@ -126,14 +106,6 @@ This will:
    systemctl --user daemon-reload
    systemctl --user enable cec_daemon.service
    systemctl --user start cec_daemon.service
-   ```
-
-4. **Create systemd sleep hook:**
-   ```bash
-   sudo cp cec-sleep /etc/systemd/system-sleep/
-   sudo chmod +x /etc/systemd/system-sleep/cec-sleep
-   # Update the script to use the correct path to your cec2 directory
-   sudo sed -i "s|/path/to/cec2|$(pwd)|g" /etc/systemd/system-sleep/cec-sleep
    ```
 
 4. **Create cache directory for logs:**
@@ -184,47 +156,29 @@ Device IDs typically:
 
 ### Check Service Status
 
-**User service (screen on/off detection):**
 ```bash
 systemctl --user status cec_daemon
 ```
 
-**Sleep hook (sleep/wake detection):**
-```bash
-sudo systemctl status systemd-sleep
-```
-
 ### View Live Logs
 
-**User service:**
 ```bash
 journalctl --user -u cec_daemon -f
 ```
 
-**Sleep hook:**
-```bash
-sudo tail -f /var/log/cec_daemon.log
-```
-
 ### View Historical Logs
 
-**User service:**
 ```bash
 journalctl --user -u cec_daemon
 ```
 
-**Sleep hook:**
-```bash
-sudo tail -100 /var/log/cec_daemon.log
-```
-
-### Stop the User Service
+### Stop the Service
 
 ```bash
 systemctl --user stop cec_daemon
 ```
 
-### Restart the User Service
+### Restart the Service
 
 ```bash
 systemctl --user restart cec_daemon
@@ -236,22 +190,20 @@ systemctl --user restart cec_daemon
 systemctl --user disable cec_daemon
 ```
 
-### Remove Everything
+### Uninstall
 
 ```bash
 systemctl --user disable cec_daemon
 systemctl --user stop cec_daemon
 rm ~/.config/systemd/user/cec_daemon.service
 systemctl --user daemon-reload
-
-sudo rm /etc/systemd/system-sleep/cec-sleep
 ```
 
 ## Troubleshooting
 
-### User Service Won't Start
+### Service Won't Start
 
-Check user service logs:
+Check logs:
 ```bash
 journalctl --user -u cec_daemon -n 50
 ```
@@ -259,24 +211,21 @@ journalctl --user -u cec_daemon -n 50
 Common issues:
 - Missing dependencies: Install python-dbus and python-gobject
 - Script not executable: `chmod +x cec_daemon.py aboutToTurnOff.sh wakeUp.sh`
-- Session bus unavailable: User service needs active user session (normal behavior)
+- cec-client not found: Install libcec or cec-utils
 
-### Sleep Hook Not Working
+### TV Not Responding
 
-Check if hook is installed:
+Test cec-client directly:
 ```bash
-ls -la /etc/systemd/system-sleep/cec-sleep
+echo 'scan' | cec-client -s
+echo 'on 0' | cec-client -s   # Turn on device 0 (TV)
+echo 'standby 0' | cec-client -s  # Put device 0 on standby
 ```
 
-Check logs:
-```bash
-sudo tail -50 /var/log/cec_daemon.log
-```
-
-Common issues:
-- Hook not executable: `sudo chmod +x /etc/systemd/system-sleep/cec-sleep`
-- Wrong path in script: Hook should have correct absolute path to cec2 directory
-- cec-client not found: Install libcec/cec-utils
+If commands don't work:
+- Check TV supports CEC and has it enabled in settings
+- Try different device IDs (0-15)
+- Verify CEC cable/adapter is working
 
 ### DBus Signals Not Being Received
 
@@ -331,14 +280,13 @@ Log levels include:
 
 | Feature | cec_kwin (KWin script) | cec2 (DBus daemon) |
 |---------|------------------------|-------------------|
-| **Detection method** | KWin QT signals (deprecated) | Standard DBus signals |
+| **Detection method** | KWin QT signals (deprecated) | freedesktop ScreenSaver DBus |
 | **KDE dependency** | Requires KWin installation | Works independent of KWin |
-| **Sleep detection** | Not supported | ✓ Supported |
-| **Screen off detection** | ✓ Supported | ✓ Supported |
-| **Systemd integration** | Manual service file | Built-in user service |
-| **Logging** | Terminal output | systemd journal + file log |
-| **Compatibility** | KDE Plasma 5.x only | Any Linux distro with systemd |
-| **Maintainability** | Breaks with KDE 6+ | Future-proof |
+| **Screen detection** | ✓ Supported | ✓ Supported |
+| **Systemd integration** | Manual setup | Built-in user service |
+| **Logging** | Terminal output | systemd journal |
+| **Compatibility** | KDE Plasma 5.x only | Any Linux with systemd |
+| **Maintainability** | Breaks with KDE 6+ | Future-proof and simple |
 
 ## Credits
 

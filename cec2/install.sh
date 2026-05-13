@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# CEC2 Installation Script
+# Installs user-level service to detect screen on/off and control TV via CEC
+
 set -e
 
 # Colors for output
@@ -25,7 +28,7 @@ if command -v pacman &> /dev/null; then
         python-gobject
 else
     echo -e "${YELLOW}Please install these packages manually:${NC}"
-    echo "  - libcec"
+    echo "  - libcec or cec-utils"
     echo "  - python-dbus"
     echo "  - python-gobject"
 fi
@@ -38,12 +41,12 @@ DIR="$( cd "$( dirname "$0" )" && pwd )"
 chmod +x "$DIR/cec_daemon.py"
 chmod +x "$DIR/aboutToTurnOff.sh"
 chmod +x "$DIR/wakeUp.sh"
-chmod +x "$DIR/cec-sleep"
 echo -e "${GREEN}Scripts made executable${NC}\n"
 
 # Install systemd user service for screen on/off detection
 echo -e "${YELLOW}Installing systemd user service...${NC}"
 mkdir -p "$HOME/.config/systemd/user"
+
 tee "$HOME/.config/systemd/user/cec_daemon.service" > /dev/null << EOL
 [Unit]
 Description=CEC Daemon - Turn TV/Monitor on/off with KDE Plasma
@@ -62,80 +65,34 @@ StandardError=journal
 WantedBy=default.target
 EOL
 
-echo -e "${GREEN}User service file created${NC}\n"
+echo -e "${GREEN}Service file created${NC}\n"
 
-# Install systemd sleep hook for sleep/wake detection
-echo -e "${YELLOW}Installing systemd sleep hook...${NC}"
-sudo mkdir -p /etc/systemd/system-sleep
-sudo tee /etc/systemd/system-sleep/cec-sleep > /dev/null << 'EOL'
-#!/bin/bash
-SCRIPT_DIR="$DIR"
-case "$1" in
-  pre)
-    echo "$(date) - System going to sleep, turning off TV" >> /var/log/cec_daemon.log 2>&1
-    "$SCRIPT_DIR/aboutToTurnOff.sh" >> /var/log/cec_daemon.log 2>&1
-    ;;
-  post)
-    echo "$(date) - System waking up, turning on TV" >> /var/log/cec_daemon.log 2>&1
-    "$SCRIPT_DIR/wakeUp.sh" >> /var/log/cec_daemon.log 2>&1
-    ;;
-esac
-EOL
-
-# Make sleep hook executable
-sudo chmod +x /etc/systemd/system-sleep/cec-sleep
-# Fix the script path in the sleep hook
-sudo sed -i "s|\$DIR|${DIR}|g" /etc/systemd/system-sleep/cec-sleep
-
-echo -e "${GREEN}Sleep hook installed${NC}\n"
-
-# Enable and start the user service
-echo -e "${YELLOW}Enabling and starting the user service...${NC}"
+# Enable and start the service
+echo -e "${YELLOW}Enabling and starting the service...${NC}"
 systemctl --user daemon-reload
 systemctl --user enable cec_daemon.service
 systemctl --user restart cec_daemon.service
 
-echo -e "${GREEN}User service started${NC}\n"
+echo -e "${GREEN}Service started${NC}\n"
 
-# Give services a moment to start
-sleep 2
-
-# Check user service status
-echo -e "${YELLOW}Checking user service status:${NC}"
-if systemctl --user is-active --quiet cec_daemon.service; then
-    echo -e "${GREEN}✓ User service is running${NC}"
-else
-    echo -e "${RED}✗ User service failed to start${NC}"
-    echo -e "${YELLOW}Debug: Recent logs:${NC}"
-    journalctl --user -u cec_daemon -n 10
-fi
-
-# Check sleep hook exists
-echo -e "\n${YELLOW}Checking sleep hook:${NC}"
-if [ -x /etc/systemd/system-sleep/cec-sleep ]; then
-    echo -e "${GREEN}✓ Sleep hook is installed and executable${NC}"
-else
-    echo -e "${RED}✗ Sleep hook missing or not executable${NC}"
-fi
-
-# Check if cec-client is available
-echo -e "\n${YELLOW}Checking CEC tools:${NC}"
-if command -v cec-client &> /dev/null; then
-    echo -e "${GREEN}✓ cec-client found${NC}"
-else
-    echo -e "${RED}✗ cec-client not found (install libcec/cec-utils)${NC}"
-fi
+# Show status
+echo -e "${YELLOW}Service status:${NC}"
+systemctl --user status cec_daemon.service
 
 echo -e "\n${GREEN}Installation complete!${NC}"
 echo -e "\n${YELLOW}Features:${NC}"
-echo "  ✓ Screen on/off detection (via user service)"
-echo "  ✓ Sleep/wake detection (via system sleep hook)"
+echo "  ✓ Screen on/off detection (idle/active)"
+echo "  ✓ Automatic TV control on screen state changes"
+echo "  ✓ Integrated with KDE Plasma"
 echo ""
-echo -e "${YELLOW}Testing:${NC}"
-echo "  1. Lock screen and watch: journalctl --user -u cec_daemon -f"
-echo "  2. Sleep system and watch: sudo tail -f /var/log/cec_daemon.log"
+echo -e "${YELLOW}Usage:${NC}"
+echo "  - Check status: systemctl --user status cec_daemon"
+echo "  - View logs: journalctl --user -u cec_daemon -f"
+echo "  - Stop service: systemctl --user stop cec_daemon"
+echo "  - Restart service: systemctl --user restart cec_daemon"
 echo ""
-echo -e "${YELLOW}Logs:${NC}"
-echo "  - User service: journalctl --user -u cec_daemon -f"
-echo "  - Sleep/wake: sudo tail -f /var/log/cec_daemon.log"
+echo -e "${YELLOW}To uninstall:${NC}"
+echo "  - systemctl --user disable cec_daemon.service"
+echo "  - systemctl --user stop cec_daemon.service"
+echo "  - rm ~/.config/systemd/user/cec_daemon.service"
 echo ""
