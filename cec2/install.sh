@@ -66,6 +66,7 @@ echo -e "${GREEN}User service file created${NC}\n"
 
 # Install systemd sleep hook for sleep/wake detection
 echo -e "${YELLOW}Installing systemd sleep hook...${NC}"
+sudo mkdir -p /etc/systemd/system-sleep
 sudo tee /etc/systemd/system-sleep/cec-sleep > /dev/null << 'EOL'
 #!/bin/bash
 SCRIPT_DIR="$DIR"
@@ -96,22 +97,45 @@ systemctl --user restart cec_daemon.service
 
 echo -e "${GREEN}User service started${NC}\n"
 
-# Show status
-echo -e "${YELLOW}User service status:${NC}"
-systemctl --user status cec_daemon.service
+# Give services a moment to start
+sleep 2
+
+# Check user service status
+echo -e "${YELLOW}Checking user service status:${NC}"
+if systemctl --user is-active --quiet cec_daemon.service; then
+    echo -e "${GREEN}✓ User service is running${NC}"
+else
+    echo -e "${RED}✗ User service failed to start${NC}"
+    echo -e "${YELLOW}Debug: Recent logs:${NC}"
+    journalctl --user -u cec_daemon -n 10
+fi
+
+# Check sleep hook exists
+echo -e "\n${YELLOW}Checking sleep hook:${NC}"
+if [ -x /etc/systemd/system-sleep/cec-sleep ]; then
+    echo -e "${GREEN}✓ Sleep hook is installed and executable${NC}"
+else
+    echo -e "${RED}✗ Sleep hook missing or not executable${NC}"
+fi
+
+# Check if cec-client is available
+echo -e "\n${YELLOW}Checking CEC tools:${NC}"
+if command -v cec-client &> /dev/null; then
+    echo -e "${GREEN}✓ cec-client found${NC}"
+else
+    echo -e "${RED}✗ cec-client not found (install libcec/cec-utils)${NC}"
+fi
 
 echo -e "\n${GREEN}Installation complete!${NC}"
 echo -e "\n${YELLOW}Features:${NC}"
 echo "  ✓ Screen on/off detection (via user service)"
 echo "  ✓ Sleep/wake detection (via system sleep hook)"
 echo ""
-echo -e "${YELLOW}Next steps:${NC}"
-echo "  - Check the user service status: systemctl --user status cec_daemon"
-echo "  - View user service logs: journalctl --user -u cec_daemon -f"
-echo "  - View sleep/wake logs: sudo journalctl -u cec-sleep -f OR sudo tail -f /var/log/cec_daemon.log"
+echo -e "${YELLOW}Testing:${NC}"
+echo "  1. Lock screen and watch: journalctl --user -u cec_daemon -f"
+echo "  2. Sleep system and watch: sudo tail -f /var/log/cec_daemon.log"
 echo ""
-echo -e "${YELLOW}To uninstall:${NC}"
-echo "  - systemctl --user disable cec_daemon.service"
-echo "  - systemctl --user stop cec_daemon.service"
-echo "  - sudo rm /etc/systemd/system-sleep/cec-sleep"
+echo -e "${YELLOW}Logs:${NC}"
+echo "  - User service: journalctl --user -u cec_daemon -f"
+echo "  - Sleep/wake: sudo tail -f /var/log/cec_daemon.log"
 echo ""
