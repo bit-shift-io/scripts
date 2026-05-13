@@ -1,0 +1,20 @@
+[Unit]
+Description=CEC ACPI Wake Event Monitor
+Documentation=file:///home/server/Projects/scripts/cec2/README.md
+After=acpid.service dbus.service
+Wants=acpid.service
+
+[Service]
+Type=simple
+ExecStart=/bin/bash /home/server/Projects/scripts/cec2/acpi-wake-monitor.sh
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Ensure service restarts if acpid restarts
+Restart=always
+RestartForceExitStatus=1
+
+[Install]
+WantedBy=multi-user.target

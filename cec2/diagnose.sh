@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # CEC2 Complete Setup & Diagnostic Script
-# Sets up all components: user service for screen on/off, system daemon for sleep/wake
+# Installs: user service (screen on/off), systemd-sleep hook (guaranteed wake detection), ACPI monitor (real-time wake events)
 
 set -e
 
-echo "=== CEC2 Complete Setup & Diagnostic ==="
+echo "=== CEC2 Complete Setup - Dual Wake Detection ==="
 echo ""
 echo "Timestamp: $(date)"
 echo ""
@@ -13,44 +13,56 @@ echo ""
 DIR="/home/server/Projects/scripts/cec2"
 
 echo "--- Step 1: Verify Prerequisites ---"
-if [ ! -x "$DIR/cec-sleep-daemon.py" ]; then
-    echo "✗ cec-sleep-daemon.py not found or not executable"
-    exit 1
-fi
-echo "✓ cec-sleep-daemon.py found"
-
-if [ ! -x "$DIR/aboutToTurnOff.sh" ]; then
-    echo "✗ aboutToTurnOff.sh not found or not executable"
-    exit 1
-fi
-echo "✓ aboutToTurnOff.sh is executable"
-
-if [ ! -x "$DIR/wakeUp.sh" ]; then
-    echo "✗ wakeUp.sh not found or not executable"
-    exit 1
-fi
-echo "✓ wakeUp.sh is executable"
+for file in cec_daemon.py cec-sleep-daemon.py aboutToTurnOff.sh wakeUp.sh systemd-sleep-hook acpi-wake-monitor.sh; do
+    if [ ! -f "$DIR/$file" ]; then
+        echo "✗ $file not found"
+        exit 1
+    fi
+done
+echo "✓ All scripts found"
 
 if ! command -v cec-client &> /dev/null; then
     echo "✗ cec-client not found"
     exit 1
 fi
 echo "✓ cec-client found"
+
+if ! command -v acpi_listen &> /dev/null; then
+    echo "⚠ acpi_listen not found (optional, will install)"
+    INSTALL_ACPI=1
+else
+    echo "✓ acpi_listen found"
+fi
 echo ""
 
-echo "--- Step 2: Disable old sleep services (if any) ---"
-systemctl --user disable cec-sleep-before.service 2>/dev/null || true
-systemctl --user disable cec-sleep-after.service 2>/dev/null || true
-systemctl --user stop cec-sleep-before.service 2>/dev/null || true
-systemctl --user stop cec-sleep-after.service 2>/dev/null || true
-rm -f ~/.config/systemd/user/cec-sleep-before.service ~/.config/systemd/user/cec-sleep-after.service
-echo "✓ Old services cleaned up"
+echo "--- Step 2: Install optional dependencies ---"
+if [ "$INSTALL_ACPI" = "1" ]; then
+    echo "Installing acpi package for ACPI event monitoring..."
+    sudo pacman -S --noconfirm acpi acpid 2>/dev/null || \
+    sudo apt-get install -y acpi acpid 2>/dev/null || \
+    echo "⚠ Could not install acpi (not critical)"
+fi
+
+sudo systemctl enable acpid 2>/dev/null || true
+sudo systemctl start acpid 2>/dev/null || true
+echo "✓ Dependencies checked"
 echo ""
 
-echo "--- Step 3: Setup User Service (Screen On/Off Detection) ---"
+echo "--- Step 3: Create log file ---"
+sudo touch /var/log/cec-wake-detection.log
+sudo chmod 666 /var/log/cec-wake-detection.log
+echo "✓ Log file created: /var/log/cec-wake-detection.log"
+echo ""
+
+echo "--- Step 4: Make all scripts executable ---"
+chmod +x "$DIR/cec_daemon.py" "$DIR/cec-sleep-daemon.py" "$DIR/aboutToTurnOff.sh" "$DIR/wakeUp.sh" \
+         "$DIR/systemd-sleep-hook" "$DIR/acpi-wake-monitor.sh"
+echo "✓ All scripts executable"
+echo ""
+
+echo "--- Step 5: Setup User Service (Screen On/Off Detection) ---"
 mkdir -p ~/.config/systemd/user
 
-echo "Creating cec_daemon.service..."
 tee ~/.config/systemd/user/cec_daemon.service > /dev/null << 'EOFUSER'
 [Unit]
 Description=CEC Daemon - Turn TV/Monitor on/off with KDE Plasma
@@ -74,17 +86,21 @@ systemctl --user restart cec_daemon.service
 echo "✓ User service enabled"
 echo ""
 
-echo "--- Step 4: Setup System Sleep Daemon (Sleep/Wake Detection) ---"
-echo "Installing system sleep daemon..."
+echo "--- Step 6: Install systemd-sleep hook (PRIMARY wake detection) ---"
+sudo install -D -m 0755 "$DIR/systemd-sleep-hook" "/usr/lib/systemd/system-sleep/cec-wake-detector"
+echo "✓ Sleep hook installed at /usr/lib/systemd/system-sleep/cec-wake-detector"
+echo ""
 
-sudo tee /etc/systemd/system/cec-sleep-daemon.service > /dev/null << 'EOFSYSTEM'
+echo "--- Step 7: Install ACPI monitor service (SECONDARY wake detection) ---"
+sudo tee /etc/systemd/system/acpi-wake-monitor.service > /dev/null << 'EOFACPI'
 [Unit]
-Description=CEC Sleep Daemon - Detect sleep/wake and control TV
-After=dbus.service
+Description=CEC ACPI Wake Event Monitor
+After=acpid.service dbus.service
+Wants=acpid.service
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/python3 /home/server/Projects/scripts/cec2/cec-sleep-daemon.py
+ExecStart=/bin/bash /home/server/Projects/scripts/cec2/acpi-wake-monitor.sh
 Restart=on-failure
 RestartSec=5
 StandardOutput=journal
@@ -92,80 +108,111 @@ StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
-EOFSYSTEM
+EOFACPI
 
 sudo systemctl daemon-reload
-sudo systemctl enable cec-sleep-daemon.service
-sudo systemctl restart cec-sleep-daemon.service
-echo "✓ System service enabled"
+sudo systemctl enable acpi-wake-monitor.service
+sudo systemctl restart acpi-wake-monitor.service
+echo "✓ ACPI monitor service enabled"
 echo ""
 
-echo "--- Step 5: Check Service Status ---"
+echo "--- Step 8: Clean up old services ---"
+systemctl --user disable cec-sleep-before.service 2>/dev/null || true
+systemctl --user disable cec-sleep-after.service 2>/dev/null || true
+systemctl --user stop cec-sleep-before.service 2>/dev/null || true
+systemctl --user stop cec-sleep-after.service 2>/dev/null || true
+sudo systemctl disable cec-sleep-daemon.service 2>/dev/null || true
+sudo systemctl stop cec-sleep-daemon.service 2>/dev/null || true
+rm -f ~/.config/systemd/user/cec-sleep-before.service ~/.config/systemd/user/cec-sleep-after.service
+echo "✓ Old services cleaned up"
+echo ""
+
+echo "--- Step 9: Service Status ---"
 echo ""
 echo "User Service (Screen On/Off):"
-systemctl --user status cec_daemon.service | head -10
+systemctl --user status cec_daemon.service | head -8
 echo ""
-echo "System Service (Sleep/Wake):"
-sudo systemctl status cec-sleep-daemon.service | head -10
+echo "ACPI Monitor Service (Wake Events):"
+sudo systemctl status acpi-wake-monitor.service | head -8
 echo ""
 
-echo "--- Step 6: Check Availability ---"
-if [ -f /etc/systemd/system/cec-sleep-daemon.service ]; then
-    echo "✓ System sleep daemon service installed"
+echo "--- Step 10: Verify Installation ---"
+echo ""
+echo "Systemd-sleep hook:"
+if [ -f /usr/lib/systemd/system-sleep/cec-wake-detector ]; then
+    echo "  ✓ Installed at /usr/lib/systemd/system-sleep/cec-wake-detector"
 else
-    echo "✗ System sleep daemon service NOT found"
+    echo "  ✗ NOT found"
 fi
 
-if [ -f ~/.config/systemd/user/cec_daemon.service ]; then
-    echo "✓ User daemon service installed"
+echo ""
+echo "ACPI monitor service:"
+if [ -f /etc/systemd/system/acpi-wake-monitor.service ]; then
+    echo "  ✓ Installed"
 else
-    echo "✗ User daemon service NOT found"
+    echo "  ✗ NOT installed"
 fi
-echo ""
 
-echo "--- Step 7: Recent Logs ---"
 echo ""
-echo "User service logs (last 5 lines):"
-journalctl --user -u cec_daemon -n 5 || echo "No logs yet"
-echo ""
-echo "System daemon logs (last 5 lines):"
-sudo journalctl -u cec-sleep-daemon -n 5 || echo "No logs yet"
+echo "Log file:"
+if [ -f /var/log/cec-wake-detection.log ]; then
+    echo "  ✓ Created: /var/log/cec-wake-detection.log"
+fi
 echo ""
 
 echo "=== SETUP COMPLETE ==="
 echo ""
-echo "Two-part system is now active:"
+echo "THREE DETECTION METHODS NOW ACTIVE:"
 echo ""
-echo "1. USER SERVICE (cec_daemon)"
-echo "   • Detects screen on/off when logged in"
-echo "   • Uses org.freedesktop.ScreenSaver DBus signals"
-echo "   • Runs in your user session"
+echo "1. USER SERVICE (cec_daemon) - Screen on/off detection"
+echo "   • Detects when screen blanks/activates"
+echo "   • Runs when logged in"
+echo "   • Status: $(systemctl --user is-active cec_daemon.service)"
 echo ""
-echo "2. SYSTEM SERVICE (cec-sleep-daemon)"
-echo "   • Detects system sleep/wake (before login)"
-echo "   • Uses org.freedesktop.login1 signals"
-echo "   • Runs at system level, stays active through sleep"
+echo "2. SYSTEMD-SLEEP HOOK (PRIMARY) - System wake detection"
+echo "   • Guaranteed to run on suspend/resume"
+echo "   • Runs at system level"
+echo "   • Location: /usr/lib/systemd/system-sleep/cec-wake-detector"
 echo ""
-echo "=== TESTING ==="
+echo "3. ACPI MONITOR (SECONDARY) - Real-time wake events"
+echo "   • Listens for ACPI power events"
+echo "   • Runs as system service"
+echo "   • Status: $(sudo systemctl is-active acpi-wake-monitor.service)"
 echo ""
-echo "Run in a new terminal:"
-echo "  sudo journalctl -u cec-sleep-daemon -f"
+
+echo "=== TESTING INSTRUCTIONS ==="
 echo ""
-echo "Then:"
+echo "Watch all logs in real-time:"
+echo ""
+echo "  Terminal 1 - All wake detection logs:"
+echo "    sudo tail -f /var/log/cec-wake-detection.log"
+echo ""
+echo "  Terminal 2 - User service (screen):"
+echo "    journalctl --user -u cec_daemon -f"
+echo ""
+echo "  Terminal 3 - System journal:"
+echo "    sudo journalctl -f | grep -i 'cec\|acpi\|sleep'"
+echo ""
+echo "Then perform this sequence:"
 echo "  1. Put system to sleep (Ctrl+Alt+S or power menu)"
-echo "  2. TV should turn OFF"
-echo "  3. Wake system (move mouse, press key)"
-echo "  4. TV should turn ON at login screen"
-echo "  5. Log in"
-echo "  6. TV should stay on (or respond to screen locking)"
+echo "  2. Wait 5 seconds"
+echo "  3. Wake system (move mouse or press key)"
+echo "  4. Watch the logs - you should see wake detection"
+echo "  5. TV should turn ON"
+echo "  6. Log in"
+echo "  7. TV should respond to screen lock/unlock"
 echo ""
-echo "=== LOGS ==="
+
+echo "=== QUICK DIAGNOSTICS ==="
 echo ""
-echo "Screen on/off events:"
-echo "  journalctl --user -u cec_daemon -f"
+echo "Check which detection method works:"
+echo "  grep 'DETECTED' /var/log/cec-wake-detection.log"
 echo ""
-echo "Sleep/wake events:"
-echo "  sudo journalctl -u cec-sleep-daemon -f"
+echo "View latest wake events:"
+echo "  sudo tail -20 /var/log/cec-wake-detection.log"
 echo ""
-echo "All CEC activity:"
-echo "  sudo tail -f /var/log/cec-sleep-daemon.log"
+echo "Check acpid status:"
+echo "  sudo systemctl status acpid"
+echo ""
+echo "Listen for ACPI events manually:"
+echo "  acpi_listen"
