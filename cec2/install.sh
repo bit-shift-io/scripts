@@ -55,19 +55,11 @@ After=dbus.service
 
 [Service]
 Type=simple
-ExecStart=${DIR}/cec_daemon.py
+ExecStart=/usr/bin/python3 ${DIR}/cec_daemon.py
 Restart=on-failure
 RestartSec=5
 StandardOutput=journal
 StandardError=journal
-
-# Hardening
-PrivateTmp=yes
-NoNewPrivileges=yes
-ProtectSystem=strict
-ProtectHome=yes
-ReadWritePaths=%h/.cache
-ReadWritePaths=%h/.config/systemd/user
 
 [Install]
 WantedBy=default.target
