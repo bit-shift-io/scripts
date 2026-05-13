@@ -52,6 +52,7 @@ class CECSleepDaemon:
                 path="/org/freedesktop/login1",
             )
             self.logger.info("CEC Sleep Daemon started - listening for sleep signals")
+            self.logger.info("Waiting for PrepareForSleep signals from systemd-logind...")
             self._loop.run()
 
         except dbus.DBusException as e:
