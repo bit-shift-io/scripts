@@ -56,6 +56,10 @@ RestartSec=5
 StandardOutput=journal
 StandardError=journal
 
+# Keep running during sleep/suspend to receive PrepareForSleep signals
+StopWhenUnneeded=no
+TimeoutStopSec=0
+
 [Install]
 WantedBy=multi-user.target
 EOL
