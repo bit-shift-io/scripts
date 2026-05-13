@@ -4,3 +4,4 @@ broadlink_cli
 broadlink_discovery
 
 rsync-time-backup/
+.claude/settings.json
