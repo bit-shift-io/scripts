@@ -1,0 +1,18 @@
+[Unit]
+Description=CEC Sleep Daemon - Detect sleep/wake and control TV
+Documentation=file:///home/server/Projects/scripts/cec2/README.md
+After=dbus.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /home/server/Projects/scripts/cec2/cec-sleep-daemon.py
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Keep running through sleep/wake cycles
+StayAlive=yes
+
+[Install]
+WantedBy=multi-user.target
