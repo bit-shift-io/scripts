@@ -40,14 +40,9 @@ chmod +x "$DIR/aboutToTurnOff.sh"
 chmod +x "$DIR/wakeUp.sh"
 echo -e "${GREEN}Scripts made executable${NC}\n"
 
-# Create cache directory for logs
-mkdir -p "$HOME/.cache"
-
-# Install systemd user service
-echo -e "${YELLOW}Installing systemd user service...${NC}"
-mkdir -p "$HOME/.config/systemd/user"
-
-tee "$HOME/.config/systemd/user/cec_daemon.service" > /dev/null << EOL
+# Install systemd system service (runs at boot, works at login screen)
+echo -e "${YELLOW}Installing systemd system service...${NC}"
+sudo tee /etc/systemd/system/cec_daemon.service > /dev/null << EOL
 [Unit]
 Description=CEC Daemon - Turn TV/Monitor on/off with KDE Plasma
 Documentation=file://${DIR}/README.md
@@ -62,26 +57,26 @@ StandardOutput=journal
 StandardError=journal
 
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target
 EOL
 
 echo -e "${GREEN}Service file created${NC}\n"
 
 # Enable and start the service
 echo -e "${YELLOW}Enabling and starting the service...${NC}"
-systemctl --user daemon-reload
-systemctl --user enable cec_daemon.service
-systemctl --user restart cec_daemon.service
+sudo systemctl daemon-reload
+sudo systemctl enable cec_daemon.service
+sudo systemctl restart cec_daemon.service
 
 echo -e "${GREEN}Service started${NC}\n"
 
 # Show status
 echo -e "${YELLOW}Service status:${NC}"
-systemctl --user status cec_daemon.service
+sudo systemctl status cec_daemon.service
 
 echo -e "\n${GREEN}Installation complete!${NC}"
 echo -e "\n${YELLOW}Next steps:${NC}"
-echo "  - Check the service status: systemctl --user status cec_daemon"
-echo "  - View logs: journalctl --user -u cec_daemon -f"
-echo "  - To uninstall: systemctl --user disable cec_daemon.service && systemctl --user stop cec_daemon.service"
+echo "  - Check the service status: sudo systemctl status cec_daemon"
+echo "  - View logs: sudo journalctl -u cec_daemon -f"
+echo "  - To uninstall: sudo systemctl disable cec_daemon.service && sudo systemctl stop cec_daemon.service && sudo rm /etc/systemd/system/cec_daemon.service"
 echo ""

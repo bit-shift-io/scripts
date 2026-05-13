@@ -32,14 +32,19 @@ class CECDaemon:
         self._loop = None
 
     def _setup_logging(self):
+        log_dir = Path("/var/log")
+        log_file = log_dir / "cec_daemon.log"
+
+        # Fallback to home cache if /var/log isn't writable
+        if not log_dir.exists() or not os.access(log_dir, os.W_OK):
+            log_file = Path.home() / ".cache" / "cec_daemon.log"
+
         logging.basicConfig(
             level=logging.INFO,
             format="%(asctime)s - %(levelname)s - %(message)s",
             handlers=[
                 logging.StreamHandler(sys.stdout),
-                logging.FileHandler(
-                    Path.home() / ".cache" / "cec_daemon.log", mode="a"
-                ),
+                logging.FileHandler(log_file, mode="a"),
             ],
         )
         return logging.getLogger(__name__)

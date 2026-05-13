@@ -17,6 +17,15 @@ The CEC2 daemon monitors two main DBus signal sources:
    - Calls `aboutToTurnOff.sh` when screen blanks
    - Calls `wakeUp.sh` when screen turns on
 
+## Why System Service?
+
+The daemon runs as a **system service** rather than a user service. This is important because:
+
+- **Works at login screen** - When your system wakes from sleep and shows the login screen, no user session is running yet. A user service wouldn't be active, so it couldn't call the wake script. The system service runs regardless of login state.
+- **Handles all wake scenarios** - Works for wake-from-sleep before login, screen-unlock after idle, and any other wake event
+- **Always available** - Started automatically at boot and continuously running
+- **Proper signal handling** - Can receive system-level DBus signals that are only available to system services
+
 ## How It Works
 
 ### Event Flow
@@ -81,7 +90,7 @@ cd cec2
 This will:
 1. Install required packages via pacman
 2. Make scripts executable
-3. Create a systemd user service
+3. Create a systemd **system** service (runs at boot, works at login screen)
 4. Enable and start the service
 5. Display the service status
 
@@ -104,13 +113,12 @@ This will:
    chmod +x cec_daemon.py aboutToTurnOff.sh wakeUp.sh
    ```
 
-3. **Create systemd user service:**
+3. **Create systemd system service:**
    ```bash
-   mkdir -p ~/.config/systemd/user
-   cp cec_daemon.service ~/.config/systemd/user/
-   systemctl --user daemon-reload
-   systemctl --user enable cec_daemon.service
-   systemctl --user start cec_daemon.service
+   sudo cp cec_daemon.service /etc/systemd/system/
+   sudo systemctl daemon-reload
+   sudo systemctl enable cec_daemon.service
+   sudo systemctl start cec_daemon.service
    ```
 
 4. **Create cache directory for logs:**
@@ -162,48 +170,48 @@ Device IDs typically:
 ### Check Service Status
 
 ```bash
-systemctl --user status cec_daemon
+sudo systemctl status cec_daemon
 ```
 
 ### View Live Logs
 
 ```bash
-journalctl --user -u cec_daemon -f
+sudo journalctl -u cec_daemon -f
 ```
 
 ### View Historical Logs
 
 ```bash
-journalctl --user -u cec_daemon
-# Or from cache
-cat ~/.cache/cec_daemon.log
+sudo journalctl -u cec_daemon
+# Or if running with fallback log location
+cat /var/log/cec_daemon.log
 ```
 
 ### Stop the Service
 
 ```bash
-systemctl --user stop cec_daemon
+sudo systemctl stop cec_daemon
 ```
 
 ### Restart the Service
 
 ```bash
-systemctl --user restart cec_daemon
+sudo systemctl restart cec_daemon
 ```
 
 ### Disable Auto-Start
 
 ```bash
-systemctl --user disable cec_daemon
+sudo systemctl disable cec_daemon
 ```
 
 ### Remove the Service
 
 ```bash
-systemctl --user disable cec_daemon
-systemctl --user stop cec_daemon
-rm ~/.config/systemd/user/cec_daemon.service
-systemctl --user daemon-reload
+sudo systemctl disable cec_daemon
+sudo systemctl stop cec_daemon
+sudo rm /etc/systemd/system/cec_daemon.service
+sudo systemctl daemon-reload
 ```
 
 ## Troubleshooting
@@ -212,13 +220,13 @@ systemctl --user daemon-reload
 
 Check systemd logs:
 ```bash
-journalctl --user -u cec_daemon -n 50
+sudo journalctl -u cec_daemon -n 50
 ```
 
 Common issues:
 - Missing dependencies: Install python-dbus and python-gobject
 - Script not executable: `chmod +x cec_daemon.py aboutToTurnOff.sh wakeUp.sh`
-- Cache directory missing: `mkdir -p ~/.cache`
+- Wrong path in service file: Check `/etc/systemd/system/cec_daemon.service` has correct absolute path
 
 ### DBus Signals Not Being Received
 
