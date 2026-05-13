@@ -20,12 +20,12 @@ fi
 echo -e "${YELLOW}Installing dependencies...${NC}"
 if command -v pacman &> /dev/null; then
     sudo pacman -S --noconfirm \
-        cec-utils \
+        libcec \
         python-dbus \
         python-gobject
 else
     echo -e "${YELLOW}Please install these packages manually:${NC}"
-    echo "  - cec-utils (or libcec)"
+    echo "  - libcec"
     echo "  - python-dbus"
     echo "  - python-gobject"
 fi
