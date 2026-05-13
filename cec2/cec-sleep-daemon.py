@@ -26,7 +26,7 @@ class CECSleepDaemon:
         self.script_dir = Path("/home/server/Projects/scripts/cec2")
         self.logger = self._setup_logging()
         self._loop = None
-        self.was_asleep = False
+        self.last_uptime = 0
         self.last_wake_time = 0
 
     def _setup_logging(self):
@@ -74,8 +74,8 @@ class CECSleepDaemon:
 
             self.logger.info("CEC Sleep Daemon started - monitoring power state")
 
-            # Fallback: periodically check /sys/power/state
-            GLib.timeout_add_seconds(5, self._check_power_state)
+            # Aggressive uptime polling: check every 1 second for wake detection
+            GLib.timeout_add(1000, self._check_power_state)  # 1000ms = 1 second
 
             self._loop.run()
 
@@ -87,23 +87,23 @@ class CECSleepDaemon:
             sys.exit(1)
 
     def _check_power_state(self):
-        """Fallback: Check /sys/power/state to detect wake from sleep."""
+        """Check system uptime to detect wake from sleep."""
         try:
-            # Check uptime - if it's been very low, we just woke up
+            # Read uptime from /proc/uptime
             with open("/proc/uptime") as f:
-                uptime_seconds = int(float(f.read().split()[0]))
+                current_uptime = int(float(f.read().split()[0]))
 
-            current_time = time.time()
+            # If uptime decreased, system just woke up
+            # (uptime resets to 0 when system boots/wakes)
+            if self.last_uptime > 0 and current_uptime < self.last_uptime:
+                self.logger.info(
+                    f"System wake detected! Uptime decreased from {self.last_uptime} to {current_uptime}s - turning on TV"
+                )
+                self._execute_script(self.script_dir / "wakeUp.sh")
+                self.last_uptime = current_uptime
+                return True
 
-            # If uptime is low but system time jumped, we just woke from sleep
-            # Detect wake if uptime is less than 10 seconds and we weren't checking before
-            if uptime_seconds < 10 and not self.was_asleep:
-                if current_time - self.last_wake_time > 30:  # Don't trigger twice in 30s
-                    self.logger.info("System wake detected (uptime check) - turning on TV")
-                    self._execute_script(self.script_dir / "wakeUp.sh")
-                    self.last_wake_time = current_time
-
-            self.was_asleep = uptime_seconds < 60
+            self.last_uptime = current_uptime
 
         except Exception as e:
             self.logger.debug(f"Error checking power state: {e}")
