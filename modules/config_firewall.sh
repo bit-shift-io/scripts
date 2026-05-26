@@ -12,6 +12,9 @@ sudo ufw allow 1714:1764/tcp
 # Node red home
 sudo ufw allow 1880/tcp
 
+# Pacoloco
+sudo ufw allow 9129/tcp
+
 sudo ufw reload
 
 echo "Done!"
