@@ -15,6 +15,9 @@ sudo ufw allow 1880/tcp
 # Pacoloco
 sudo ufw allow 9129/tcp
 
+# ssh
+sudo ufw allow ssh
+
 sudo ufw reload
 
 echo "Done!"
