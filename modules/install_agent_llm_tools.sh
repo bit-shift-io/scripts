@@ -4,7 +4,7 @@
 echo "installing opencode..."
 ./util.sh -i opencode
 
-mkdir -p $HOME/.config/opencode
+opencode run "init prompt"
 
 echo "opencode config..."
 tee $HOME/.config/opencode/opencode.json > /dev/null << EOL
