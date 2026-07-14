@@ -4,7 +4,7 @@
 echo "installing opencode..."
 ./util.sh -i opencode
 
-opencode run "init prompt"
+opencode --version
 
 echo "opencode config..."
 tee $HOME/.config/opencode/opencode.json > /dev/null << EOL
@@ -29,12 +29,11 @@ tee $HOME/.config/opencode/opencode.json > /dev/null << EOL
         },
         "qwen3.6-35b": {
           "name": "qwen3.6-35b"
-        },
+        }
       }
     }
   }
 }
-
 EOL
 
 echo "Complete"
