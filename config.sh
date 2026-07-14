@@ -12,12 +12,6 @@ function main {
     # menu
     while true; do
     read -n 1 -p "
-    arch
-    ===================
-    p) Pacman mirror cache (pacoloco)
-    u) Update pacman
-    f) Fix pacman keys
-
     config
     ===================
     1) General config (systemd timeout, kde index)
@@ -43,7 +37,6 @@ function main {
     :" ans;
     reset
     case $ans in
-        p) fn_pacman_mirror_cache ;;
         1) fn_general_config ;;
         3) fn_swap ;;
         5) fn_base_apps ;;
@@ -55,28 +48,10 @@ function main {
         m) fn_microcontroller ;;
         7) fn_pinyin ;;
         9) fn_android ;;
-        f) fn_fix_pacman ;;
-        u) fn_update_pacman ;;
         *) $SHELL ;;
     esac
     done
 }
-
-
-function fn_fix_pacman {
-    sudo pacman -Syy
-    sudo pacman-key --refresh-keys
-    sudo pacman-key --populate archlinux cachyos manjaro
-    #sudo pacman-key --populate archlinux manjaro
-    sudo ./util.sh -i archlinux-keyring
-}
-
-
-function fn_update_pacman {
-    sudo ./util.sh -i archlinux-keyring cachyos-keyring
-    sudo pacman -Syyu
-}
-
 
 function fn_android {
     ./util.sh -i android-ndk android-tools clang llvm lld jdk17-openjdk
@@ -234,55 +209,6 @@ function fn_cec {
     notify-send 'CEC' 'Please reboot!'
 }
 
-
-function fn_pacman_mirror_cache {
-    # Input with Default Value
-    read -p "Local mirror IP/Hostname [default: update.lan]: " computer_name
-    computer_name="${computer_name:-update.lan}"
-
-    # Safety: Create a backup of the config
-    sudo cp /etc/pacman.conf /etc/pacman.conf.bak
-    echo "Backup created at /etc/pacman.conf.bak"
-
-    # Cleanup: Remove any existing local Server entries for this port
-    # We use a regex that catches any 'Server = http://...:9129' line
-    sudo sed -i "\|Server = http://.*:9129|d" /etc/pacman.conf
-
-    # Auto-Detect OS Type (Manjaro vs Arch)
-    if grep -iq "manjaro" /etc/pacman.conf; then
-        local base_repo="manjaro"
-        local std_suffix="\$repo/\$arch"
-        echo "Detected Manjaro configuration..."
-    else
-        local base_repo="archlinux"
-        local std_suffix="\$repo/os/\$arch"
-        echo "Detected Arch Linux configuration..."
-    fi
-
-    # Injection Logic
-    # We use 's' (substitute) with the 'g' (global) flag to ensure EVERY
-    # active instance of these mirrorlists gets a Server line above it.
-
-    # --- Standard Repos (Arch/Manjaro) ---
-    local std_server="Server = http://${computer_name}:9129/repo/${base_repo}/${std_suffix}"
-    sudo sed -i "s|^\(Include = /etc/pacman.d/mirrorlist\)|${std_server}\n\1|g" /etc/pacman.conf
-
-    # --- CachyOS v4 (Covers core-v4, extra-v4, etc.) ---
-    local v4_server="Server = http://${computer_name}:9129/repo/cachyos-v4/repo/\$arch_v4/\$repo"
-    sudo sed -i "s|^\(Include = /etc/pacman.d/cachyos-v4-mirrorlist\)|${v4_server}\n\1|g" /etc/pacman.conf
-
-    # --- CachyOS v3 (Covers core-v3, extra-v3, etc.) ---
-    local v3_server="Server = http://${computer_name}:9129/repo/cachyos-v3/repo/\$arch_v3/\$repo"
-    sudo sed -i "s|^\(Include = /etc/pacman.d/cachyos-v3-mirrorlist\)|${v3_server}\n\1|g" /etc/pacman.conf
-
-    # --- CachyOS Standard ---
-    local cachy_server="Server = http://${computer_name}:9129/repo/cachyos/repo/\$arch/\$repo"
-    sudo sed -i "s|^\(Include = /etc/pacman.d/cachyos-mirrorlist\)|${cachy_server}\n\1|g" /etc/pacman.conf
-
-    # Finalize
-    notify-send 'Config' "Local mirrors prioritized to ${computer_name}"
-    echo "Done! Local cache is now prioritized. Run 'sudo pacman -Syy' to refresh."
-}
 
 
 function fn_general_config {
