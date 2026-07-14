@@ -4,6 +4,8 @@
 echo "installing opencode..."
 ./util.sh -i opencode
 
+mkdir -p $HOME/.config/opencode
+
 echo "opencode config..."
 tee $HOME/.config/opencode/opencode.json > /dev/null << EOL
 {
