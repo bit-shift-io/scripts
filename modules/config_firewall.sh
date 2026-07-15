@@ -21,6 +21,9 @@ sudo ufw allow ssh
 # llama-server
 sudo ufw allow 8080/tcp
 
+# opencode server
+sudo ufw allow 4096/tcp
+
 sudo ufw reload
 
 echo "Done!"
