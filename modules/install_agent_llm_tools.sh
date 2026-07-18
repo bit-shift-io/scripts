@@ -1,7 +1,8 @@
 #!/bin/bash
 
 
-./util.sh -i opencode gemini-cli claude-code openai-codex
+./util.sh -i opencode claude-code openai-codex antigravity-cli
+# dead: gemini-cli
 
 # amd NPU specific software
 ./util.sh -i xrt xrt-plugin-amdxdna
