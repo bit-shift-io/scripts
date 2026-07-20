@@ -52,6 +52,22 @@ tee $HOME/.config/opencode/opencode.json > /dev/null << EOL
 EOL
 
 
+# claude config
+echo "claude config..."
+tee $HOME/.claude/settings.json > /dev/null << EOL
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://localhost:8080/v1",
+    "ANTHROPIC_API_KEY": "local-llama",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "qwen3-coder-30b",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "qwen2.5-coder-7b",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "qwen3.6-35b"
+  }
+}
+EOL
+
+
 # codex config
 echo "codex config..."
 tee $HOME/.codex/config.toml > /dev/null << EOL
