@@ -24,7 +24,7 @@ echo "opencode config..."
 opencode --version
 tee $HOME/.config/opencode/opencode.json > /dev/null << EOL
 {
-  "$schema": "https://opencode.ai/config.json",
+  "\$schema": "https://opencode.ai/config.json",
   "provider": {
     "llamacpp": {
       "npm": "@ai-sdk/openai-compatible",
