@@ -28,8 +28,9 @@ What=$host:$remote_path
 Where=$local_path
 Type=nfs
 #Options=_netdev,rw,soft,intr,tcp,exec,nconnect=8,vers=3,nolock,local_lock=all
-Options=_netdev,rw,hard,intr,tcp,exec,nconnect=8,vers=4.2
-TimeoutSec=30
+#Options=_netdev,rw,hard,intr,tcp,exec,nconnect=8,vers=4.2
+Options=_netdev,rw,soft,timeo=14,retrans=2,tcp,exec,nconnect=8,vers=4.2
+TimeoutSec=10
 
 [Install]
 WantedBy=multi-user.target
@@ -42,7 +43,7 @@ Description=NFS automount for $path_name
 
 [Automount]
 Where=$local_path
-TimeoutIdleSec=600
+TimeoutIdleSec=60
 
 [Install]
 WantedBy=multi-user.target
@@ -71,5 +72,7 @@ add_mount "$local_path" "$remote_host" "$remote_path"
 # Display list of active automounts
 echo "--- Current Automounts ---"
 systemctl list-units --type=automount --state=active
+findmnt -t nfs,nfs4
+
 
 notify-send 'NFS Mount' "Automount for $local_path configured."
