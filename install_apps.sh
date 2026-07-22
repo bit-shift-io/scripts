@@ -16,7 +16,6 @@ function main {
     2) Dev Apps
     3) Media Dev Apps
     4) Chinese pinyin virtual keyboard support
-    5) Android SDK/NDK
 
     *) Any key to exit
     :" ans;
@@ -26,7 +25,6 @@ function main {
         2) fn_dev_apps ;;
         3) fn_media_development_apps ;;
         4) fn_pinyin ;;
-        5) fn_android ;;
         *) $SHELL ;;
     esac
     done
@@ -35,14 +33,6 @@ function main {
 function fn_dev_apps {
     ./util.sh -i sourcegit-bin
 
-}
-
-function fn_android {
-    ./util.sh -i android-ndk android-tools clang llvm lld jdk17-openjdk
-
-    # todo:
-    # bash rc env paths for java, sdk, ndk
-    # reboot
 }
 
 

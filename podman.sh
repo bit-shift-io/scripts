@@ -37,6 +37,91 @@ function main {
     done
 }
 
+function fn_watchdog_wan {
+
+    # Quotes around 'EOL' -> keeps $vars intact inside the generated script!
+    sudo tee /usr/local/bin/wan-watchdog.sh > /dev/null << 'EOL'
+#!/usr/bin/env bash
+set -euo pipefail
+
+STATE_FILE="/tmp/wg_wan_state"
+PING_TARGETS=("1.1.1.1" "8.8.8.8")
+SERVICE_NAME="tailscale.service"
+
+# Function to test WAN connectivity
+check_internet() {
+    for target in "${PING_TARGETS[@]}"; do
+        if ping -c 1 -W 2 "$target" > /dev/null 2>&1; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Fetch previous state (default to "online" if state file doesn't exist yet)
+LAST_STATE="online"
+if [[ -f "$STATE_FILE" ]]; then
+    LAST_STATE=$(cat "$STATE_FILE")
+fi
+
+if check_internet; then
+    CURRENT_STATE="online"
+    # State transition: OFFLINE -> ONLINE
+    if [[ "$LAST_STATE" == "offline" ]]; then
+        echo "[$(date)] WAN recovered. Restarting ${SERVICE_NAME}..."
+        # Use systemctl --user if running rootless
+        systemctl restart "$SERVICE_NAME"
+    fi
+else
+    CURRENT_STATE="offline"
+    if [[ "$LAST_STATE" == "online" ]]; then
+        echo "[$(date)] WAN connection lost. Marking as offline."
+    fi
+fi
+
+# Save current state for the next execution cycle
+echo "$CURRENT_STATE" > "$STATE_FILE"
+EOL
+
+sudo chmod +x /usr/local/bin/wan-watchdog.sh
+
+# systemd service
+sudo tee /etc/systemd/system/wan-watchdog.service > /dev/null << EOL
+[Unit]
+Description=WAN State Change Watchdog
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/wan-watchdog.sh
+EOL
+
+
+# systemd timer
+sudo tee /etc/systemd/system/wan-watchdog.timer > /dev/null << EOL
+[Unit]
+Description=Run WAN Watchdog
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=15s
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target
+EOL
+
+sudo systemctl daemon-reload
+sudo systemctl enable --now wan-watchdog.timer
+sudo systemctl start wan-watchdog.service
+
+# status
+systemctl list-timers wan-watchdog.timer
+cat /tmp/wg_wan_state
+journalctl -u wan-watchdog.service
+
+echo "done!"
+}
 
 function fn_update_root {
     echo "Pulling latest images for all running containers..."
