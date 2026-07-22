@@ -21,6 +21,7 @@ function main {
     u) Update containers
     x) Update containers (root)
     p) Pipe Service
+    w) WAN Watchdog Service
     *) Any key to exit
     :" ans;
     reset
@@ -32,6 +33,7 @@ function main {
         u) fn_update ;;
         x) fn_update_root ;;
         p) fn_pipe ;;
+        w) fn_watchdog_wan ;;
         *) $SHELL ;;
     esac
     done
