@@ -119,8 +119,9 @@ sudo systemctl start wan-watchdog.service
 
 # status
 systemctl list-timers wan-watchdog.timer
+echo "current status: "
 cat /tmp/wg_wan_state
-journalctl -u wan-watchdog.service
+sudo journalctl -u wan-watchdog.service
 
 echo "done!"
 }
