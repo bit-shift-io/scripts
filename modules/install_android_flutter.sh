@@ -6,7 +6,7 @@ echo "make sure you have already extracted android studio into the ~/Android fol
 read -p "Press Enter to continue..."
 
 # android & build tools
-./util.sh -i android-tools clang llvm lld
+./util.sh -i android-tools clang llvm lld cmake ninja
 
 # https://docs.flutter.dev/platform-integration/android/setup
 # flutter sdk
