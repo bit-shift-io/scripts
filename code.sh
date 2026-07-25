@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Define target project directory (defaults to current directory if not set)
-PROJECT_DIR="${1:-$HOME/Projects/rosetta}"
+PROJECT_DIR="${1:-$HOME/Projects/fido-and-kitch}"
 
 # Name of the tmux session and log location
 SESSION_NAME="opencode"

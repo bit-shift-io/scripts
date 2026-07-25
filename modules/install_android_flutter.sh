@@ -51,7 +51,6 @@ echo "Updating Fish environment..."
 FISH_CONFIG_DIR="$HOME/.config/fish"
 FISH_CONFIG="$FISH_CONFIG_DIR/config.fish"
 
-echo "Updating $FISH_CONFIG..."
 mkdir -p "$FISH_CONFIG_DIR"
 touch "$FISH_CONFIG"
 
@@ -59,11 +58,14 @@ append_fish() {
     grep -qF "$1" "$FISH_CONFIG" 2>/dev/null || echo "$1" >> "$FISH_CONFIG"
 }
 
+append_fish ''
 append_fish '# Flutter & Android environment setup'
 append_fish 'fish_add_path $HOME/Projects/flutter/bin'
 append_fish 'fish_add_path $HOME/.cargo/bin'
+append_fish 'fish_add_path $HOME/.local/bin'
 append_fish 'fish_add_path $HOME/Android/Sdk/platform-tools'
 append_fish 'set -gx ANDROID_HOME $HOME/Android/Sdk'
-append_fish 'set -gx ANDROID_NDK_HOME $ANDROID_HOME/ndk/(ls $ANDROID_HOME/ndk 2>/dev/null | tail -n 1)'
+append_fish 'set -l ndk_dirs $ANDROID_HOME/ndk/*'
+append_fish 'if test -n "$ndk_dirs"; set -gx ANDROID_NDK_HOME $ndk_dirs[-1]; end'
 
 echo "Complete! Restart your terminal or source your config file to apply changes."
