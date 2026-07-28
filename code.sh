@@ -1,14 +1,35 @@
 #!/usr/bin/env bash
 
-# Define target project directory (defaults to current directory if not set)
-PROJECT_DIR="${1:-$HOME/Projects/fido-and-kitch}"
+# Base projects directory
+PROJECTS_BASE="$HOME/Projects"
+
+# Defaults
+FOLDER_NAME=""
+SESSION_ID=""
+
+# Parse positional arguments
+if [[ $# -ge 1 ]]; then
+    FOLDER_NAME="$1"
+fi
+if [[ $# -ge 2 ]]; then
+    SESSION_ID="$2"
+fi
+
+# Fall back to default folder if none was provided
+FOLDER_NAME="${FOLDER_NAME:-fido-and-kitch}"
+
+# Construct full project path
+PROJECT_DIR="$PROJECTS_BASE/$FOLDER_NAME"
+
+# Build the opencode command dynamically
+OPENCODE_CMD="opencode"
+if [[ -n "$SESSION_ID" ]]; then
+    OPENCODE_CMD="opencode -s $SESSION_ID"
+fi
 
 # Name of the tmux session and log location
 SESSION_NAME="opencode"
 LOG_FILE="$HOME/opencode-retry.log"
-
-# Expand relative paths or ~ to absolute paths
-PROJECT_DIR="$(eval echo "$PROJECT_DIR")"
 
 if [ ! -d "$PROJECT_DIR" ]; then
     echo "[Error] Directory '$PROJECT_DIR' does not exist."
@@ -24,8 +45,8 @@ log_event "[Info] Starting script session wrapper..."
 
 # 1. Start tmux session in the background targeting PROJECT_DIR
 if ! tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
-    log_event "[Info] Starting tmux session '$SESSION_NAME' in '$PROJECT_DIR'..."
-    tmux new-session -d -s "$SESSION_NAME" -c "$PROJECT_DIR" "opencode"
+    log_event "[Info] Starting tmux session '$SESSION_NAME' in '$PROJECT_DIR' with command: '$OPENCODE_CMD'..."
+    tmux new-session -d -s "$SESSION_NAME" -c "$PROJECT_DIR" "$OPENCODE_CMD"
 fi
 
 # 2. Start background watcher loop
