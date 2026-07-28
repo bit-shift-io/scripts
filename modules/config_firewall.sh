@@ -24,6 +24,9 @@ sudo ufw allow 8080/tcp
 # opencode server
 sudo ufw allow 4096/tcp
 
+# ttyd terminal
+sudo ufw allow 8000/tcp
+
 sudo ufw reload
 
 echo "Done!"
