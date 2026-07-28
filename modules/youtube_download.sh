@@ -20,7 +20,8 @@
 
 # set some variables
 DL_DIR="$HOME/youtube"
-mkdir -p $DL_DIR
+MAX_RES=720 # Maximum vertical resolution (e.g. 720, 1080)
+mkdir -p "$DL_DIR"
 
 function main {
     # loop args
@@ -75,6 +76,7 @@ function get_channel {
     fi
 
     yt-dlp \
+        -f "bestvideo[height<=${MAX_RES}][ext=mp4]+bestaudio[ext=m4a]/best[height<=${MAX_RES}][ext=mp4]/best[height<=${MAX_RES}]" \
         -r 1M \
         --sleep-requests 1 \
         --min-sleep-interval 1 \
@@ -89,7 +91,7 @@ function fn_get_video {
 
     yt-dlp \
         --no-playlist \
-        -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best" \
+        -f "bestvideo[height<=${MAX_RES}][ext=mp4]+bestaudio[ext=m4a]/best[height<=${MAX_RES}][ext=mp4]/best[height<=${MAX_RES}]" \
         --download-archive "$DL_DIR/archive.txt" \
         -o "%(title)s.%(ext)s" \
         "$URL"
