@@ -27,6 +27,9 @@ sudo ufw allow 4096/tcp
 # ttyd terminal
 sudo ufw allow 8000/tcp
 
+# krust
+sudo ufw allow 3000/tcp
+
 sudo ufw reload
 
 echo "Done!"

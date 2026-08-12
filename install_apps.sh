@@ -80,7 +80,7 @@ function fn_base_apps {
 
 function fn_media_development_apps {
     echo -e '\n\nInstalling media development apps...'
-    ./util.sh -i blender audacity krita obs-studio inkscape handbrake pixieditor-bin
+    ./util.sh -i blender audacity krita obs-studio inkscape handbrake
 
     echo -e '\n\ninstall complete'
     notify-send 'Applications' 'Install completed'
