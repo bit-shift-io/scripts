@@ -4,7 +4,7 @@ function main {
     # loop args
     if [[ $# -ne 0 ]] ; then
         for var in "$@" ; do
-            eval $var
+            $var
         done
         exit 1
     fi
@@ -31,7 +31,7 @@ function main {
 }
 
 function fn_dev_apps {
-    ./util.sh -i sourcegit-bin
+    ./util.sh -i sourcegit
 
 }
 
@@ -39,7 +39,7 @@ function fn_dev_apps {
 function fn_pinyin {
     # https://forum.manjaro.org/t/chinese-language-support/115416/5
     ./util.sh -i adobe-source-han-sans-cn-fonts adobe-source-han-serif-cn-fonts
-    ./util.sh fcitx5 fcitx5-gtk fcitx5-qt fcitx5-configtool fcitx5-chinese-addons manjaro-asian-input-support-fcitx5
+    ./util.sh -i fcitx5 fcitx5-gtk fcitx5-qt fcitx5-configtool fcitx5-chinese-addons manjaro-asian-input-support-fcitx5
 }
 
 
@@ -51,7 +51,7 @@ function fn_base_apps {
 
     # install software
     echo -e '\n\nInstalling packages...'
-    ./util.sh -i yay base-devel openssh partitionmanager skanlite filelight kio-extras plasma-browser-integration libreoffice firefox keepassxc git rustup vulkan-radeon lib32-vulkan-radeon vulkan-intel sshfs isoimagewriter qbittorrent zed yakuake okular skanpage
+    ./util.sh -i yay base-devel openssh partitionmanager skanlite filelight kio-extras plasma-browser-integration libreoffice firefox keepassxc git rustup vulkan-drivers sshfs isoimagewriter qbittorrent zed yakuake okular skanpage
 
     # printer support
     ./util.sh -i cups cups-pdf system-config-printer avahi
@@ -61,16 +61,22 @@ function fn_base_apps {
     #echo -e '\n\nInstalling AUR packages...'
     #./util.sh -i visual-studio-code-bin
 
-    # enable ssh
-    sudo systemctl enable sshd.service
-    sudo systemctl start sshd.service
+    # enable ssh (sshd on arch/fedora, ssh on debian)
+    ssh_service=sshd
+    if [[ -e /usr/lib/systemd/system/ssh.service ]] ; then
+        ssh_service=ssh
+    fi
+    sudo systemctl enable ${ssh_service}.service
+    sudo systemctl start ${ssh_service}.service
 
     # enable bluetooth
     sudo systemctl enable bluetooth
 
-    # disable firewall - endevour
-    sudo systemctl stop firewalld
-    sudo systemctl disable --now firewalld
+    # disable firewall - if present (endevour)
+    if [[ -e /usr/lib/systemd/system/firewalld.service ]] ; then
+        sudo systemctl stop firewalld
+        sudo systemctl disable --now firewalld
+    fi
     #sudo pacman -R firewalld
 
     echo -e '\n\ninstall complete'

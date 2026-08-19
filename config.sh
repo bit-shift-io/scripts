@@ -4,7 +4,7 @@ function main {
     # loop args
     if [[ $# -ne 0 ]] ; then
         for var in "$@" ; do
-            eval $var
+            $var
         done
         exit 1
     fi
@@ -185,6 +185,10 @@ function fn_cec {
 
 
 function fn_general_config {
+    # backup before editing
+    sudo cp /etc/systemd/system.conf /etc/systemd/system.conf.bak
+    sudo cp /etc/systemd/journald.conf /etc/systemd/journald.conf.bak
+
     # fix systemd shutdown timeout
     sudo sed -i -e "s/#DefaultTimeoutStopSec=90s/DefaultTimeoutStopSec=5s/g" /etc/systemd/system.conf
     sudo sed -i -e "s/#DefaultTimeoutStartSec=90s/DefaultTimeoutStartSec=5s/g" /etc/systemd/system.conf

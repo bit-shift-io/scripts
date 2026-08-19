@@ -4,7 +4,7 @@ function main {
     # loop args
     if [[ $# -ne 0 ]] ; then
         for var in "$@" ; do
-            eval $var
+            $var
         done
         exit 1
     fi
@@ -166,7 +166,7 @@ function fn_docker_base_debian {
     echo "install docker for debian: $VERSION"
 
     # remove old
-    ./util.sh -u docker.io docker-doc docker-compose podman-docker containerd runc
+    ./util.sh -r docker.io docker-doc docker-compose podman-docker containerd runc
     sudo apt autoremove -y
 
     # Add Docker's official GPG key:
@@ -197,7 +197,7 @@ function fn_docker_base_arch {
     sudo systemctl enable docker
     sudo systemctl start docker
     # add user
-    sudo usermod -aG docker {$USER}
+    sudo usermod -aG docker ${USER}
     echo "reboot required!"
 }
 

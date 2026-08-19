@@ -4,7 +4,7 @@ function main {
     # loop args
     if [[ $# -ne 0 ]] ; then
         for var in "$@" ; do
-            eval $var
+            $var
         done
         exit 1
     fi
@@ -16,6 +16,8 @@ function main {
     ===================
     1) Podman Install - Arch
     2) Podman Install - Debian/Armbian/DietPi
+    3) Podman Install - Fedora
+    i) Podman Install - auto detect
     r) Remove All Containers
     b) Backup podman folder
     u) Update containers
@@ -28,6 +30,8 @@ function main {
     case $ans in
         1) fn_install_arch ;;
         2) fn_install_debian ;;
+        3) fn_install_fedora ;;
+        i) fn_install_detect ;;
         r) fn_remove_all ;;
         b) fn_backup ;;
         u) fn_update ;;
@@ -307,7 +311,7 @@ function fn_backup {
 
     echo "create backup..."
     echo ${archive}
-    sudo tar -czvf ${archive} ${backup} > /dev/null
+    sudo tar -czvf "${archive}" "${backup}" > /dev/null
 
     echo "restart containers"
     podman unpause --all
@@ -350,6 +354,23 @@ function fn_install_arch {
     #./util.sh -i podlet # yay
 
     sudo systemctl start podman --now
+}
+
+
+function fn_install_fedora {
+    ./util.sh -i podman crun catatonit
+
+    sudo systemctl start podman --now
+}
+
+
+function fn_install_detect {
+    case "$(./util.sh -d)" in
+        arch)   fn_install_arch ;;
+        debian) fn_install_debian ;;
+        fedora) fn_install_fedora ;;
+        *)      echo "unknown distro, install manually" ;;
+    esac
 }
 
 

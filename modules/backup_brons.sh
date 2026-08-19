@@ -14,7 +14,7 @@ function main {
     # loop args
     if [[ $# -ne 0 ]] ; then
         for var in "$@" ; do
-            eval $var
+            $var
         done
         exit 1
     fi
