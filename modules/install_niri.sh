@@ -1,10 +1,12 @@
 #!/bin/bash
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
 # fish shell
 # yazi file manager
 # niri tiling wm
 # brightnessctl laptop display
-./util.sh -i niri noctalia-shell swayidle wlsunset wluma
+"$UTIL" -i niri noctalia-shell swayidle wlsunset wluma
 
 # fish niri yazi alaricitty brightnessctl
 

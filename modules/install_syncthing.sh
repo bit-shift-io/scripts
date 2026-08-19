@@ -1,8 +1,10 @@
 #!/bin/bash
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
 
 echo "installing..."
-../util.sh -i syncthing
+"$UTIL" -i syncthing
 
 
 echo "syncthing config..."

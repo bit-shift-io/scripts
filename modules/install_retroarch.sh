@@ -1,8 +1,10 @@
 #!/bin/bash
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
 
 # install waydroid
-../util.sh -i retroarch retroarch-assets-ozone retroarch-assets-xmb
+"$UTIL" -i retroarch retroarch-assets-ozone retroarch-assets-xmb
 
 
 echo "Complete"

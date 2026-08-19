@@ -1,8 +1,10 @@
 #!/bin/bash
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
 echo "installing..."
 
-./util.sh -i tailscale
+"$UTIL" -i tailscale
 #tailscale up
 #tailscale configure systray --enable-startup=systemd
 sudo systemctl --user daemon-reload

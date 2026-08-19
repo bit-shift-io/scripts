@@ -1,8 +1,10 @@
 #!/bin/bash
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
 
 echo "installing..."
-../util.sh -i waydroid binder_linux-dkms-git #weston #wayfire
+"$UTIL" -i waydroid binder_linux-dkms-git #weston #wayfire
 
 
 echo "sddm config..."

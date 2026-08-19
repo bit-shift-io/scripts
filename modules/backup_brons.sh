@@ -1,4 +1,5 @@
 #!/bin/bash
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
 RCLONE_OPTS=(
     --exclude ".*"
@@ -50,7 +51,7 @@ function fn_ssh_key {
 
 function fn_install {
     # install rclone
-    ./util.sh -i rclone
+    "$UTIL" -i rclone
 }
 
 function fn_min {

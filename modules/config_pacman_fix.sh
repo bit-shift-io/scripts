@@ -1,4 +1,5 @@
 #!/bin/bash
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
 function main {
     # loop args
@@ -30,11 +31,11 @@ function fn_fix_pacman {
     sudo pacman-key --refresh-keys
     sudo pacman-key --populate archlinux cachyos manjaro
     #sudo pacman-key --populate archlinux manjaro
-    sudo ./util.sh -i archlinux-keyring
+    sudo "$UTIL" -i archlinux-keyring
 }
 
 function fn_update_pacman {
-    sudo ./util.sh -i archlinux-keyring cachyos-keyring
+    sudo "$UTIL" -i archlinux-keyring cachyos-keyring
     sudo pacman -Syyu
 }
 

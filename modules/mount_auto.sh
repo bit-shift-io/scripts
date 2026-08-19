@@ -1,4 +1,5 @@
 #!/bin/bash
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
 function main {
     # loop args
@@ -31,7 +32,7 @@ function main {
 
 function fn_enable {
     # mount script
-    sudo cp ../services/usb-mount.sh /usr/local/bin/usb-mount.sh 
+    sudo cp "$ROOT_DIR/services/usb-mount.sh" /usr/local/bin/usb-mount.sh 
     sudo chmod +x /usr/local/bin/usb-mount.sh
 
     # mount service

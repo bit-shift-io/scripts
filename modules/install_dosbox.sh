@@ -1,8 +1,10 @@
 #!/bin/bash
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
 
 echo "installing..."
-../util.sh -i dosbox-staging
+"$UTIL" -i dosbox-staging
 
 mkdir -p $HOME/Games/dosbox
 mkdir -p $HOME/.config/dosbox

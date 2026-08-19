@@ -1,42 +1,64 @@
 #!/bin/bash
+set -euo pipefail
 
-function main {
-    # loop args
-    if [[ $# -ne 0 ]] ; then
-        for var in "$@" ; do
-            $var
-        done
-        exit 1
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+MODULES_DIR="$SCRIPT_DIR/modules"
+
+run_module() {
+    local name="$1"
+    local mod="$MODULES_DIR/$name"
+    if [[ -f "$mod" ]]; then
+        bash "$mod"
+    else
+        echo "module not found: $name" >&2
+        return 1
     fi
-    
-    # menu
-    while true; do
-    read -n 1 -p "
-    apps
-    ===================
-    c) cockpit
-    s) fish shell
-    
-    tools
-    ===================
-    a) automount
-    m) mount samba
-    y) youtube download
-    
-    
-    *) Any key to exit
-    :" ans;
-    reset
-    case $ans in
-        c) ./modules/install_cockpit.sh ;;
-        s) ./modules/install_fish.sh ;;
-        a) ./modules/mount_auto.sh ;;
-        m) ./modules/mount_smb.sh ;;
-        y) ./modules/youtube_download.sh ;;
-        *) $SHELL ;;
-    esac
-    done
 }
 
-# pass all args
-main "$@"
+# pass args: each arg is a module filename to run directly
+if [[ $# -ne 0 ]]; then
+    for var in "$@"; do
+        run_module "$var"
+    done
+    exit 0
+fi
+
+shopt -s nullglob
+mods=( "$MODULES_DIR"/*.sh )
+shopt -u nullglob
+
+filtered=()
+for m in "${mods[@]}"; do
+    [[ "$(basename "$m")" == "util.sh" ]] && continue
+    filtered+=("$m")
+done
+
+while true; do
+    echo
+    echo "modules"
+    echo "==================="
+    n=1
+    for m in "${filtered[@]}"; do
+        printf "%2d) %s\n" "$n" "$(basename "$m" .sh)"
+        n=$((n+1))
+    done
+    echo
+    read -rp "Select a number, q to quit: " choice || break
+    case "$choice" in
+        q|Q) break ;;
+        ''|*[!0-9]*) echo "invalid selection" ;;
+        *)
+            idx=$((choice - 1))
+            if (( idx >= 0 && idx < ${#filtered[@]} )); then
+                mod="${filtered[$idx]}"
+                if bash "$mod"; then
+                    echo "done: $(basename "$mod")"
+                else
+                    echo "failed: $(basename "$mod") (exit $?)"
+                fi
+            else
+                echo "invalid number"
+            fi
+            ;;
+    esac
+done

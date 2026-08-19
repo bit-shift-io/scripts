@@ -1,7 +1,9 @@
 #!/bin/bash
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
 
-./util.sh -i opencode
+"$UTIL" -i opencode
 # obsolete
 #claude-code openai-codex antigravity-cli
 

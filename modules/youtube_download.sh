@@ -1,4 +1,5 @@
 #!/bin/bash
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 # todo get a whole channel/playlist
 # https://techearl.com/download-youtube-playlist
 # https://askubuntu.com/questions/856911/using-youtube-dl-to-download-entire-youtube-channel
@@ -53,7 +54,7 @@ function main {
 
 function fn_util_check {
     # ensure the tool is installed
-    ./util.sh -i yt-dlp
+    "$UTIL" -i yt-dlp
 }
 
 function fn_user_input {

@@ -1,7 +1,9 @@
 #!/bin/bash
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
 
-../util.sh -i krdc krdp
+"$UTIL" -i krdc krdp
 
 
 echo "Complete"

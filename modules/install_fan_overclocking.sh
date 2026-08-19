@@ -1,5 +1,7 @@
 #!/bin/bash
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
-./util.sh -i lact corectrl coolercontrol-bin
+"$UTIL" -i lact corectrl coolercontrol-bin
 
 echo "Complete"

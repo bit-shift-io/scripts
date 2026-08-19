@@ -1,4 +1,5 @@
 #!/bin/bash
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
 function main {
     # loop args
@@ -30,7 +31,7 @@ function main {
 
 
 function fn_nas {
-    ./util.sh -i steam
+    "$UTIL" -i steam
     rm -r $HOME/.local/share/Steam
 
     # create symlinks
@@ -47,7 +48,7 @@ function fn_nas {
 }
 
 function fn_setup_steam_new {
-    ./util.sh -i steam
+    "$UTIL" -i steam
     rm ~/.local/share/Steam
     rm -rf ~/.steam/steam
     mkdir -p ~/.local/share/Steam
@@ -55,7 +56,7 @@ function fn_setup_steam_new {
 }
 
 function fn_setup_steam {
-    ./util.sh -i steam
+    "$UTIL" -i steam
 
     #mkdir
     mkdir -p $HOME/Games/Steam

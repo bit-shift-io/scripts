@@ -1,4 +1,6 @@
 #!/bin/bash
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 set -e
 
 echo "installing the android toolchain"
@@ -6,7 +8,7 @@ echo "make sure you have already extracted android studio into the ~/Android fol
 read -p "Press Enter to continue..."
 
 # android & build tools
-./util.sh -i android-tools clang llvm lld cmake ninja
+"$UTIL" -i android-tools clang llvm lld cmake ninja
 
 # https://docs.flutter.dev/platform-integration/android/setup
 # flutter sdk

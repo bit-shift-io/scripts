@@ -1,11 +1,13 @@
 #!/bin/bash
+set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 set -e
 
 # Repository URL for krust (update this to your repository location)
 KRUST_REPO="https://github.com/bit-shift-io/krust.git"
 
 # Install dependencies (fish, git, cargo/rust)
-./util.sh -i fish #git rust
+"$UTIL" -i fish #git rust
 
 # Configure fish shell
 tee ~/.config/fish/config.fish > /dev/null << 'EOL'
