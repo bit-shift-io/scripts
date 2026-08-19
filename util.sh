@@ -124,6 +124,21 @@ function pkg {
         arch:qt6-heic-image-plugin)            echo "aur:qt6-heic-image-plugin" ;;
         *:qt6-heic-image-plugin)               echo "skip:qt6-heic-image-plugin" ;;
 
+        arch:radeon-profile-daemon-git)        echo "aur:radeon-profile-daemon-git" ;;
+        *:radeon-profile-daemon-git)           echo "skip:radeon-profile-daemon-git" ;;
+
+        arch:radeon-profile-git)               echo "aur:radeon-profile-git" ;;
+        *:radeon-profile-git)                  echo "skip:radeon-profile-git" ;;
+
+        arch:rtl88x2bu-dkms-git)               echo "aur:rtl88x2bu-dkms-git" ;;
+        *:rtl88x2bu-dkms-git)                  echo "skip:rtl88x2bu-dkms-git" ;;
+
+        arch:virtualbox-ext-oracle)            echo "aur:virtualbox-ext-oracle" ;;
+        *:virtualbox-ext-oracle)               echo "skip:virtualbox-ext-oracle" ;;
+
+        fedora:python3-dnf-plugin-local)       echo "python3-dnf-plugin-local" ;;
+        *:python3-dnf-plugin-local)            echo "skip:python3-dnf-plugin-local" ;;
+
         fedora:lact)                           echo "copr:ilyaz/LACT:lact" ;;
 
         debian:python-dbus)                    echo "python3-dbus" ;;
