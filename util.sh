@@ -6,7 +6,7 @@ function main {
     type="${1}"
     
     # array of utils ordered by preference
-    install_utils=(paru yay pacman apt zypper)
+    install_utils=(paru yay pacman apt dnf zypper)
     
     # Reset install_util to ensure a selection is made
     install_util=""
@@ -66,6 +66,10 @@ function install {
                 sudo ${bin} install -y ${pkg}
                 ;;
 
+            'dnf')
+                sudo ${bin} install -y ${pkg}
+                ;;
+
             *)
                 echo -n "unknown"
                 ;;
@@ -93,6 +97,10 @@ function remove {
                 ;;
 
             'apt')
+                sudo ${bin} remove -y ${pkg}
+                ;;
+
+            'dnf')
                 sudo ${bin} remove -y ${pkg}
                 ;;
 
