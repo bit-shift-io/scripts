@@ -35,11 +35,20 @@ done
 
 while true; do
     echo
-    echo "modules"
-    echo "==================="
     n=1
+    current_group=""
     for m in "${filtered[@]}"; do
-        printf "%2d) %s\n" "$n" "$(basename "$m" .sh)"
+        name="$(basename "$m" .sh)"
+        group="${name%%_*}"
+        if [[ "$group" != "$current_group" ]]; then
+            echo
+            echo "$group"
+            echo "-------------------"
+            current_group="$group"
+        fi
+        display="${name#*_}"
+        display="${display//_/ }"
+        printf "%2d) %s\n" "$n" "$display"
         n=$((n+1))
     done
     echo
