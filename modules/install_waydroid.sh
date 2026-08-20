@@ -32,7 +32,7 @@ EOL
 
 sudo chmod +x /usr/bin/waydroid-session.sh
 
-sudo tee /usr/share/wayland-sessions/android-tv.desktop > /dev/null << EOL
+sudo tee /usr/share/wayland-sessions/android.desktop > /dev/null << EOL
 [Desktop Entry]
 Name=Android
 Comment=Android
