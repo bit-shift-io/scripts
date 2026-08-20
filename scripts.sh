@@ -33,14 +33,22 @@ for m in "${mods[@]}"; do
     filtered+=("$m")
 done
 
+cols="$(tput cols 2>/dev/null || echo 120)"
+
 while true; do
     echo
     n=1
     current_group=""
+    items=()
+    print_group() {
+        printf '%s\n' "${items[@]}" | column -c "$cols"
+        items=()
+    }
     for m in "${filtered[@]}"; do
         name="$(basename "$m" .sh)"
         group="${name%%_*}"
         if [[ "$group" != "$current_group" ]]; then
+            [[ -n "$current_group" ]] && print_group
             echo
             echo "$group"
             echo "-------------------"
@@ -48,11 +56,21 @@ while true; do
         fi
         display="${name#*_}"
         display="${display//_/ }"
-        printf "%2d) %s\n" "$n" "$display"
+        items+=("$(printf "%2d) %s" "$n" "$display")")
         n=$((n+1))
     done
+    print_group
     echo
-    read -rp "Select a number, q to quit: " choice || break
+    IFS= read -rn1 -p "Select a number, q/Esc to quit: " key || break
+    if [[ "$key" == $'\e' ]]; then
+        break
+    fi
+    if [[ -n "$key" ]]; then
+        read -r rest
+        choice="$key$rest"
+    else
+        choice=""
+    fi
     case "$choice" in
         q|Q) break ;;
         ''|*[!0-9]*) echo "invalid selection" ;;
