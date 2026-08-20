@@ -9,9 +9,6 @@ RCLONE_FILTERS=(
   # 1. EXCLUDE heavy internal caches inside allowed configs FIRST
   --filter "- /.config/google-chrome/**/Cache/**"
   --filter "- /.config/chromium/**/Cache/**"
-  --filter "- /.config/mozilla/firefox/*/storage/default/**"
-  --filter "- /.config/mozilla/firefox/*/startupCache/**"
-  --filter "- /.config/mozilla/firefox/*/cache2/**"
 
   # 2. EXCLUDE development/build junk (Evaluated before root hidden drops)
   --filter "- **/node_modules/**"

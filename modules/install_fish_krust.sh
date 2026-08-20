@@ -1,7 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
-set -e
+
+# Ensure PATH is set for commands running inside this script
+export PATH="$HOME/.local/bin:$HOME/.opencode/bin:$PATH"
 
 # Repository URL for krust (update this to your repository location)
 KRUST_REPO="https://github.com/bit-shift-io/krust.git"
@@ -10,22 +12,23 @@ KRUST_REPO="https://github.com/bit-shift-io/krust.git"
 "$UTIL" -i fish git rust cargo
 
 # Configure fish shell
+mkdir -p ~/.config/fish
 tee ~/.config/fish/config.fish > /dev/null << 'EOL'
 if status is-interactive
-   # Commands to run in interactive sessions can go here
+    # Commands to run in interactive sessions can go here
 end
 
-# Created by pipx on 2025-05-23 00:57:46
-set PATH $PATH $HOME/.local/bin
+# Add user bin directories to PATH (Fish modern syntax)
+fish_add_path ~/.local/bin ~/.opencode/bin
 
 # yazi exit in current dir
 function y
-   set tmp (mktemp -t "yazi-cwd.XXXXXX")
-   yazi $argv --cwd-file="$tmp"
-   if read -z cwd < "$tmp"; and [ -n "$cwd" ]; and [ "$cwd" != "$PWD" ]
-       builtin cd -- "$cwd"
-   end
-   rm -f -- "$tmp"
+    set tmp (mktemp -t "yazi-cwd.XXXXXX")
+    yazi $argv --cwd-file="$tmp"
+    if read -z cwd < "$tmp"; and [ -n "$cwd" ]; and [ "$cwd" != "$PWD" ]
+        builtin cd -- "$cwd"
+    end
+    rm -f -- "$tmp"
 end
 
 # disable greeting
