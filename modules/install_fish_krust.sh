@@ -30,6 +30,9 @@ end
 
 # disable greeting
 set fish_greeting ""
+
+# force Qt apps to use Wayland
+set -gx QT_QPA_PLATFORM wayland
 EOL
 
 # Configure bashrc auto-switch to fish
