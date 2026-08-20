@@ -155,12 +155,18 @@ gset org.gnome.desktop.interface clock-format "'12h'"
 gset org.gnome.desktop.interface color-scheme "'prefer-dark'"
 
 # natural (non-inverted) touchpad scrolling
-gset org.gnome.desktop.peripherals.touchpad natural-scroll false
+gset org.gnome.desktop.peripherals.touchpad natural-scroll true
+gset org.gnome.desktop.peripherals.mouse natural-scroll true
 
 # night light
 gset org.gnome.settings-daemon.plugins.color night-light-enabled true
 
 # disable clipboard authorization prompt
 gset org.gnome.desktop.privacy disable-clipboard-authorization true
+
+# set the hostname
+read -r -p "Set hostname [default: ${HOSTNAME}]: " hostname
+hostname="${hostname:-${HOSTNAME}}"
+sudo hostnamectl set-hostname --static --pretty "${hostname}"
 
 echo "Complete"
