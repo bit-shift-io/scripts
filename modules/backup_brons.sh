@@ -27,7 +27,6 @@ function main {
     ===================
     1) Minimal
     2) Full
-    h) Home
     i) install rclone
     s) setup shared ssh key
 
@@ -39,7 +38,6 @@ function main {
         2) fn_full ;;
         i) fn_install ;;
         s) fn_ssh_key ;;
-        h) fn_home ;;
         *) $SHELL ;;
     esac
     done
@@ -99,55 +97,6 @@ function fn_full {
     rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Videos" "$DEST_DIR_1/Videos"
 
     echo "Backup complete."
-}
-
-
-function fn_home {
-    # Define locations
-    LOCAL_HOME="/home/bronson"
-    REMOTE_DIR="/mnt/media/4-pcie/backups/bronson-home"
-    RCLONE_OPTS=(
-        -vP
-        --fast-list
-        --transfers 32
-        --checkers 64
-        --delete-excluded
-        --sftp-chunk-size 64k
-        --exclude "/.cache/**"
-        --exclude "/.rustup/**"
-        --exclude "/.cargo/**"
-    )
-
-    echo "b) Backup (Local -> Remote)"
-    echo "r) Restore (Remote -> Local)"
-    read -p "Enter choice: " choice
-
-    case $choice in
-        b)
-            SRC_DIR="$LOCAL_HOME"
-            DST_DIR="$REMOTE_DIR"
-            MODE="BACKUP"
-            ;;
-        r)
-            SRC_DIR="$REMOTE_DIR"
-            DST_DIR="$LOCAL_HOME"
-            MODE="RESTORE"
-            ;;
-        *)
-            echo "Invalid option. Exiting."
-            return 1
-            ;;
-    esac
-
-    echo "------------------------------------------------"
-    echo "Action: $MODE"
-    echo "Source: $SRC_DIR"
-    echo "Destination: $DST_DIR"
-    echo "------------------------------------------------"
-
-    read -n 1 -r -s -p "Press any key to continue..."
-    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR" "$DST_DIR"
-    echo "--- Finished Backup $(date) ---"
 }
 
 # pass all args
