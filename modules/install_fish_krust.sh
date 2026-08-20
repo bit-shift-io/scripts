@@ -7,7 +7,7 @@ set -e
 KRUST_REPO="https://github.com/bit-shift-io/krust.git"
 
 # Install dependencies (fish, git, cargo/rust)
-"$UTIL" -i fish #git rust
+"$UTIL" -i fish git rust cargo
 
 # Configure fish shell
 tee ~/.config/fish/config.fish > /dev/null << 'EOL'
