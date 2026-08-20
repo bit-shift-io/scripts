@@ -9,25 +9,27 @@ RCLONE_FILTERS=(
   # 1. EXCLUDE heavy internal caches inside allowed configs FIRST
   --filter "- /.config/google-chrome/**/Cache/**"
   --filter "- /.config/chromium/**/Cache/**"
+  --filter "- /.config/mozilla/firefox/*/storage/default/**"
+  --filter "- /.config/mozilla/firefox/*/startupCache/**"
+  --filter "- /.config/mozilla/firefox/*/cache2/**"
 
-  # 2. INCLUDE critical hidden folders & files
-  --filter "+ /.config/**"
-  --filter "+ /.ssh/**"
-  --filter "+ /.mozilla/**"
-  --filter "+ /.thunderbird/**"
-  --filter "+ /.sourcegit"
-  --filter "+ /.gnupg/**"
-  --filter "+ /.gitconfig"
-
-  # 3. EXCLUDE all other hidden files/folders at the root (~/.local, ~/.cache, etc.)
-  --filter "- /.*"
-  --filter "- /.**"
-
-  # 4. EXCLUDE development/build junk inside non-hidden folders
+  # 2. EXCLUDE development/build junk (Evaluated before root hidden drops)
   --filter "- **/node_modules/**"
   --filter "- **/target/**"
   --filter "- **/.venv/**"
   --filter "- **/__pycache__/**"
+
+  # 3. INCLUDE critical hidden folders & files
+  --filter "+ /.config/**"
+  --filter "+ /.ssh/**"
+  --filter "+ /.thunderbird/**"
+  --filter "+ /.sourcegit/**"
+  --filter "+ /.gnupg/**"
+  --filter "+ /.gitconfig"
+
+  # 4. EXCLUDE all other hidden files/folders at the root (~/.local, ~/.cache, etc.)
+  --filter "- /.*"
+  --filter "- /.**"
 
   # 5. INCLUDE EVERYTHING ELSE (Projects, Downloads, Desktop, Pictures, etc.)
   --filter "+ **"
