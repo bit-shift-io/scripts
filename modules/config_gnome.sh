@@ -2,8 +2,7 @@
 set -euo pipefail
 
 # GNOME extensions for an android-like touch UI:
-#   dash-to-dock            -> centered bottom gesture bar / nav pill
-#   just-perfection         -> clean up / tune the shell (panel, OSD, ...)
+#   dash-to-panel           -> top panel with app launchers / taskbar
 #   touchup                 -> android-like gestures / nav bar / osk
 
 SHELL_VERSION="$(gnome-shell --version 2>/dev/null | awk '{print $NF}')"
@@ -13,6 +12,9 @@ if [[ -z "${SHELL_VERSION}" ]]; then
 fi
 MAJOR="${SHELL_VERSION%%.*}"
 echo "GNOME Shell ${SHELL_VERSION}"
+
+# reset all shell settings so this script applies fresh each run
+dconf reset -f /org/gnome/shell/
 
 # install an extension from extensions.gnome.org matching the shell version
 #   primary:   ask the running shell to download+install+enable it
@@ -79,13 +81,6 @@ gsettings_list_add() {
     gsettings set "${schema}" "${key}" "[${inner}', '${value}']"
 }
 
-# add every installed extension's schema dir so `gsettings` can see them
-SCHEMA_DIRS=""
-for d in ~/.local/share/gnome-shell/extensions/*/schemas; do
-    [[ -d "${d}" ]] && SCHEMA_DIRS="${SCHEMA_DIRS}:${d}"
-done
-export GSETTINGS_SCHEMA_DIR="${GSETTINGS_SCHEMA_DIR:-}${SCHEMA_DIRS}"
-
 # set a gsettings value only if the schema/key exist
 gset() {
     local schema="$1" key="$2" value="$3"
@@ -100,33 +95,22 @@ gset() {
     gsettings set "${schema}" "${key}" "${value}"
 }
 
-install_extension "dash-to-dock@micxgx.gmail.com"
-install_extension "just-perfection-desktop@just-perfection"
+install_extension "dash-to-panel@jderose9.github.com"
 install_extension "touchup@mityax"
 install_extension "screentospace@dilzhan.dev"
 
-# dash-to-dock as a bottom gesture bar / nav pill
-gset org.gnome.shell.extensions.dash-to-dock dock-position "'BOTTOM'"
-gset org.gnome.shell.extensions.dash-to-dock dock-fixed false
-gset org.gnome.shell.extensions.dash-to-dock autohide true
-gset org.gnome.shell.extensions.dash-to-dock intellihide true
-gset org.gnome.shell.extensions.dash-to-dock require-pressure-to-show false
-gset org.gnome.shell.extensions.dash-to-dock extend-height false
-gset org.gnome.shell.extensions.dash-to-dock icon-size-fixed false
-gset org.gnome.shell.extensions.dash-to-dock dash-max-icon-size 32
-gset org.gnome.shell.extensions.dash-to-dock custom-theme-shrink true
-gset org.gnome.shell.extensions.dash-to-dock custom-background-color true
-gset org.gnome.shell.extensions.dash-to-dock background-color "'#000000'"
-gset org.gnome.shell.extensions.dash-to-dock background-opacity 0.5
-gset org.gnome.shell.extensions.dash-to-dock transparency-mode "'FIXED'"
-gset org.gnome.shell.extensions.dash-to-dock show-trash false
-gset org.gnome.shell.extensions.dash-to-dock show-mounts false
+# add every installed extension's schema dir so `gsettings` can see them
+# (must run after install_extension so freshly-installed schemas are found)
+SCHEMA_DIRS=""
+for d in ~/.local/share/gnome-shell/extensions/*/schemas; do
+    [[ -d "${d}" ]] && SCHEMA_DIRS="${SCHEMA_DIRS}:${d}"
+done
+export GSETTINGS_SCHEMA_DIR="${GSETTINGS_SCHEMA_DIR:-}${SCHEMA_DIRS}"
 
-# just-perfection: touch-friendly tweaks
-gset org.gnome.shell.extensions.just-perfection panel false
-gset org.gnome.shell.extensions.just-perfection panel-in-overview true
-gset org.gnome.shell.extensions.just-perfection panel-size 36
-gset org.gnome.shell.extensions.just-perfection workspace-wrap-around true
+# dash-to-panel: intellihide (autohide) behavior
+gset org.gnome.shell.extensions.dash-to-panel intellihide true
+gset org.gnome.shell.extensions.dash-to-panel intellihide-hide-from-windows true
+gset org.gnome.shell.extensions.dash-to-panel intellihide-use-pointer true
 
 # stock on-screen keyboard for touch input
 gset org.gnome.desktop.a11y.applications screen-keyboard-enabled false
