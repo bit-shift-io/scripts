@@ -1,9 +1,8 @@
 #!/bin/bash
-source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
 # Define default locations
 LOCAL_HOME="/home/bronson"
-DEFAULT_REMOTE_DIR="/run/media/bronson/offsite/home_x12"
+DEFAULT_REMOTE_DIR="/mnt/media/2tb/BHome"
 
 # Filter Rules (Evaluated in strict top-to-bottom order)
 RCLONE_FILTERS=(
@@ -15,9 +14,10 @@ RCLONE_FILTERS=(
   --filter "+ /.config/**"
   --filter "+ /.ssh/**"
   --filter "+ /.mozilla/**"
+  --filter "+ /.thunderbird/**"
+  --filter "+ /.sourcegit"
   --filter "+ /.gnupg/**"
-  --filter "+ /.bashrc"
-  --filter "+ /.zshrc"
+  --filter "+ /.gitconfig"
 
   # 3. EXCLUDE all other hidden files/folders at the root (~/.local, ~/.cache, etc.)
   --filter "- /.*"
