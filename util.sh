@@ -55,6 +55,7 @@ function detect_install_util {
 # recognised tokens:
 #   aur:<pkg>            -> install via the AUR helper (arch only)
 #   copr:<proj>:<pkg>    -> enable the COPR project then install (fedora only)
+#   repofile:<url>:<pkg> -> add a repo from a .repo URL then install (fedora only)
 #   skip:<name>          -> not available on this distro
 function pkg {
     local d name
@@ -104,7 +105,7 @@ function pkg {
 
         arch:sourcegit)                        echo "aur:sourcegit-bin" ;;
         debian:sourcegit)                      echo "skip:sourcegit" ;;
-        fedora:sourcegit)                      echo "skip:sourcegit" ;;
+        fedora:sourcegit)                      echo "repofile:https://codeberg.org/api/packages/yataro/rpm.repo:sourcegit" ;;
 
         arch:binder_linux-dkms)                echo "aur:binder_linux-dkms" ;;
         *:binder_linux-dkms)                   echo "skip:binder_linux-dkms" ;;
@@ -224,6 +225,17 @@ function install {
                     echo "skip ${item}: COPR only"
                 fi
                 ;;
+            repofile:*)
+                if [[ "${bin}" == "dnf" ]]; then
+                    local rpurl="${item#repofile:}"
+                    local rppkg="${rpurl##*:}"
+                    rpurl="${rpurl%:*}"
+                    sudo ${bin} config-manager addrepo --from-repofile="${rpurl}"
+                    sudo ${bin} install -y "${rppkg}"
+                else
+                    echo "skip ${item}: repo file only"
+                fi
+                ;;
             *)
                 case "${bin}" in
                     'pacman')
@@ -279,6 +291,14 @@ function remove {
                     sudo ${bin} remove -y "${pkgname}"
                 else
                     echo "skip ${item}: COPR only"
+                fi
+                ;;
+            repofile:*)
+                if [[ "${bin}" == "dnf" ]]; then
+                    local rppkg="${item##*:}"
+                    sudo ${bin} remove -y "${rppkg}"
+                else
+                    echo "skip ${item}: repo file only"
                 fi
                 ;;
             *)
