@@ -3,7 +3,6 @@ set -euo pipefail
 
 # GNOME extensions for an android-like touch UI:
 #   dash-to-dock            -> centered bottom gesture bar / nav pill
-#   blur-my-shell           -> material-you blurred backdrop
 #   just-perfection         -> clean up / tune the shell (panel, OSD, ...)
 #   touchup                 -> android-like gestures / nav bar / osk
 
@@ -102,7 +101,6 @@ gset() {
 }
 
 install_extension "dash-to-dock@micxgx.gmail.com"
-install_extension "blur-my-shell@aunetx"
 install_extension "just-perfection-desktop@just-perfection"
 install_extension "touchup@mityax"
 install_extension "screentospace@dilzhan.dev"
@@ -124,20 +122,8 @@ gset org.gnome.shell.extensions.dash-to-dock transparency-mode "'FIXED'"
 gset org.gnome.shell.extensions.dash-to-dock show-trash false
 gset org.gnome.shell.extensions.dash-to-dock show-mounts false
 
-# blur-my-shell material-you backdrop
-#   GNOME 50 schema is split into per-target sub-schemas (panel, dash-to-dock,
-#   overview, appfolder, ...); blur is enabled by default, only tune it here
-gset org.gnome.shell.extensions.blur-my-shell sigma 18
-gset org.gnome.shell.extensions.blur-my-shell.panel blur true
-gset org.gnome.shell.extensions.blur-my-shell.panel customize true
-gset org.gnome.shell.extensions.blur-my-shell.panel corner-radius 12
-gset org.gnome.shell.extensions.blur-my-shell.dash-to-dock blur true
-gset org.gnome.shell.extensions.blur-my-shell.dash-to-dock customize true
-gset org.gnome.shell.extensions.blur-my-shell.dash-to-dock corner-radius 12
-gset org.gnome.shell.extensions.blur-my-shell.overview blur true
-gset org.gnome.shell.extensions.blur-my-shell.appfolder blur true
-
 # just-perfection: touch-friendly tweaks
+gset org.gnome.shell.extensions.just-perfection panel false
 gset org.gnome.shell.extensions.just-perfection panel-in-overview true
 gset org.gnome.shell.extensions.just-perfection panel-size 36
 gset org.gnome.shell.extensions.just-perfection workspace-wrap-around true
