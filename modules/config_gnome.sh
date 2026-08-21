@@ -2,7 +2,6 @@
 set -euo pipefail
 
 # GNOME extensions for an android-like touch UI:
-#   dash-to-panel           -> top panel with app launchers / taskbar
 #   touchup                 -> android-like gestures / nav bar / osk
 
 SHELL_VERSION="$(gnome-shell --version 2>/dev/null | awk '{print $NF}')"
@@ -95,9 +94,13 @@ gset() {
     gsettings set "${schema}" "${key}" "${value}"
 }
 
-install_extension "dash-to-panel@jderose9.github.com"
 install_extension "touchup@mityax"
 install_extension "screentospace@dilzhan.dev"
+install_extension "dash-to-dock@micxgx.gmail.com"
+install_extension "caffeine@patapon.info"
+install_extension "places-menu@gnome-shell-extensions.gcampax.github.com"
+install_extension "blur-my-shell@aunetx"
+install_extension "hidetopbar@mathieu.bidon.ca"
 
 # add every installed extension's schema dir so `gsettings` can see them
 # (must run after install_extension so freshly-installed schemas are found)
@@ -106,11 +109,6 @@ for d in ~/.local/share/gnome-shell/extensions/*/schemas; do
     [[ -d "${d}" ]] && SCHEMA_DIRS="${SCHEMA_DIRS}:${d}"
 done
 export GSETTINGS_SCHEMA_DIR="${GSETTINGS_SCHEMA_DIR:-}${SCHEMA_DIRS}"
-
-# dash-to-panel: intellihide (autohide) behavior
-gset org.gnome.shell.extensions.dash-to-panel intellihide true
-gset org.gnome.shell.extensions.dash-to-panel intellihide-hide-from-windows true
-gset org.gnome.shell.extensions.dash-to-panel intellihide-use-pointer true
 
 # stock on-screen keyboard for touch input
 gset org.gnome.desktop.a11y.applications screen-keyboard-enabled false
@@ -131,12 +129,20 @@ gset org.gnome.desktop.peripherals.mouse natural-scroll true
 # night light
 gset org.gnome.settings-daemon.plugins.color night-light-enabled true
 
+# disable auto brightness
+gsettings set org.gnome.settings-daemon.plugins.power ambient-enabled false
+
 # disable clipboard authorization prompt
 gset org.gnome.desktop.privacy disable-clipboard-authorization true
 
-# set the hostname
-read -r -p "Set hostname [default: ${HOSTNAME}]: " hostname
-hostname="${hostname:-${HOSTNAME}}"
-sudo hostnamectl set-hostname --static --pretty "${hostname}"
+# set the hostname if required
+CURRENT_HOSTNAME="$(hostnamectl --static 2>/dev/null || echo "${HOSTNAME}")"
+read -r -p "Set hostname [default: ${CURRENT_HOSTNAME}]: " target_hostname
+target_hostname="${target_hostname:-${CURRENT_HOSTNAME}}"
+
+if [[ "${target_hostname}" != "${CURRENT_HOSTNAME}" ]]; then
+    sudo hostnamectl set-hostname --static --pretty "${target_hostname}"
+    echo "  hostname updated to: ${target_hostname}"
+fi
 
 echo "Complete"
