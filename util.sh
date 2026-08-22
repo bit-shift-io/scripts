@@ -166,12 +166,37 @@ function pkg {
     esac
 }
 
+# clone a git repo, build it with cargo --release and copy the binary
+# into ~/.local/bin:  util.sh -b <repo_url> <binary_name>
+function build_rust_app {
+    local repo bin build_dir
+    repo="${1}"
+    bin="${2}"
+
+    echo "Building and installing ${bin}..."
+    build_dir=$(mktemp -d)
+
+    git clone "${repo}" "${build_dir}"
+    cargo build --release --manifest-path "${build_dir}/Cargo.toml"
+
+    mkdir -p "${HOME}/.local/bin"
+    cp "${build_dir}/target/release/${bin}" "${HOME}/.local/bin/${bin}"
+    rm -rf "${build_dir}"
+
+    echo "${bin} binary installed to ${HOME}/.local/bin/${bin}"
+}
+
 function main {
     type="${1}"
     shift
 
     if [[ "${type}" == "-d" ]]; then
         distro
+        return
+    fi
+
+    if [[ "${type}" == "-b" ]]; then
+        build_rust_app "$@"
         return
     fi
 
