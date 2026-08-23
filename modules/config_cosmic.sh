@@ -32,4 +32,26 @@ cosmic_set com.system76.CosmicIdle suspend_on_ac_time 'None'
 # night light
 cosmic_set com.system76.CosmicComp night_light_enabled 'true'
 
+# touchpad: natural scroll, two-finger scrolling, clickfinger, tap to click
+# (input_touchpad is one serialized struct, so the whole file is written)
+mkdir -p "$COSMIC_DIR/com.system76.CosmicComp/v1"
+cat > "$COSMIC_DIR/com.system76.CosmicComp/v1/input_touchpad" <<'EOF'
+(
+    state: Enabled,
+    click_method: Some(Clickfinger),
+    scroll_config: Some((
+        method: Some(TwoFinger),
+        natural_scroll: Some(true),
+        scroll_button: None,
+        scroll_factor: None,
+    )),
+    tap_config: Some((
+        enabled: true,
+        button_map: Some(LeftRightMiddle),
+        drag: true,
+        drag_lock: false,
+    )),
+)
+EOF
+
 echo "Complete (restart the COSMIC session to apply)"

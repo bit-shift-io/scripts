@@ -24,7 +24,9 @@ read -r SFTP_HOST
 # (only asks for the password if the key isn't authorised yet)
 ensure_ssh_key "$SFTP_USER@$SFTP_HOST"
 
+# dnf5 native local plugin + createrepo_c (required for metadata generation)
 "$UTIL" -i python3-dnf-plugin-local
+"$UTIL" -i createrepo_c
 
 sudo mkdir -p "$MOUNT_POINT"
 
@@ -49,21 +51,32 @@ if [[ "$mounted" != true ]]; then
     exit 1
 fi
 
-# initialise the repo metadata once (the plugin keeps it updated after that)
-if [[ ! -d "$MOUNT_POINT/repodata" ]]; then
-    "$UTIL" -i createrepo_c
-    sudo createrepo_c "$MOUNT_POINT"
-fi
+# seed repo metadata so the plugin repos are valid from first use,
+# otherwise dnf aborts with "Could not read a file:// file" until the
+# plugin writes its first package
+for repo_dir in "$MOUNT_POINT" "$MOUNT_POINT-nogpgcheck"; do
+    sudo mkdir -p "$repo_dir"
+    if [[ ! -d "$repo_dir/repodata" ]]; then
+        sudo createrepo_c "$repo_dir"
+    fi
+done
 
-# point the dnf local plugin at the share
-sudo tee /etc/dnf/plugins/local.conf > /dev/null << EOL
+# configure the dnf5 local plugin (dnf4 used /etc/dnf/plugins/local.conf,
+# dnf5 reads /etc/dnf/libdnf5-plugins/local.conf with a different format)
+sudo rm -f /etc/dnf/plugins/local.conf
+sudo tee /etc/dnf/libdnf5-plugins/local.conf > /dev/null << EOL
 [main]
+name = local
 enabled = true
-# Path to the local repository.
 repodir = $MOUNT_POINT
+repodir_nogpgcheck = $MOUNT_POINT-nogpgcheck
+
+[createrepo]
+enabled = true
 EOL
 
 echo "fedora cache ready: $MOUNT_POINT -> $SFTP_USER@$SFTP_HOST:$SFTP_PATH"
-echo "test it with: sudo rm -rf /var/cache/dnf && sudo dnf install htop"
+echo "test it with: sudo dnf install htop"
+echo "then check: ls $MOUNT_POINT && dnf repolist | grep _dnf_local"
 
 notify-send 'Fedora Cache' "dnf local cache configured at $MOUNT_POINT"

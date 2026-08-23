@@ -137,7 +137,8 @@ function pkg {
         arch:virtualbox-ext-oracle)            echo "aur:virtualbox-ext-oracle" ;;
         *:virtualbox-ext-oracle)               echo "skip:virtualbox-ext-oracle" ;;
 
-        fedora:python3-dnf-plugin-local)       echo "python3-dnf-plugin-local" ;;
+        # dnf4 name kept as the logical key; resolves to the dnf5 native plugin
+        fedora:python3-dnf-plugin-local)       echo "libdnf5-plugin-local" ;;
         *:python3-dnf-plugin-local)            echo "skip:python3-dnf-plugin-local" ;;
 
         fedora:lact)                           echo "copr:ilyaz/LACT:lact" ;;
