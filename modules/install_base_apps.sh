@@ -4,7 +4,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
 # install software
 echo -e '\n\nInstalling packages...'
-"$UTIL" -i yay base-devel openssh libreoffice firefox keepassxc git rustup vulkan-drivers sshfs qbittorrent zed
+"$UTIL" -i base-devel openssh libreoffice firefox keepassxc git rustup vulkan-drivers sshfs qbittorrent zed
 
 # printer support
 "$UTIL" -i cups cups-pdf system-config-printer avahi
