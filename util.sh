@@ -87,13 +87,17 @@ function pkg {
         debian:adobe-source-han-serif-cn-fonts) echo "fonts-noto-cjk" ;;
         fedora:adobe-source-han-serif-cn-fonts) echo "adobe-source-han-serif-cn-fonts" ;;
 
-        arch:breeze-icon-theme)                echo "breeze-icon-theme" ;;
+        arch:breeze-icon-theme)                echo "breeze-icons" ;;
         debian:breeze-icon-theme)              echo "breeze-icon-theme" ;;
         fedora:breeze-icon-theme)              echo "breeze-icon-theme" ;;
 
         arch:papirus-icon-theme)               echo "papirus-icon-theme" ;;
         debian:papirus-icon-theme)             echo "papirus-icon-theme" ;;
         fedora:papirus-icon-theme)             echo "papirus-icon-theme" ;;
+
+        arch:gnome-extensions-app)             echo "gnome-extensions-app" ;;
+        debian:gnome-extensions-app)           echo "gnome-shell-extension-manager" ;;
+        fedora:gnome-extensions-app)           echo "gnome-extensions-app" ;;
 
         arch:fcitx5-gtk)                       echo "fcitx5-gtk" ;;
         debian:fcitx5-gtk)                     echo "fcitx5-frontend-gtk3" ;;

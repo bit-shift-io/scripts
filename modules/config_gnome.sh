@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 
 SHELL_VERSION="$(gnome-shell --version 2>/dev/null | awk '{print $NF}')"
 if [[ -z "${SHELL_VERSION}" ]]; then
@@ -8,6 +9,10 @@ if [[ -z "${SHELL_VERSION}" ]]; then
 fi
 MAJOR="${SHELL_VERSION%%.*}"
 echo "GNOME Shell ${SHELL_VERSION} (Major: ${MAJOR})"
+
+# install software
+echo -e '\n\nInstalling packages...'
+"$UTIL" -i gnome-extensions-app breeze-icon-theme
 
 # Reset shell settings so script applies fresh
 dconf reset -f /org/gnome/shell/
@@ -85,13 +90,18 @@ install_extension() {
 }
 
 # Install requested extensions
-install_extension "touchup@mityax"
 install_extension "screentospace@dilzhan.dev"
 install_extension "dash-to-dock@micxgx.gmail.com"
 install_extension "caffeine@patapon.info"
 install_extension "places-menu@gnome-shell-extensions.gcampax.github.com"
 install_extension "blur-my-shell@aunetx"
 install_extension "hidetopbar@mathieu.bidon.ca"
+
+# Disable unwanted extensions
+if gnome-extensions info "background-logo@fedorahosted.org" > /dev/null 2>&1; then
+    echo "  disabling background-logo@fedorahosted.org..."
+    gnome-extensions disable "background-logo@fedorahosted.org" || true
+fi
 
 # Compile and include local extension schemas alongside system schemas
 SCHEMA_DIRS=""
@@ -102,6 +112,9 @@ for d in ~/.local/share/gnome-shell/extensions/*/schemas; do
     fi
 done
 export GSETTINGS_SCHEMA_DIR="/usr/share/glib-2.0/schemas${SCHEMA_DIRS}"
+
+# Extension preferences
+gset org.gnome.shell.extensions.hidetopbar mouse-sensitive true
 
 # Core preferences
 gset org.gnome.desktop.a11y.applications screen-keyboard-enabled false
