@@ -32,6 +32,10 @@ cosmic_set com.system76.CosmicIdle suspend_on_ac_time 'None'
 # night light
 cosmic_set com.system76.CosmicComp night_light_enabled 'true'
 
+# window management: no active-hint border, click-to-focus only
+cosmic_set com.system76.CosmicComp active_hint 'false'
+cosmic_set com.system76.CosmicComp focus_follows_cursor 'false'
+
 # touchpad: natural scroll, two-finger scrolling, clickfinger, tap to click
 # (input_touchpad is one serialized struct, so the whole file is written)
 mkdir -p "$COSMIC_DIR/com.system76.CosmicComp/v1"
@@ -53,5 +57,23 @@ cat > "$COSMIC_DIR/com.system76.CosmicComp/v1/input_touchpad" <<'EOF'
     )),
 )
 EOF
+
+# systemd user environment generator: export WAYLAND_DISPLAY for user services
+# (grit etc.) by auto-detecting the active wayland socket
+GENERATOR_DIR=/usr/lib/systemd/user-environment-generators
+sudo mkdir -p "$GENERATOR_DIR"
+sudo tee "$GENERATOR_DIR/50-cosmic-wayland.sh" > /dev/null <<'EOF'
+#!/bin/sh
+# Automatically find and export active Wayland display for systemd user services
+if [ -z "$WAYLAND_DISPLAY" ] && [ -n "$XDG_RUNTIME_DIR" ]; then
+    for sock in "$XDG_RUNTIME_DIR"/wayland-*; do
+        if [ -S "$sock" ]; then
+            echo "WAYLAND_DISPLAY=$(basename "$sock")"
+            break
+        fi
+    done
+fi
+EOF
+sudo chmod +x "$GENERATOR_DIR/50-cosmic-wayland.sh"
 
 echo "Complete (restart the COSMIC session to apply)"

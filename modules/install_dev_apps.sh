@@ -59,6 +59,8 @@ EOT
 fi
 
 # Clone, build, and install Rust apps from git into ~/.local/bin
+# stop any running instances first so the freshly built binaries get used
+systemctl --user stop grit.service krust.service 2>/dev/null || true
 "$UTIL" -b https://github.com/bit-shift-io/krust.git krust
 "$UTIL" -b https://github.com/bit-shift-io/grit.git grit
 

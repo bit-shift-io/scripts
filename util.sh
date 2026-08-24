@@ -181,7 +181,10 @@ function build_rust_app {
     cargo build --release --manifest-path "${build_dir}/Cargo.toml"
 
     mkdir -p "${HOME}/.local/bin"
-    cp "${build_dir}/target/release/${bin}" "${HOME}/.local/bin/${bin}"
+    # write to a temp name then rename: cp in-place fails with
+    # "Text file busy" if the binary is currently running, mv does not
+    cp "${build_dir}/target/release/${bin}" "${HOME}/.local/bin/.${bin}.new"
+    mv -f "${HOME}/.local/bin/.${bin}.new" "${HOME}/.local/bin/${bin}"
     rm -rf "${build_dir}"
 
     echo "${bin} binary installed to ${HOME}/.local/bin/${bin}"
