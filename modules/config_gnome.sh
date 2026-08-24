@@ -122,6 +122,12 @@ gset org.gnome.desktop.interface clock-format "'12h'"
 # dark color scheme
 gset org.gnome.desktop.interface color-scheme "'prefer-dark'"
 
+# Papirus-Dark icon theme
+gset org.gnome.desktop.interface icon-theme "'Papirus-Dark'"
+
+# sort folders first in Nautilus file viewer
+gset org.gnome.nautilus.preferences sort-folders-first true
+
 # natural (non-inverted) touchpad scrolling
 gset org.gnome.desktop.peripherals.touchpad natural-scroll true
 gset org.gnome.desktop.peripherals.mouse natural-scroll true
