@@ -1,86 +1,38 @@
 #!/bin/bash
 set -euo pipefail
 
-# GNOME extensions for an android-like touch UI:
-#   touchup                 -> android-like gestures / nav bar / osk
-
 SHELL_VERSION="$(gnome-shell --version 2>/dev/null | awk '{print $NF}')"
 if [[ -z "${SHELL_VERSION}" ]]; then
     echo "error: gnome-shell not found" >&2
     exit 1
 fi
 MAJOR="${SHELL_VERSION%%.*}"
-echo "GNOME Shell ${SHELL_VERSION}"
+echo "GNOME Shell ${SHELL_VERSION} (Major: ${MAJOR})"
 
-# reset all shell settings so this script applies fresh each run
+# Reset shell settings so script applies fresh
 dconf reset -f /org/gnome/shell/
 
-# install an extension from extensions.gnome.org matching the shell version
-#   primary:   ask the running shell to download+install+enable it
-#              (opens a confirmation dialog; the user must click "Install")
-#   fallback:  manual zip install for headless/older setups
-install_extension() {
-    local uuid="$1"
-    local info
-
-    # skip if it is already installed, enabled and not erroring
-    local current_status
-    current_status="$(gnome-extensions info "${uuid}" 2>/dev/null || true)"
-    if grep -q "Enabled: Yes" <<< "${current_status}" \
-        && ! grep -q "State: ERROR" <<< "${current_status}"; then
-        echo "  skip ${uuid}: already enabled"
-        return 0
-    fi
-
-    info="$(curl -fsSL "https://extensions.gnome.org/extension-info/?uuid=${uuid}&shell_version=${MAJOR}" 2>/dev/null || true)"
-    if [[ -z "${info}" ]] || ! grep -q "\"${MAJOR}\": {\"pk\"" <<< "${info}"; then
-        echo "  skip ${uuid}: no build for GNOME Shell ${MAJOR}"
-        return 0
-    fi
-
-    echo "  install ${uuid}"
-    # let the shell download, install and enable it (user confirms the dialog)
-    if command -v busctl >/dev/null 2>&1 \
-        && busctl --user call org.gnome.Shell /org/gnome/Shell \
-            org.gnome.Shell.Extensions InstallRemoteExtension s "${uuid}" >/dev/null 2>&1; then
-        echo "  ok ${uuid}"
-        return 0
-    fi
-
-    # fallback: manual zip install
-    local url zip
-    url="$(grep -o '"download_url": "[^"]*"' <<< "${info}" | cut -d'"' -f4)"
-    zip="/tmp/${uuid//\//_}.shell-extension.zip"
-    curl -fsSL "https://extensions.gnome.org${url}" -o "${zip}"
-    gnome-extensions install --force "${zip}"
-    rm -f "${zip}"
-
-    # the shell may not have rescanned yet, so enabling can fail with
-    # 'Extension "..." does not exist'; persist it for the next session then
-    if ! gnome-extensions enable "${uuid}" >/dev/null 2>&1; then
-        gsettings_list_add org.gnome.shell enabled-extensions "${uuid}"
-        echo "  note: ${uuid} installed but will activate after logging out/in"
-    fi
-}
-
-# add a string to a gsettings string-list (org.gnome.shell.enabled-extensions)
+# Safe array append for gsettings string-lists (e.g. ['ext1', 'ext2'])
 gsettings_list_add() {
     local schema="$1" key="$2" value="$3"
-    local current inner
+    local current
     current="$(gsettings get "${schema}" "${key}")"
-    if [[ "${current}" == "@as []" ]]; then
+
+    if [[ "${current}" == "@as []" ]] || [[ "${current}" == "[]" ]]; then
         gsettings set "${schema}" "${key}" "['${value}']"
         return 0
     fi
-    inner="${current#\[}"
-    inner="${inner%\]}"
-    if [[ ",${inner// /}," == *",'${value}',"* ]]; then
+
+    # Check if value exists in array
+    if grep -q "'${value}'" <<< "${current}"; then
         return 0
     fi
-    gsettings set "${schema}" "${key}" "[${inner}', '${value}']"
+
+    # Strip closing bracket, append, close bracket
+    local updated="${current%\]}, '${value}']"
+    gsettings set "${schema}" "${key}" "${updated}"
 }
 
-# set a gsettings value only if the schema/key exist
 gset() {
     local schema="$1" key="$2" value="$3"
     if ! gsettings list-schemas | grep -qx "${schema}"; then
@@ -94,6 +46,45 @@ gset() {
     gsettings set "${schema}" "${key}" "${value}"
 }
 
+install_extension() {
+    local uuid="$1"
+
+    local current_status
+    current_status="$(gnome-extensions info "${uuid}" 2>/dev/null || true)"
+    if grep -q "Enabled: Yes" <<< "${current_status}" \
+        && ! grep -q "State: ERROR" <<< "${current_status}"; then
+        echo "  skip ${uuid}: already enabled"
+        return 0
+    fi
+
+    echo "  installing ${uuid}..."
+
+    # Attempt native DBus install prompt first
+    if command -v busctl >/dev/null 2>&1 \
+        && busctl --user call org.gnome.Shell /org/gnome/Shell \
+            org.gnome.Shell.Extensions InstallRemoteExtension s "${uuid}" >/dev/null 2>&1; then
+        echo "  ok ${uuid}"
+        return 0
+    fi
+
+    # Fallback zip installation via GNOME extensions API
+    local info url zip
+    info="$(curl -fsSL "https://extensions.gnome.org/extension-info/?uuid=${uuid}" 2>/dev/null || true)"
+    url="$(grep -o '"download_url": "[^"]*"' <<< "${info}" | head -n1 | cut -d'"' -f4)"
+
+    if [[ -n "${url}" ]]; then
+        zip="/tmp/${uuid//\//_}.shell-extension.zip"
+        curl -fsSL "https://extensions.gnome.org${url}" -o "${zip}"
+        gnome-extensions install --force "${zip}"
+        rm -f "${zip}"
+        gsettings_list_add org.gnome.shell enabled-extensions "${uuid}"
+        echo "  ok ${uuid} (zip fallback)"
+    else
+        echo "  warning: could not retrieve download URL for ${uuid}"
+    fi
+}
+
+# Install requested extensions
 install_extension "touchup@mityax"
 install_extension "screentospace@dilzhan.dev"
 install_extension "dash-to-dock@micxgx.gmail.com"
@@ -102,53 +93,45 @@ install_extension "places-menu@gnome-shell-extensions.gcampax.github.com"
 install_extension "blur-my-shell@aunetx"
 install_extension "hidetopbar@mathieu.bidon.ca"
 
-# add every installed extension's schema dir so `gsettings` can see them
-# (must run after install_extension so freshly-installed schemas are found)
+# Compile and include local extension schemas alongside system schemas
 SCHEMA_DIRS=""
 for d in ~/.local/share/gnome-shell/extensions/*/schemas; do
-    [[ -d "${d}" ]] && SCHEMA_DIRS="${SCHEMA_DIRS}:${d}"
+    if [[ -d "${d}" ]]; then
+        glib-compile-schemas "${d}" 2>/dev/null || true
+        SCHEMA_DIRS="${SCHEMA_DIRS}:${d}"
+    fi
 done
-export GSETTINGS_SCHEMA_DIR="${GSETTINGS_SCHEMA_DIR:-}${SCHEMA_DIRS}"
+export GSETTINGS_SCHEMA_DIR="/usr/share/glib-2.0/schemas${SCHEMA_DIRS}"
 
-# stock on-screen keyboard for touch input
+# Core preferences
 gset org.gnome.desktop.a11y.applications screen-keyboard-enabled false
-
-# auto-maximize new windows (touch friendly)
 gset org.gnome.mutter auto-maximize true
-
-# 12-hour clock
 gset org.gnome.desktop.interface clock-format "'12h'"
-
-# dark color scheme
 gset org.gnome.desktop.interface color-scheme "'prefer-dark'"
 
-# Papirus-Dark icon theme
-gset org.gnome.desktop.interface icon-theme "'Papirus-Dark'"
+# Fixed GVariant formatting for icon-theme
+gset org.gnome.desktop.interface icon-theme "'breeze-dark'"
 
-# sort folders first in Nautilus file viewer
-gset org.gnome.nautilus.preferences sort-folders-first true
+# Sort folders first (GTK file choosers)
+gset org.gtk.Settings.FileChooser sort-directories-first true
+gset org.gtk.gtk4.Settings.FileChooser sort-directories-first true
 
-# natural (non-inverted) touchpad scrolling
+# Peripherals & Power
 gset org.gnome.desktop.peripherals.touchpad natural-scroll true
 gset org.gnome.desktop.peripherals.mouse natural-scroll true
-
-# night light
 gset org.gnome.settings-daemon.plugins.color night-light-enabled true
-
-# disable auto brightness
-gsettings set org.gnome.settings-daemon.plugins.power ambient-enabled false
-
-# disable clipboard authorization prompt
+gset org.gnome.settings-daemon.plugins.power ambient-enabled false
 gset org.gnome.desktop.privacy disable-clipboard-authorization true
 
-# set the hostname if required
-CURRENT_HOSTNAME="$(hostnamectl --static 2>/dev/null || echo "${HOSTNAME}")"
-read -r -p "Set hostname [default: ${CURRENT_HOSTNAME}]: " target_hostname
-target_hostname="${target_hostname:-${CURRENT_HOSTNAME}}"
-
-if [[ "${target_hostname}" != "${CURRENT_HOSTNAME}" ]]; then
-    sudo hostnamectl set-hostname --static --pretty "${target_hostname}"
-    echo "  hostname updated to: ${target_hostname}"
+# Hostname setup (safely handled for non-interactive shells)
+CURRENT_HOSTNAME="$(hostnamectl --static 2>/dev/null || echo "${HOSTNAME:-localhost}")"
+if [[ -t 0 ]]; then
+    read -r -p "Set hostname [default: ${CURRENT_HOSTNAME}]: " target_hostname
+    target_hostname="${target_hostname:-${CURRENT_HOSTNAME}}"
+    if [[ "${target_hostname}" != "${CURRENT_HOSTNAME}" ]]; then
+        sudo hostnamectl set-hostname --static --pretty "${target_hostname}"
+        echo "  hostname updated to: ${target_hostname}"
+    fi
 fi
 
 echo "Complete"
