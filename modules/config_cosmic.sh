@@ -32,6 +32,10 @@ cosmic_set com.system76.CosmicIdle suspend_on_ac_time 'None'
 # night light
 cosmic_set com.system76.CosmicComp night_light_enabled 'true'
 
+# window management: no active-hint border, click-to-focus only
+cosmic_set com.system76.CosmicComp active_hint 'false'
+cosmic_set com.system76.CosmicComp focus_follows_cursor 'false'
+
 # touchpad: natural scroll, two-finger scrolling, clickfinger, tap to click
 # (input_touchpad is one serialized struct, so the whole file is written)
 mkdir -p "$COSMIC_DIR/com.system76.CosmicComp/v1"
