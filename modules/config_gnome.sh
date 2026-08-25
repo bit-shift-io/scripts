@@ -97,6 +97,7 @@ install_extension "places-menu@gnome-shell-extensions.gcampax.github.com"
 install_extension "blur-my-shell@aunetx"
 install_extension "hidetopbar@mathieu.bidon.ca"
 install_extension "touchup@mityax"
+install_extension "ddterm@amezin.github.com"
 
 # Disable unwanted extensions
 if gnome-extensions info "background-logo@fedorahosted.org" > /dev/null 2>&1; then
@@ -116,6 +117,7 @@ export GSETTINGS_SCHEMA_DIR="/usr/share/glib-2.0/schemas${SCHEMA_DIRS}"
 
 # Extension preferences
 gset org.gnome.shell.extensions.hidetopbar mouse-sensitive true
+gset org.gnome.shell.extensions.ddterm ddterm-toggle-hotkey "['<Control>slash']"
 
 # Core preferences
 gset org.gnome.desktop.a11y.applications screen-keyboard-enabled false
@@ -134,10 +136,10 @@ gset org.gtk.gtk4.Settings.FileChooser sort-directories-first true
 gset org.gnome.desktop.peripherals.touchpad natural-scroll true
 gset org.gnome.desktop.peripherals.mouse natural-scroll true
 gset org.gnome.settings-daemon.plugins.color night-light-enabled true
-gset set org.gnome.settings-daemon.plugins.color night-light-temperature 3700
+gset org.gnome.settings-daemon.plugins.color night-light-temperature 3700
 gset org.gnome.settings-daemon.plugins.power ambient-enabled false
 gset org.gnome.desktop.privacy disable-clipboard-authorization true
-gset set org.gnome.desktop.interface show-battery-percentage true
+gset org.gnome.desktop.interface show-battery-percentage true
 
 # Hostname setup (safely handled for non-interactive shells)
 CURRENT_HOSTNAME="$(hostnamectl --static 2>/dev/null || echo "${HOSTNAME:-localhost}")"
