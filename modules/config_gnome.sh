@@ -96,6 +96,7 @@ install_extension "caffeine@patapon.info"
 install_extension "places-menu@gnome-shell-extensions.gcampax.github.com"
 install_extension "blur-my-shell@aunetx"
 install_extension "hidetopbar@mathieu.bidon.ca"
+install_extension "touchup@mityax"
 
 # Disable unwanted extensions
 if gnome-extensions info "background-logo@fedorahosted.org" > /dev/null 2>&1; then
