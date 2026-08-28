@@ -124,6 +124,8 @@ gset org.gnome.desktop.a11y.applications screen-keyboard-enabled false
 gset org.gnome.mutter auto-maximize true
 gset org.gnome.desktop.interface clock-format "'12h'"
 gset org.gnome.desktop.interface color-scheme "'prefer-dark'"
+gset org.gnome.desktop.wm.preferences button-layout "':minimize,maximize,close'"
+
 
 # Fixed GVariant formatting for icon-theme
 gset org.gnome.desktop.interface icon-theme "'breeze-dark'"
