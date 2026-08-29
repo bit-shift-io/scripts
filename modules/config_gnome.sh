@@ -143,6 +143,10 @@ gset org.gnome.settings-daemon.plugins.power ambient-enabled false
 gset org.gnome.desktop.privacy disable-clipboard-authorization true
 gset org.gnome.desktop.interface show-battery-percentage true
 
+# disable brightness sensor service
+sudo systemctl mask iio-sensor-proxy.service
+sudo systemctl stop iio-sensor-proxy.service
+
 # Hostname setup (safely handled for non-interactive shells)
 CURRENT_HOSTNAME="$(hostnamectl --static 2>/dev/null || echo "${HOSTNAME:-localhost}")"
 if [[ -t 0 ]]; then
