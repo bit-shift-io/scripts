@@ -134,8 +134,8 @@ gset org.gnome.desktop.interface icon-theme "'breeze-dark'"
 gset org.gtk.Settings.FileChooser sort-directories-first true
 gset org.gtk.gtk4.Settings.FileChooser sort-directories-first true
 
-# disable notifications for apps
-gset org.gnome.desktop.notifications.application:/org/gnome/desktop/notifications/applications/org-gnome-Software/ show-banners false
+# disable notifications
+gset org.gnome.desktop.notifications show-banners false
 
 # Peripherals & Power
 gset org.gnome.desktop.peripherals.touchpad natural-scroll true
