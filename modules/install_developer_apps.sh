@@ -60,8 +60,9 @@ fi
 
 # Clone, build, and install Rust apps from git into ~/.local/bin
 # stop any running instances first so the freshly built binaries get used
-systemctl --user stop grit.service krust.service 2>/dev/null || true
+systemctl --user stop grit.service krust.service folio.service 2>/dev/null || true
 "$UTIL" -b https://github.com/bit-shift-io/krust.git krust
+"$UTIL" -b https://github.com/bit-shift-io/folio.git folio
 "$UTIL" -b https://github.com/bit-shift-io/grit.git grit
 
 # Create and enable krust systemd user service
@@ -75,6 +76,27 @@ After=network.target
 [Service]
 Type=simple
 ExecStart=%h/.local/bin/krust
+WorkingDirectory=%h
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target
+EOL
+
+
+
+# Create and enable folio systemd user service
+mkdir -p "$HOME/.config/systemd/user"
+
+tee "$HOME/.config/systemd/user/folio.service" > /dev/null << EOL
+[Unit]
+Description=folio Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/folio
 WorkingDirectory=%h
 Restart=always
 RestartSec=3
