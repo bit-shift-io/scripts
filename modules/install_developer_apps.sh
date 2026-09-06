@@ -121,7 +121,7 @@ WantedBy=graphical-session.target
 EOL
 
 systemctl --user daemon-reload
-systemctl --user enable --now krust.service grit.service
+systemctl --user enable --now krust.service folio.service grit.service
 loginctl enable-linger "$USER"
 
 echo "Complete"
