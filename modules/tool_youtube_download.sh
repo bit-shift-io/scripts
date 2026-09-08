@@ -19,6 +19,14 @@ source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
 #
 
 
+"$UTIL" -i yt-dlp deno
+
+# deno install path (set by curl-install on fedora/debian)
+if [[ -d "$HOME/.deno/bin" ]] ; then
+    export DENO_INSTALL="$HOME/.deno"
+    export PATH="$DENO_INSTALL/bin:$PATH"
+fi
+
 # set some variables
 DL_DIR="$HOME/youtube"
 MAX_RES=720 # Maximum vertical resolution (e.g. 720, 1080)
@@ -52,11 +60,6 @@ function main {
     done
 }
 
-function fn_util_check {
-    # ensure the tool is installed
-    "$UTIL" -i yt-dlp
-}
-
 function fn_user_input {
     echo "Paste youtube link: "
     read URL
@@ -77,6 +80,7 @@ function get_channel {
     fi
 
     yt-dlp \
+        --remote-components ejs:github \
         -f "bestvideo[height<=${MAX_RES}][ext=mp4]+bestaudio[ext=m4a]/best[height<=${MAX_RES}][ext=mp4]/best[height<=${MAX_RES}]" \
         -r 1M \
         --sleep-requests 1 \
@@ -92,6 +96,7 @@ function fn_get_video {
 
     yt-dlp \
         --no-playlist \
+        --remote-components ejs:github \
         -f "bestvideo[height<=${MAX_RES}][ext=mp4]+bestaudio[ext=m4a]/best[height<=${MAX_RES}][ext=mp4]/best[height<=${MAX_RES}]" \
         --download-archive "$DL_DIR/archive.txt" \
         -o "%(title)s.%(ext)s" \
@@ -104,6 +109,7 @@ function fn_get_audio {
 
     yt-dlp \
         --no-playlist \
+        --remote-components ejs:github \
         --split-chapters \
         -x \
         --audio-format mp3 \

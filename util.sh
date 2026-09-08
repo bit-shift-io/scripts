@@ -184,6 +184,14 @@ function pkg {
         fedora:opencode)                       echo "copr:sureclaw/opencode:opencode" ;;
         *:opencode)                            echo "skip:opencode" ;;
 
+        arch:yt-dlp)                           echo "yt-dlp" ;;
+        debian:yt-dlp)                         echo "yt-dlp" ;;
+        fedora:yt-dlp)                         echo "yt-dlp" ;;
+
+        arch:deno)                             echo "deno" ;;
+        debian:deno)                           echo "curl-install:https://deno.land/install.sh" ;;
+        fedora:deno)                           echo "curl-install:https://deno.land/install.sh" ;;
+
         *:manjaro-asian-input-support-fcitx5)
             if [[ "$(os_id)" == "manjaro" ]]; then
                 echo "manjaro-asian-input-support-fcitx5"
@@ -304,6 +312,10 @@ function install {
                 else
                     echo "skip rpmfusion-fedora: dnf only"
                 fi
+                ;;
+            curl-install:*)
+                local url="${item#curl-install:}"
+                curl -fsSL "${url}" | sh
                 ;;
             *)
                 case "${bin}" in
