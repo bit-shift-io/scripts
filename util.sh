@@ -141,6 +141,19 @@ function pkg {
         debian:libheif)                        echo "libheif1" ;;
         fedora:libheif)                        echo "libheif" ;;
 
+        fedora:imagemagick-heic)               echo "ImageMagick-heic" ;;
+        *:imagemagick-heic)                    echo "skip:imagemagick-heic" ;;
+
+        arch:imagemagick)                      echo "imagemagick" ;;
+        debian:imagemagick)                    echo "imagemagick" ;;
+        fedora:imagemagick)                    echo "ImageMagick" ;;
+
+        fedora:rpmfusion-fedora)               echo "rpmfusion-fedora" ;;
+        *:rpmfusion-fedora)                    echo "skip:rpmfusion-fedora" ;;
+
+        fedora:libheif-freeworld)              echo "libheif-freeworld" ;;
+        *:libheif-freeworld)                   echo "skip:libheif-freeworld" ;;
+
         arch:radeon-profile-daemon-git)        echo "aur:radeon-profile-daemon-git" ;;
         *:radeon-profile-daemon-git)           echo "skip:radeon-profile-daemon-git" ;;
 
@@ -279,6 +292,17 @@ function install {
                     sudo ${bin} install -y "${rppkg}"
                 else
                     echo "skip ${item}: repo file only"
+                fi
+                ;;
+            rpmfusion-fedora)
+                if [[ "${bin}" == "dnf" ]]; then
+                    local fedora_ver
+                    fedora_ver=$(rpm -E %fedora)
+                    sudo ${bin} install -y \
+                        https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${fedora_ver}.noarch.rpm \
+                        https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${fedora_ver}.noarch.rpm
+                else
+                    echo "skip rpmfusion-fedora: dnf only"
                 fi
                 ;;
             *)
