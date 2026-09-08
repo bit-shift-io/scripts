@@ -137,6 +137,10 @@ function pkg {
         arch:qt6-heic-image-plugin)            echo "aur:qt6-heic-image-plugin" ;;
         *:qt6-heic-image-plugin)               echo "skip:qt6-heic-image-plugin" ;;
 
+        arch:libheif)                          echo "libheif" ;;
+        debian:libheif)                        echo "libheif1" ;;
+        fedora:libheif)                        echo "libheif" ;;
+
         arch:radeon-profile-daemon-git)        echo "aur:radeon-profile-daemon-git" ;;
         *:radeon-profile-daemon-git)           echo "skip:radeon-profile-daemon-git" ;;
 

@@ -1,4 +1,8 @@
 #!/bin/bash
+source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
+
+# ensure libheif is installed for heif/heic support
+"$UTIL" -i libheif
 
 # Prompt the user for the directory path
 read -rp "Enter the path to the photo directory: " user_path
@@ -28,7 +32,7 @@ cp -r "$src_dir" "$dest_dir"
 
 # Recursively find and process all images inside the backup folder, printing the filename
 echo "Optimizing photos (including subfolders) for printing..."
-find "$dest_dir" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \) | while read -r img; do
+find "$dest_dir" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.heif" -o -iname "*.heic" \) | while read -r img; do
     echo "Processing: $img"
     magick "$img" -auto-gamma -auto-level "$img"
 done
