@@ -59,11 +59,72 @@ EOT
 fi
 
 # Clone, build, and install Rust apps from git into ~/.local/bin
-# stop any running instances first so the freshly built binaries get used
-systemctl --user stop grit.service krust.service folio.service 2>/dev/null || true
-"$UTIL" -b https://github.com/bit-shift-io/krust.git krust
+# Process each service sequentially: stop, build, start
+# Order: folio, grit, krust
+
+# Ensure systemd user directory exists
+mkdir -p "$HOME/.config/systemd/user"
+
+# Process folio first
+echo "=== Processing folio ==="
+systemctl --user stop folio.service 2>/dev/null || true
 "$UTIL" -b https://github.com/bit-shift-io/folio.git folio
+# Create and enable folio systemd user service
+mkdir -p "$HOME/.config/systemd/user"
+
+tee "$HOME/.config/systemd/user/folio.service" > /dev/null << EOL
+[Unit]
+Description=folio Service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/folio
+WorkingDirectory=%h
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target
+EOL
+
+systemctl --user daemon-reload
+systemctl --user enable --now folio.service
+
+# Process grit second
+echo "=== Processing grit ==="
+systemctl --user stop grit.service 2>/dev/null || true
 "$UTIL" -b https://github.com/bit-shift-io/grit.git grit
+
+# Create and enable grit systemd user service
+mkdir -p "$HOME/.config/systemd/user"
+
+tee "$HOME/.config/systemd/user/grit.service" > /dev/null << EOL
+[Unit]
+Description=Grit Git client daemon
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+ExecStart=%h/.local/bin/grit --headless --port 5000
+Restart=on-failure
+
+[Install]
+WantedBy=graphical-session.target
+EOL
+
+systemctl --user daemon-reload
+systemctl --user enable --now grit.service
+
+# Process krust last (slowest build due to WASM)
+echo "=== Processing krust ==="
+systemctl --user stop krust.service 2>/dev/null || true
+
+# Skip WASM build if prebuilt pkg exists to speed up
+if [[ -n "${KRUST_SKIP_WASM_BUILD:-}" ]]; then
+    echo "KRUST_SKIP_WASM_BUILD=1 (using prebuilt WASM)"
+fi
+"$UTIL" -b https://github.com/bit-shift-io/krust.git krust
 
 # Create and enable krust systemd user service
 mkdir -p "$HOME/.config/systemd/user"
@@ -84,44 +145,8 @@ RestartSec=3
 WantedBy=default.target
 EOL
 
-
-
-# Create and enable folio systemd user service
-mkdir -p "$HOME/.config/systemd/user"
-
-tee "$HOME/.config/systemd/user/folio.service" > /dev/null << EOL
-[Unit]
-Description=folio Service
-After=network.target
-
-[Service]
-Type=simple
-ExecStart=%h/.local/bin/folio
-WorkingDirectory=%h
-Restart=always
-RestartSec=3
-
-[Install]
-WantedBy=default.target
-EOL
-
-# Create and enable grit systemd user service
-tee "$HOME/.config/systemd/user/grit.service" > /dev/null << EOL
-[Unit]
-Description=Grit Git client daemon
-PartOf=graphical-session.target
-After=graphical-session.target
-
-[Service]
-ExecStart=%h/.local/bin/grit --headless --port 5000
-Restart=on-failure
-
-[Install]
-WantedBy=graphical-session.target
-EOL
-
 systemctl --user daemon-reload
-systemctl --user enable --now krust.service folio.service grit.service
+systemctl --user enable --now krust.service
 loginctl enable-linger "$USER"
 
 echo "Complete"
