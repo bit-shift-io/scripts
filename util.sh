@@ -1,5 +1,17 @@
 #!/bin/bash
 
+# Shared paths for all scripts that source this file
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+UTIL="$SCRIPT_DIR/util.sh"
+
+# Shared notification function - logs to console instead of using notify-send
+notify() {
+    local category="$1"
+    local message="$2"
+    echo "$category: $message"
+}
+
 # install helper works with:
 # arch:   pacman, yay, paru
 # debian: apt

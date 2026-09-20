@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/../util.sh"
 
 local_path=/swapfile
 # ${string/regexp/replacement}
@@ -46,6 +47,4 @@ sudo systemctl enable "$swap_path_name.swap"
 # show status
 free -m
 
-if command -v notify-send > /dev/null 2>&1; then
-    notify-send 'Swap' 'Created'
-fi
+notify 'Swap' 'Created'

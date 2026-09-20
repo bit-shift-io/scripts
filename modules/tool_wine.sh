@@ -1,6 +1,5 @@
 #!/bin/bash
 source "$(dirname "${BASH_SOURCE[0]}")/../util.sh"
-UTIL="$(dirname "${BASH_SOURCE[0]}")/../util.sh"
 
 function main {
     # loop args
@@ -140,9 +139,7 @@ function fn_wine_64 {
     #rm ~/.local/share/applications/wine*
 
     echo 'install complete'
-    if command -v notify-send > /dev/null; then
-        notify-send 'Applications' 'Install completed'
-    fi
+    notify 'Applications' 'Install completed'
 }
 
 function fn_wine_32 {
@@ -205,9 +202,7 @@ function fn_wine_32 {
     #WINEPREFIX=$WINE_DIR winecfg
 
     echo 'install complete'
-    if command -v notify-send > /dev/null; then
-        notify-send 'Applications' 'Install completed'
-    fi
+    notify 'Applications' 'Install completed'
 }
 
 function fn_switch_wine_prefix {
@@ -238,9 +233,7 @@ function fn_switch_wine_prefix {
 
     echo "$TITLE"
     echo "$MSG"
-    if command -v notify-send > /dev/null; then
-        notify-send "${TITLE}" "${MSG}"
-    fi
+    notify "${TITLE}" "${MSG}"
 }
 
 function fn_kill_wine {

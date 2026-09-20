@@ -1,10 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
-SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
-source "$SCRIPT_DIR/../util.sh"
-source "$SCRIPT_DIR/mount_sshfs.sh"
-UTIL="$SCRIPT_DIR/../util.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../util.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../config_mounts.sh"
+
 CURRENT_DISTRO=$(distro)
 
 if [[ "$CURRENT_DISTRO" != "fedora" ]]; then
@@ -46,7 +45,7 @@ ensure_ssh_key "$SFTP_USER@$SFTP_HOST"
 sudo mkdir -p "$MOUNT_POINT"
 
 # reuse the sshfs module to create the mount + automount units
-add_mount "$MOUNT_POINT" "$SFTP_USER" "$SFTP_HOST" "$SFTP_PATH"
+    add_mount_sshfs "$MOUNT_POINT" "$SFTP_USER" "$SFTP_HOST" "$SFTP_PATH"
 
 # trigger the automount and wait for the real sshfs mount (not the autofs stub)
 ls "$MOUNT_POINT" > /dev/null 2>&1 || true
@@ -94,4 +93,4 @@ echo "fedora cache ready: $MOUNT_POINT -> $SFTP_USER@$SFTP_HOST:$SFTP_PATH"
 echo "test it with: sudo dnf install htop"
 echo "then check: ls $MOUNT_POINT && dnf repolist | grep _dnf_local"
 
-notify-send 'Fedora Cache' "dnf local cache configured at $MOUNT_POINT"
+echo "fedora cache configured at $MOUNT_POINT"

@@ -1,7 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/../util.sh"
-UTIL="$(dirname "${BASH_SOURCE[0]}")/../util.sh"
 
 # Ensure PATH is set for commands running inside this script
 export PATH="$HOME/.local/bin:$HOME/.opencode/bin:$PATH"

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+source "$(dirname "${BASH_SOURCE[0]}")/../util.sh"
+
 # Input with Default Value
 read -p "Local mirror IP/Hostname [default: update.lan]: " computer_name
 computer_name="${computer_name:-update.lan}"
@@ -33,5 +35,5 @@ sudo sed -i "s|^\s*\(Include = /etc/pacman.d/cachyos-v4-mirrorlist\)|${cachy_ser
 sudo sed -i "s|^\s*\(Include = /etc/pacman.d/cachyos-v3-mirrorlist\)|${cachy_server}\n\1|g" /etc/pacman.conf
 sudo sed -i "s|^\s*\(Include = /etc/pacman.d/cachyos-mirrorlist\)|${cachy_server}\n\1|g" /etc/pacman.conf
 # Finalize
-notify-send 'Config' "Local mirrors prioritized to ${computer_name}"
+notify 'Config' "Local mirrors prioritized to ${computer_name}"
 echo "Done!"

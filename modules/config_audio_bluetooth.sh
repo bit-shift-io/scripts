@@ -1,7 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/../util.sh"
-UTIL="$(dirname "${BASH_SOURCE[0]}")/../util.sh"
 
 echo "Enter visible bluetooth name: "
 read -r bluetooth_name
