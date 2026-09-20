@@ -8,15 +8,17 @@
 
 # detect the distro family from /etc/os-release
 function distro {
-    local id
-    id=$(. /etc/os-release 2>/dev/null && echo "${ID_LIKE:-$ID}" | tr '[:upper:]' '[:lower:]')
-    case " ${id} " in
-        *arch*)                      echo arch ;;
-        *debian*|*ubuntu*)           echo debian ;;
-        *fedora*|*rhel*|*centos*)    echo fedora ;;
-        *suse*|*opensuse*)           echo suse ;;
-        *)                           echo unknown ;;
-    esac
+    if grep -qiE 'fedora|rhel|centos' /etc/os-release 2>/dev/null; then
+        echo "fedora"
+    elif grep -qiE 'arch|manjaro|cachyos|endeavouros' /etc/os-release 2>/dev/null; then
+        echo "arch"
+    elif grep -qiE 'debian|ubuntu' /etc/os-release 2>/dev/null; then
+        echo "debian"
+    elif grep -qiE 'suse|opensuse' /etc/os-release 2>/dev/null; then
+        echo "suse"
+    else
+        echo "unknown"
+    fi
 }
 
 # raw os-release ID (e.g. manjaro) for special cases
@@ -409,4 +411,7 @@ function remove {
 }
 
 # pass all args
-main "$@"
+# Only run main if executed directly, not when sourced
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi

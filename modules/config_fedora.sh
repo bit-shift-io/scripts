@@ -1,8 +1,21 @@
 #!/bin/bash
 set -euo pipefail
 
-source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
-source "$(dirname "${BASH_SOURCE[0]}")/mount_sshfs.sh"
+SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+source "$SCRIPT_DIR/util.sh"
+source "$SCRIPT_DIR/mount_sshfs.sh"
+CURRENT_DISTRO=$(distro)
+
+if [[ "$CURRENT_DISTRO" != "fedora" ]]; then
+    echo "Error: This script is designed for Fedora only (detected: $CURRENT_DISTRO)." >&2
+    exit 1
+fi
+
+# GPG keys and repos
+echo "Configuring repositories and keys..."
+"$UTIL" -i rpmfusion-fedora
+"$UTIL" -i zed
+"$UTIL" -i lact
 
 # fedora cache: one shared dnf download cache for the whole LAN.
 # python3-dnf-plugin-local saves every downloaded rpm into repodir and
@@ -14,10 +27,10 @@ source "$(dirname "${BASH_SOURCE[0]}")/mount_sshfs.sh"
 MOUNT_POINT="/srv/fedoraLocalRepo"
 SFTP_PATH="/home/dietpi/fedora"
 
-echo "Enter sftp user:"
+echo "Enter sftp user (eg: admin):"
 read -r SFTP_USER
 
-echo "Enter sftp host eg media.lan:"
+echo "Enter sftp host (eg media.lan):"
 read -r SFTP_HOST
 
 # ensure the ssh key the mount uses exists and is authorised on the remote box
@@ -27,6 +40,7 @@ ensure_ssh_key "$SFTP_USER@$SFTP_HOST"
 # dnf5 native local plugin + createrepo_c (required for metadata generation)
 "$UTIL" -i python3-dnf-plugin-local
 "$UTIL" -i createrepo_c
+
 
 sudo mkdir -p "$MOUNT_POINT"
 
