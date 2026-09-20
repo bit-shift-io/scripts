@@ -1,5 +1,6 @@
 #!/bin/bash
-source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../util.sh"
+UTIL="$(dirname "${BASH_SOURCE[0]}")/../util.sh"
 # todo get a whole channel/playlist
 # https://techearl.com/download-youtube-playlist
 # https://askubuntu.com/questions/856911/using-youtube-dl-to-download-entire-youtube-channel

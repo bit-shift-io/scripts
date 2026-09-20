@@ -2,8 +2,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
-source "$SCRIPT_DIR/util.sh"
+source "$SCRIPT_DIR/../util.sh"
 source "$SCRIPT_DIR/mount_sshfs.sh"
+UTIL="$SCRIPT_DIR/../util.sh"
 CURRENT_DISTRO=$(distro)
 
 if [[ "$CURRENT_DISTRO" != "fedora" ]]; then

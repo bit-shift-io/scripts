@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
-source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../util.sh"
+UTIL="$(dirname "${BASH_SOURCE[0]}")/../util.sh"
 
 # amd NPU specific software
 "$UTIL" -i xrt xrt-plugin-amdxdna

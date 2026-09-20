@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
-source "$(dirname "${BASH_SOURCE[0]}")/util.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../util.sh"
+UTIL="$(dirname "${BASH_SOURCE[0]}")/../util.sh"
 
 # https://wiki.archlinux.org/title/IOS
 
