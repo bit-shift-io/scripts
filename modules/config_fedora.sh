@@ -2,7 +2,7 @@
 set -euo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/../util.sh"
-source "$(dirname "${BASH_SOURCE[0]}")/../config_mounts.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/config_mounts.sh"
 
 CURRENT_DISTRO=$(distro)
 
@@ -14,8 +14,12 @@ fi
 # GPG keys and repos
 echo "Configuring repositories and keys..."
 "$UTIL" -i rpmfusion-fedora
-"$UTIL" -i zed
-"$UTIL" -i lact
+# zed editor
+"$UTIL" -i enablerepo:pgdev/zed
+# AMD GPU gui tool
+"$UTIL" -i enablerepo:ilyaz/LACT
+# steam
+"$UTIL" -i enablerepo:rpmfusion-nonfree-steam
 
 # fedora cache: one shared dnf download cache for the whole LAN.
 # python3-dnf-plugin-local saves every downloaded rpm into repodir and

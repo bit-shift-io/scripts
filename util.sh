@@ -69,7 +69,10 @@ function detect_install_util {
 # recognised tokens:
 #   aur:<pkg>            -> install via the AUR helper (arch only)
 #   copr:<proj>:<pkg>    -> enable the COPR project then install (fedora only)
+#   coprrepo:<proj>:<pkg> -> enable the COPR project and import key only (fedora only)
 #   repofile:<url>:<pkg> -> add a repo from a .repo URL then install (fedora only)
+#   gpgkey:<url|path>    -> import a GPG key (fedora only)
+#   enablerepo:<name>    -> enable a repository by name (fedora only)
 #   skip:<name>          -> not available on this distro
 function pkg {
     local d name
@@ -300,7 +303,34 @@ function install {
                     local pkgname="${repo#*:}"
                     repo="${repo%%:*}"
                     sudo ${bin} copr enable -y "${repo}"
+                    # Import the COPR repo's GPG key into the RPM database
+                    local repo_file gpgkey
+                    repo_file=$(find /etc/yum.repos.d -maxdepth 1 -name "_copr*${repo/\//:}*.repo" 2>/dev/null | head -1)
+                    if [[ -f "${repo_file}" ]]; then
+                        gpgkey=$(grep -E '^gpgkey=' "${repo_file}" | cut -d= -f2- | head -1)
+                        if [[ -n "${gpgkey}" ]]; then
+                            sudo rpm --import "${gpgkey}"
+                        fi
+                    fi
                     sudo ${bin} install -y "${pkgname}"
+                else
+                    echo "skip ${item}: COPR only"
+                fi
+                ;;
+            coprrepo:*)
+                if [[ "${bin}" == "dnf" ]]; then
+                    local repo="${item#coprrepo:}"
+                    repo="${repo%%:*}"
+                    sudo ${bin} copr enable -y "${repo}"
+                    # Import the COPR repo's GPG key into the RPM database
+                    local repo_file gpgkey
+                    repo_file=$(find /etc/yum.repos.d -maxdepth 1 -name "_copr*${repo/\//:}*.repo" 2>/dev/null | head -1)
+                    if [[ -f "${repo_file}" ]]; then
+                        gpgkey=$(grep -E '^gpgkey=' "${repo_file}" | cut -d= -f2- | head -1)
+                        if [[ -n "${gpgkey}" ]]; then
+                            sudo rpm --import "${gpgkey}"
+                        fi
+                    fi
                 else
                     echo "skip ${item}: COPR only"
                 fi
@@ -323,8 +353,45 @@ function install {
                     sudo ${bin} install -y \
                         https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${fedora_ver}.noarch.rpm \
                         https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${fedora_ver}.noarch.rpm
+                    # Import RPM Fusion GPG keys for package verification
+                    sudo rpm --import "/etc/pki/rpm-gpg/RPM-GPG-KEY-rpmfusion-free-fedora-${fedora_ver}"
+                    sudo rpm --import "/etc/pki/rpm-gpg/RPM-GPG-KEY-rpmfusion-nonfree-fedora-${fedora_ver}"
                 else
                     echo "skip rpmfusion-fedora: dnf only"
+                fi
+                ;;
+            gpgkey:*)
+                local key="${item#gpgkey:}"
+                if [[ "${bin}" == "dnf" ]]; then
+                    sudo rpm --import "${key}"
+                else
+                    echo "skip gpgkey: not supported on $(distro)"
+                fi
+                ;;
+            enablerepo:*)
+                local repo="${item#enablerepo:}"
+                if [[ "${bin}" == "dnf" ]]; then
+                    if [[ "${repo}" == */* || "${repo}" == *:* ]]; then
+                        # COPR spec - enable and import key
+                        local copr_repo="${repo}"
+                        if [[ "${copr_repo}" == copr:* ]]; then
+                            copr_repo="${copr_repo#copr:}"
+                        fi
+                        sudo ${bin} copr enable -y "${copr_repo}"
+                        # Import the COPR repo's GPG key into the RPM database
+                        local repo_file gpgkey
+                        repo_file=$(find /etc/yum.repos.d -maxdepth 1 -name "_copr*${copr_repo/\//:}*.repo" 2>/dev/null | head -1)
+                        if [[ -f "${repo_file}" ]]; then
+                            gpgkey=$(grep -E '^gpgkey=' "${repo_file}" | cut -d= -f2- | head -1)
+                            if [[ -n "${gpgkey}" ]]; then
+                                sudo rpm --import "${gpgkey}"
+                            fi
+                        fi
+                    else
+                        sudo ${bin} config-manager enable "${repo}"
+                    fi
+                else
+                    echo "skip ${item}: not supported on $(distro)"
                 fi
                 ;;
             curl-install:*)
