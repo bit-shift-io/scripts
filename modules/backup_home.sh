@@ -17,6 +17,7 @@ RCLONE_FILTERS=(
   --filter "- **/__pycache__/**"
 
   # 3. INCLUDE critical hidden folders & files
+   --filter "+ /.local/**"
   --filter "+ /.config/**"
   --filter "+ /.ssh/**"
   --filter "+ /.thunderbird/**"
