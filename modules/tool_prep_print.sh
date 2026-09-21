@@ -36,7 +36,7 @@ cp -r "$src_dir" "$dest_dir"
 echo "Optimizing photos (including subfolders) for printing..."
 find "$dest_dir" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.heif" -o -iname "*.heic" \) | while read -r img; do
     echo "$img"
-    magick "$img" +level 20%,100% "$img" # output levels like krita
+    magick "$img" +level 10%,100% "$img" # output levels like krita
     #magick "$img" -level 0%,100%,1.0,15% "$img" # shadow lift
     #magick "$img" -level 0%,100%,1.0,15% -modulate 110,100,100 "$img" # shadow lift + brightness 10%
     #magick "$img" -level 15%,100%,1.2 "$img" # dark lift, no good
