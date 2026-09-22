@@ -23,7 +23,7 @@ cosmic_set com.system76.CosmicPanel.Dock autohide 'OnOverlap'
 cosmic_set com.system76.CosmicPanel.Dock exclusive_zone 'false'
 
 # fully transparent panel
-cosmic_set com.system76.CosmicPanel.Panel opacity '0.0'
+#cosmic_set com.system76.CosmicPanel.Panel opacity '0.0'
 
 # power/idle: display off after 5 min on battery or AC, never suspend on AC
 cosmic_set com.system76.CosmicIdle screen_off_time 'Some(300000)'
@@ -60,20 +60,20 @@ EOF
 
 # systemd user environment generator: export WAYLAND_DISPLAY for user services
 # (grit etc.) by auto-detecting the active wayland socket
-GENERATOR_DIR=/usr/lib/systemd/user-environment-generators
-sudo mkdir -p "$GENERATOR_DIR"
-sudo tee "$GENERATOR_DIR/50-cosmic-wayland.sh" > /dev/null <<'EOF'
+#GENERATOR_DIR=/usr/lib/systemd/user-environment-generators
+#sudo mkdir -p "$GENERATOR_DIR"
+#sudo tee "$GENERATOR_DIR/50-cosmic-wayland.sh" > /dev/null <<'EOF'
 #!/bin/sh
 # Automatically find and export active Wayland display for systemd user services
-if [ -z "$WAYLAND_DISPLAY" ] && [ -n "$XDG_RUNTIME_DIR" ]; then
-    for sock in "$XDG_RUNTIME_DIR"/wayland-*; do
-        if [ -S "$sock" ]; then
-            echo "WAYLAND_DISPLAY=$(basename "$sock")"
-            break
-        fi
-    done
-fi
-EOF
-sudo chmod +x "$GENERATOR_DIR/50-cosmic-wayland.sh"
+#if [ -z "$WAYLAND_DISPLAY" ] && [ -n "$XDG_RUNTIME_DIR" ]; then
+#    for sock in "$XDG_RUNTIME_DIR"/wayland-*; do
+#        if [ -S "$sock" ]; then
+#            echo "WAYLAND_DISPLAY=$(basename "$sock")"
+#            break
+#        fi
+#    done
+#fi
+#EOF
+#sudo chmod +x "$GENERATOR_DIR/50-cosmic-wayland.sh"
 
 echo "Complete (restart the COSMIC session to apply)"
