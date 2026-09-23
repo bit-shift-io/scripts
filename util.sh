@@ -312,7 +312,7 @@ function install {
                             sudo rpm --import "${gpgkey}"
                         fi
                     fi
-                    sudo ${bin} install -y "${pkgname}"
+                    sudo ${bin} install -y --allowerasing "${pkgname}"
                 else
                     echo "skip ${item}: COPR only"
                 fi
@@ -341,7 +341,7 @@ function install {
                     local rppkg="${rpurl##*:}"
                     rpurl="${rpurl%:*}"
                     sudo ${bin} config-manager addrepo --from-repofile="${rpurl}"
-                    sudo ${bin} install -y "${rppkg}"
+                    sudo ${bin} install -y --allowerasing "${rppkg}"
                 else
                     echo "skip ${item}: repo file only"
                 fi
@@ -350,7 +350,7 @@ function install {
                 if [[ "${bin}" == "dnf" ]]; then
                     local fedora_ver
                     fedora_ver=$(rpm -E %fedora)
-                    sudo ${bin} install -y \
+                    sudo ${bin} install -y --allowerasing \
                         https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${fedora_ver}.noarch.rpm \
                         https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${fedora_ver}.noarch.rpm
                     # Import RPM Fusion GPG keys for package verification
@@ -413,7 +413,7 @@ function install {
                         sudo ${bin} install -y "${item}"
                         ;;
                     'dnf')
-                        sudo ${bin} install -y "${item}"
+                        sudo ${bin} install -y --allowerasing "${item}"
                         ;;
                     *)
                         echo "unknown"
