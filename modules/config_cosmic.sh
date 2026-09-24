@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
+source "$(dirname "${BASH_SOURCE[0]}")/../util.sh"
 
 # COSMIC desktop settings (config files edited directly; cosmic-config unavailable):
 #   panel/dock hide on window overlap, no reserved space, transparent panel
@@ -15,6 +16,8 @@ cosmic_set() {
     mkdir -p "$dir"
     printf '%s' "$3" > "$dir/$2"
 }
+
+echo "Cosmic settings..."
 
 # panel/dock: hide when windows overlap instead of reserving screen space
 cosmic_set com.system76.CosmicPanel.Panel autohide 'OnOverlap'
@@ -76,4 +79,4 @@ EOF
 #EOF
 #sudo chmod +x "$GENERATOR_DIR/50-cosmic-wayland.sh"
 
-echo "Complete (restart the COSMIC session to apply)"
+echo "Complete!"

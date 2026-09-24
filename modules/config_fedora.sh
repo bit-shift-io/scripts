@@ -27,15 +27,17 @@ echo "Configuring repositories and keys..."
 # from the internet, everyone else gets it over the LAN.
 # https://blog.holtzweb.com/posts/fedora-repository-local-mirror-over-LAN/
 
-# where the shared repo lives (sftp share gets mounted here)
-MOUNT_POINT="/srv/fedoraLocalRepo"
-SFTP_PATH="/home/dietpi/fedora"
+
 
 echo "Enter sftp user (eg: admin):"
 read -r SFTP_USER
 
 echo "Enter sftp host (eg media.lan):"
 read -r SFTP_HOST
+
+# where the shared repo lives (sftp share gets mounted here)
+MOUNT_POINT="/srv/fedoraLocalRepo"
+SFTP_PATH="/home/$SFTP_USER/fedora"
 
 # ensure the ssh key the mount uses exists and is authorised on the remote box
 # (only asks for the password if the key isn't authorised yet)

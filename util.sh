@@ -158,6 +158,11 @@ function pkg {
         debian:libheif)                        echo "libheif1" ;;
         fedora:libheif)                        echo "libheif" ;;
 
+        arch:libxkbcommon)                     echo "libxkbcommon" ;;
+        debian:libxkbcommon)                   echo "libxkbcommon-dev" ;;
+        fedora:libxkbcommon)                   echo "libxkbcommon-devel" ;;
+        suse:libxkbcommon)                     echo "libxkbcommon-devel" ;;
+
         fedora:imagemagick-heic)               echo "ImageMagick-heic" ;;
         *:imagemagick-heic)                    echo "skip:imagemagick-heic" ;;
 
