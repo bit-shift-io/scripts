@@ -2,8 +2,8 @@
 source "$(dirname "${BASH_SOURCE[0]}")/../util.sh"
 
 RCLONE_OPTS=(
-    --exclude ".*"
-    --exclude ".**"
+    --exclude '.*'
+    --exclude '.**'
     -vP
     --fast-list
     --transfers 4
@@ -47,7 +47,7 @@ function main {
 }
 
 function fn_ssh_key {
-    ssh-copy-id dietpi@media.lan
+    ssh-copy-id -f dietpi@media.lan
 }
 
 function fn_install {
@@ -62,10 +62,9 @@ function fn_videos {
 
     DEST_DIR_1="/run/media/bronson/${drive}" # external hdd backup
 
-    #SRC_DIR_1=":sftp,ssh='ssh dietpi@media.lan':/mnt/2tb"
-    SRC_DIR_1=":sftp,host=media.lan,user=dietpi:/mnt/2tb"
+    SRC_DIR_1=":sftp,ssh='ssh dietpi@media.lan':/mnt/2tb"
     echo "Start backup up from '$SRC_DIR_1' to '$DEST_DIR_1'...."
-    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Videos" "$DEST_DIR_1/Videos"
+    rclone sync "${RCLONE_OPTS[@]}" "$SRC_DIR_1/Videos" "$DEST_DIR_1/Videos"
 
     echo "Backup complete."
 }
@@ -87,10 +86,10 @@ function fn_min {
 
     SRC_DIR_1=":sftp,ssh='ssh dietpi@media.lan':/mnt/2tb"
     echo "Start backup up from '$SRC_DIR_1' to '$DEST_DIR_1'...."
-    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Bronson" "$DEST_DIR_1/Bronson"
-    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Haoying" "$DEST_DIR_1/Haoying"
-    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Misc" "$DEST_DIR_1/Misc"
-    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Photos" "$DEST_DIR_1/Photos"
+    rclone sync "${RCLONE_OPTS[@]}" "$SRC_DIR_1/Bronson" "$DEST_DIR_1/Bronson"
+    rclone sync "${RCLONE_OPTS[@]}" "$SRC_DIR_1/Haoying" "$DEST_DIR_1/Haoying"
+    rclone sync "${RCLONE_OPTS[@]}" "$SRC_DIR_1/Misc" "$DEST_DIR_1/Misc"
+    rclone sync "${RCLONE_OPTS[@]}" "$SRC_DIR_1/Photos" "$DEST_DIR_1/Photos"
 
     echo "Backup complete."
 }
@@ -104,14 +103,14 @@ function fn_full {
     SRC_DIR_1=":sftp,ssh='ssh dietpi@media.lan':/mnt/2tb"
     echo "Start backup up from '$SRC_DIR_1' to '$DEST_DIR_1'...."
 
-    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Bronson" "$DEST_DIR_1/Bronson"
-    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Haoying" "$DEST_DIR_1/Haoying"
-    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Misc" "$DEST_DIR_1/Misc"
-    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Photos" "$DEST_DIR_1/Photos"
+    rclone sync "${RCLONE_OPTS[@]}" "$SRC_DIR_1/Bronson" "$DEST_DIR_1/Bronson"
+    rclone sync "${RCLONE_OPTS[@]}" "$SRC_DIR_1/Haoying" "$DEST_DIR_1/Haoying"
+    rclone sync "${RCLONE_OPTS[@]}" "$SRC_DIR_1/Misc" "$DEST_DIR_1/Misc"
+    rclone sync "${RCLONE_OPTS[@]}" "$SRC_DIR_1/Photos" "$DEST_DIR_1/Photos"
 
-    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Audiobooks" "$DEST_DIR_1/Audiobooks"
-    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Music" "$DEST_DIR_1/Music"
-    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Videos" "$DEST_DIR_1/Videos"
+    rclone sync "${RCLONE_OPTS[@]}" "$SRC_DIR_1/Audiobooks" "$DEST_DIR_1/Audiobooks"
+    rclone sync "${RCLONE_OPTS[@]}" "$SRC_DIR_1/Music" "$DEST_DIR_1/Music"
+    rclone sync "${RCLONE_OPTS[@]}" "$SRC_DIR_1/Videos" "$DEST_DIR_1/Videos"
 
     echo "Backup complete."
 }
