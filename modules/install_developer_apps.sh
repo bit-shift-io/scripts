@@ -3,25 +3,28 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/../util.sh"
 
 # Ensure PATH is set for commands running inside this script
-export PATH="$HOME/.local/bin:$HOME/.opencode/bin:$PATH"
+#export PATH="$HOME/.local/bin:$HOME/.opencode/bin:$PATH"
 
-"$UTIL" -i gitui fish git rust cargo
+"$UTIL" -i fish git rust cargo
 
-distro="$("$UTIL" -d)"
-if [[ "$distro" == "fedora" ]]; then
+# if this breaks, use the method below
+"$UTIL" -i opencode
+
+#distro="$("$UTIL" -d)"
+#if [[ "$distro" == "fedora" ]]; then
     # the fedora build is currently broken, install via the official script instead
-    curl -fsSL https://opencode.ai/install | bash
-else
-    "$UTIL" -i opencode
-fi
+#    curl -fsSL https://opencode.ai/install | bash
+#else
+#    "$UTIL" -i opencode
+#fi
+
+# set fish default
+#chsh -s "$(command -v fish)" # dont use this, it breaks all scripts!
+chsh -s "$(command -v bash)"
 
 # Configure fish shell
 mkdir -p ~/.config/fish
-tee ~/.config/fish/config.fish > /dev/null << 'EOL'
-if status is-interactive
-    # Commands to run in interactive sessions can go here
-end
-
+tee ~/.config/fish/config.fish > /dev/null << EOL
 # Add user bin directories to PATH (Fish modern syntax)
 fish_add_path ~/.local/bin ~/.opencode/bin
 
@@ -31,6 +34,7 @@ set fish_greeting ""
 # force Qt apps to use Wayland
 set -gx QT_QPA_PLATFORM wayland
 EOL
+
 
 # Configure bashrc auto-switch to fish
 BASHRC="$HOME/.bashrc"
@@ -59,8 +63,6 @@ mkdir -p "$HOME/.config/systemd/user"
 echo "=== Processing folio ==="
 systemctl --user stop folio.service 2>/dev/null || true
 "$UTIL" -b https://github.com/bit-shift-io/folio.git folio
-# Create and enable folio systemd user service
-mkdir -p "$HOME/.config/systemd/user"
 
 tee "$HOME/.config/systemd/user/folio.service" > /dev/null << EOL
 [Unit]
@@ -86,9 +88,6 @@ echo "=== Processing grit ==="
 systemctl --user stop grit.service 2>/dev/null || true
 "$UTIL" -b https://github.com/bit-shift-io/grit.git grit
 
-# Create and enable grit systemd user service
-mkdir -p "$HOME/.config/systemd/user"
-
 tee "$HOME/.config/systemd/user/grit.service" > /dev/null << EOL
 [Unit]
 Description=Grit Git client daemon
@@ -109,11 +108,6 @@ systemctl --user enable --now grit.service
 # Process krust last (slowest build due to WASM)
 echo "=== Processing krust ==="
 systemctl --user stop krust.service 2>/dev/null || true
-
-# Skip WASM build if prebuilt pkg exists to speed up
-if [[ -n "${KRUST_SKIP_WASM_BUILD:-}" ]]; then
-    echo "KRUST_SKIP_WASM_BUILD=1 (using prebuilt WASM)"
-fi
 "$UTIL" -b https://github.com/bit-shift-io/krust.git krust
 
 # Create and enable krust systemd user service

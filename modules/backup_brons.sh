@@ -11,6 +11,7 @@ RCLONE_OPTS=(
     --delete-excluded
 )
 
+
 function main {
     # loop args
     if [[ $# -ne 0 ]] ; then
@@ -27,6 +28,7 @@ function main {
     ===================
     1) Minimal
     2) Full
+    3) Videos
     i) install rclone
     s) setup shared ssh key
 
@@ -36,6 +38,7 @@ function main {
     case $ans in
         1) fn_min ;;
         2) fn_full ;;
+        3) fn_videos ;;
         i) fn_install ;;
         s) fn_ssh_key ;;
         *) $SHELL ;;
@@ -52,8 +55,23 @@ function fn_install {
     "$UTIL" -i rclone
 }
 
+function fn_videos {
+    ls /run/media/bronson/
+    echo "Which drive to backup to (eg: offsite) : "
+    read drive
+
+    DEST_DIR_1="/run/media/bronson/${drive}" # external hdd backup
+
+    #SRC_DIR_1=":sftp,ssh='ssh dietpi@media.lan':/mnt/2tb"
+    SRC_DIR_1=":sftp,host=media.lan,user=dietpi:/mnt/2tb"
+    echo "Start backup up from '$SRC_DIR_1' to '$DEST_DIR_1'...."
+    rclone sync ${RCLONE_OPTS[@]} "$SRC_DIR_1/Videos" "$DEST_DIR_1/Videos"
+
+    echo "Backup complete."
+}
+
 function fn_min {
-    ls /mnt/
+    ls /run/media/bronson/
     echo "Which drive to backup to (eg: offsite) : "
     read drive
 
@@ -78,7 +96,7 @@ function fn_min {
 }
 
 function fn_full {
-    ls /mnt/
+    ls /run/media/bronson/
     echo "Which drive to backup to (eg: offsite) : "
     read drive
 
