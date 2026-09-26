@@ -6,6 +6,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/../util.sh"
 #   panel/dock hide on window overlap, no reserved space, transparent panel
 #   screen off after 5 min idle, never suspend on AC
 #   night light enabled
+#   breeze-dark icon theme
 
 COSMIC_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/cosmic"
 
@@ -34,6 +35,13 @@ cosmic_set com.system76.CosmicIdle suspend_on_ac_time 'None'
 
 # night light
 cosmic_set com.system76.CosmicComp night_light_enabled 'true'
+
+# icon theme: Breeze Dark
+# the only file cosmic-settings touches for this is com.system76.CosmicTk/icon_theme
+# (it does not touch gsettings or the gtk settings.ini files).
+# cosmic-config serialises strings RON-quoted, so the value must keep its quotes.
+"$UTIL" -i breeze-icon-theme
+cosmic_set com.system76.CosmicTk icon_theme '"breeze-dark"'
 
 # window management: no active-hint border, click-to-focus only
 cosmic_set com.system76.CosmicComp active_hint 'false'
