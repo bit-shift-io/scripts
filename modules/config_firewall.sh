@@ -30,6 +30,9 @@ sudo ufw allow 8000/tcp
 # krust
 sudo ufw allow 3000/tcp
 
+# tally
+sudo ufw allow 2000/tcp
+
 sudo ufw reload
 
 echo "Done!"
