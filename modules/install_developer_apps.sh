@@ -54,7 +54,10 @@ fi
 
 # Clone, build, and install Rust apps from git into ~/.local/bin
 # Process each service sequentially: stop, build, start
-# Order: folio, grit, krust
+# Start order: folio, krust, then grit. Grit auto-spawns krust when :3000
+# is down at boot, so it must start only after krust is confirmed serving —
+# otherwise a stale krust binary gets orphaned on the port and the fresh
+# krust.service crash-loops on "Address already in use" forever.
 
 # Ensure systemd user directory exists
 mkdir -p "$HOME/.config/systemd/user"
@@ -102,12 +105,19 @@ Restart=on-failure
 WantedBy=graphical-session.target
 EOL
 
-systemctl --user daemon-reload
-systemctl --user enable --now grit.service
+# Grit is built here but started last (see below) so that it boots with
+# krust already up and never auto-spawns a stale krust from PATH.
 
-# Process krust last (slowest build due to WASM)
+# Process krust next (slowest build due to WASM)
 echo "=== Processing krust ==="
 systemctl --user stop krust.service 2>/dev/null || true
+# Reap any stray krust (e.g. one grit auto-spawned in the past) and wait
+# until the port is actually free, or the rebuilt service can't bind it.
+pkill -x krust 2>/dev/null || true
+for _ in $(seq 1 10); do
+    curl -s --max-time 1 "http://127.0.0.1:3000/" >/dev/null 2>&1 || break
+    sleep 1
+done
 "$UTIL" -b https://github.com/bit-shift-io/krust.git krust
 
 # Create and enable krust systemd user service
@@ -131,6 +141,25 @@ EOL
 
 systemctl --user daemon-reload
 systemctl --user enable --now krust.service
+
+# Fail loudly if krust never comes up, instead of printing "Complete" over
+# a service that is crash-looping on a port an orphan still holds.
+krust_up=0
+for _ in $(seq 1 15); do
+    if curl -s --max-time 1 "http://127.0.0.1:3000/" >/dev/null 2>&1; then
+        krust_up=1
+        break
+    fi
+    sleep 1
+done
+if [[ "$krust_up" -ne 1 ]]; then
+    echo "ERROR: krust.service is not serving on :3000 after install" >&2
+    exit 1
+fi
+
+# Start grit only once krust is confirmed up.
+systemctl --user daemon-reload
+systemctl --user enable --now grit.service
 loginctl enable-linger "$USER"
 
 echo "Complete"
