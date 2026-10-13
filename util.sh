@@ -84,6 +84,13 @@ function pkg {
         debian:base-devel)                     echo "build-essential" ;;
         fedora:base-devel)                     echo "@development-tools" ;;
 
+        # openjdk for android/gradle. fedora >= 40 only ships 25 + java-latest;
+        # arch/debian still carry the LTS 17/21/25. android studio bundles its own
+        # jbr (jdk 21) which the flutter script prefers, this is a fallback.
+        arch:openjdk-devel)                     echo "jdk17-openjdk" ;;
+        debian:openjdk-devel)                   echo "default-jdk" ;;
+        fedora:openjdk-devel)                   echo "java-latest-openjdk-devel" ;;
+
         arch:vulkan-drivers)                   echo "vulkan-radeon lib32-vulkan-radeon vulkan-intel" ;;
         debian:vulkan-drivers)                 echo "mesa-vulkan-drivers" ;;
         fedora:vulkan-drivers)                 echo "mesa-vulkan-drivers" ;;
