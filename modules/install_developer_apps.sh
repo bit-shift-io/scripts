@@ -52,22 +52,23 @@ EOT
     echo "Bashrc configuration updated."
 fi
 
-# Clone, build, and install Rust apps from git into ~/.local/bin
-# Process each service sequentially: stop, build, start
-# Start order: folio, krust, then grit. Grit auto-spawns krust when :3000
-# is down at boot, so it must start only after krust is confirmed serving —
-# otherwise a stale krust binary gets orphaned on the port and the fresh
-# krust.service crash-loops on "Address already in use" forever.
+# Ask if user wants to install developer apps (folio, grit, krust) at the start
+read -rp "Install developer apps (folio, grit, krust)? [y/N] " install_apps
+install_apps="${install_apps:-n}"
+if [[ "$install_apps" != "y" && "$install_apps" != "Y" ]]; then
+    echo "Skipping developer app installation."
+else
+    echo "Installing developer apps..."
 
-# Ensure systemd user directory exists
-mkdir -p "$HOME/.config/systemd/user"
+    # Ensure systemd user directory exists
+    mkdir -p "$HOME/.config/systemd/user"
 
-# Process folio first
-echo "=== Processing folio ==="
-systemctl --user stop folio.service 2>/dev/null || true
-"$UTIL" -b https://github.com/bit-shift-io/folio.git folio
+    # Install folio first
+    echo "=== Processing folio ==="
+    systemctl --user stop folio.service 2>/dev/null || true
+    "$UTIL" -b https://github.com/bit-shift-io/folio.git folio
 
-tee "$HOME/.config/systemd/user/folio.service" > /dev/null << EOL
+    tee "$HOME/.config/systemd/user/folio.service" > /dev/null << EOL
 [Unit]
 Description=folio Service
 After=network.target
@@ -83,47 +84,25 @@ RestartSec=3
 WantedBy=default.target
 EOL
 
-systemctl --user daemon-reload
-systemctl --user enable --now folio.service
+    systemctl --user daemon-reload
+    systemctl --user enable --now folio.service
 
-# Process grit second
-echo "=== Processing grit ==="
-systemctl --user stop grit.service 2>/dev/null || true
-"$UTIL" -b https://github.com/bit-shift-io/grit.git grit
+    # Install krust next (slowest build due to WASM)
+    echo "=== Processing krust ==="
+    systemctl --user stop krust.service 2>/dev/null || true
+    # Reap any stray krust (e.g. one grit auto-spawned in the past) and wait
+    # until the port is actually free, or the rebuilt service can't bind it.
+    pkill -x krust 2>/dev/null || true
+    for _ in $(seq 1 10); do
+        curl -s --max-time 1 "http://127.0.0.1:3000/" >/dev/null 2>&1 || break
+        sleep 1
+    done
+    "$UTIL" -b https://github.com/bit-shift-io/krust.git krust
 
-tee "$HOME/.config/systemd/user/grit.service" > /dev/null << EOL
-[Unit]
-Description=Grit Git client daemon
-PartOf=graphical-session.target
-After=graphical-session.target
+    # Create and enable krust systemd user service
+    mkdir -p "$HOME/.config/systemd/user"
 
-[Service]
-ExecStart=%h/.local/bin/grit --headless --port 5000
-Restart=on-failure
-
-[Install]
-WantedBy=graphical-session.target
-EOL
-
-# Grit is built here but started last (see below) so that it boots with
-# krust already up and never auto-spawns a stale krust from PATH.
-
-# Process krust next (slowest build due to WASM)
-echo "=== Processing krust ==="
-systemctl --user stop krust.service 2>/dev/null || true
-# Reap any stray krust (e.g. one grit auto-spawned in the past) and wait
-# until the port is actually free, or the rebuilt service can't bind it.
-pkill -x krust 2>/dev/null || true
-for _ in $(seq 1 10); do
-    curl -s --max-time 1 "http://127.0.0.1:3000/" >/dev/null 2>&1 || break
-    sleep 1
-done
-"$UTIL" -b https://github.com/bit-shift-io/krust.git krust
-
-# Create and enable krust systemd user service
-mkdir -p "$HOME/.config/systemd/user"
-
-tee "$HOME/.config/systemd/user/krust.service" > /dev/null << EOL
+    tee "$HOME/.config/systemd/user/krust.service" > /dev/null << EOL
 [Unit]
 Description=krust Web Terminal Service
 After=network.target
@@ -139,27 +118,111 @@ RestartSec=3
 WantedBy=default.target
 EOL
 
-systemctl --user daemon-reload
-systemctl --user enable --now krust.service
+    systemctl --user daemon-reload
+    systemctl --user enable --now krust.service
 
-# Fail loudly if krust never comes up, instead of printing "Complete" over
-# a service that is crash-looping on a port an orphan still holds.
-krust_up=0
-for _ in $(seq 1 15); do
-    if curl -s --max-time 1 "http://127.0.0.1:3000/" >/dev/null 2>&1; then
-        krust_up=1
-        break
+    # Fail loudly if krust never comes up, instead of printing "Complete" over
+    # a service that is crash-looping on a port an orphan still holds.
+    krust_up=0
+    for _ in $(seq 1 15); do
+        if curl -s --max-time 1 "http://127.0.0.1:3000/" >/dev/null 2>&1; then
+            krust_up=1
+            break
+        fi
+        sleep 1
+    done
+    if [[ "$krust_up" -ne 1 ]]; then
+        echo "ERROR: krust.service is not serving on :3000 after install" >&2
+        exit 1
     fi
-    sleep 1
-done
-if [[ "$krust_up" -ne 1 ]]; then
-    echo "ERROR: krust.service is not serving on :3000 after install" >&2
-    exit 1
+
+    # Start grit only once krust is confirmed up.
+    systemctl --user daemon-reload
+    systemctl --user enable --now grit.service
+    loginctl enable-linger "$USER"
 fi
 
-# Start grit only once krust is confirmed up.
-systemctl --user daemon-reload
-systemctl --user enable --now grit.service
-loginctl enable-linger "$USER"
+# === OpenCode configuration ===
+OPENCODE_DIR="$HOME/.config/opencode"
+mkdir -p "$OPENCODE_DIR/plugins"
+mkdir -p "$OPENCODE_DIR"
 
+# Copy network watchdog plugin to global plugins directory
+cp "$SCRIPT_DIR/services/network-watchdog.js" "$OPENCODE_DIR/plugins/network-watchdog.js"
+
+# Overwrite the config file with the desired settings
+cat > "$OPENCODE_DIR/opencode.jsonc" << 'ENDEOF'
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "options": {
+      "timeout": 300000,
+      "chunkTimeout": 10000,
+      "keepAlive": true,
+      "keepAliveMsecs": 5000
+    }
+  },
+  "compaction": {
+    "auto": true,
+    "threshold": 0.65
+  },
+  "lsp": true,
+  "permission": {
+    "write": "allow",
+    "apply_patch": "allow",
+    "todowrite": "allow",
+    "skill": {
+      "*": "allow"
+    },
+    "read": {
+      "*": "allow",
+      "data": "allow",
+      "data/**": "allow",
+      "~/.cargo": "allow",
+      "~/.cargo/**": "allow",
+      "/tmp": "allow",
+      "/tmp/**": "allow",
+      "/var/tmp": "allow",
+      "/var/tmp/**": "allow"
+    },
+    "edit": {
+      "*": "allow",
+      "data": "allow",
+      "data/**": "allow",
+      "~/.cargo": "allow",
+      "~/.cargo/**": "allow",
+      "/tmp": "allow",
+      "/tmp/**": "allow",
+      "/var/tmp": "allow",
+      "/var/tmp/**": "allow"
+    },
+    "bash": {
+      "*": "allow",
+      "*data*": "allow",
+      "git commit*": "deny",
+      "git push*": "deny"
+    }
+  },
+  "plugin": [
+    "opencode-auto-continue@https://github.com/developing-today/opencode-auto-continue/archive/refs/tags/latest.tar.gz",
+    "./plugins/network-watchdog.js",
+    "superpowers@git+https://github.com/obra/superpowers.git"
+  ]
+}
+ENDEOF
+
+# Write auto-continue config to global config directory
+cat > "$OPENCODE_DIR/opencode-auto-continue.jsonc" << 'ENDEOF2'
+{
+  "enabled": true,
+  // Wait 10 seconds after an error state before reconnecting
+  "delayMs": 10000,
+  // 0 enables infinite consecutive retries
+  "maxConsecutive": 0,
+  // Minimum delay between auto-continue attempts
+  "throttleMs": 5000
+}
+ENDEOF2
+
+echo "OpenCode configuration complete."
 echo "Complete"
