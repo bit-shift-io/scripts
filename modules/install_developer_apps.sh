@@ -136,10 +136,54 @@ EOL
         exit 1
     fi
 
-    # Start grit only once krust is confirmed up.
+    # Build and install grit last: it serves the web UI on :5000 and its web
+    # assets are embedded in the binary, so it can only start once krust is
+    # confirmed up. Same stop/pkill/port-wait dance as krust above, or the
+    # rebuilt service can't bind :5000.
+    echo "=== Processing grit ==="
+    systemctl --user stop grit.service 2>/dev/null || true
+    pkill -x grit 2>/dev/null || true
+    for _ in $(seq 1 10); do
+        curl -s --max-time 1 "http://127.0.0.1:5000/" >/dev/null 2>&1 || break
+        sleep 1
+    done
+    "$UTIL" -b https://github.com/bit-shift-io/grit.git grit
+
+    # Written here too so a fresh machine provisions without a hand-made unit
+    # file. Wired to graphical-session.target (the desktop UI expects it) with
+    # Restart=on-failure, matching the existing grit setup.
+    tee "$HOME/.config/systemd/user/grit.service" > /dev/null << EOL
+[Unit]
+Description=Grit Git client daemon
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+ExecStart=%h/.local/bin/grit --headless --port 5000
+Restart=on-failure
+
+[Install]
+WantedBy=graphical-session.target
+EOL
+
     systemctl --user daemon-reload
     systemctl --user enable --now grit.service
     loginctl enable-linger "$USER"
+
+    # Fail loudly if grit never comes up, instead of printing "Complete" over
+    # a service that is crash-looping.
+    grit_up=0
+    for _ in $(seq 1 15); do
+        if curl -s --max-time 1 "http://127.0.0.1:5000/" >/dev/null 2>&1; then
+            grit_up=1
+            break
+        fi
+        sleep 1
+    done
+    if [[ "$grit_up" -ne 1 ]]; then
+        echo "ERROR: grit.service is not serving on :5000 after install" >&2
+        exit 1
+    fi
 fi
 
 # === OpenCode configuration ===
