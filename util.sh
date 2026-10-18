@@ -229,6 +229,34 @@ function pkg {
             fi
             ;;
 
+        # flutter linux desktop toolchain. flutter doctor wants clang/cmake/
+        # ninja/pkg-config (installed separately), gtk3 dev headers, liblzma,
+        # libstdc++ and eglinfo (from the mesa demo tools) for driver info.
+        arch:gtk3-dev)                         echo "gtk3" ;;
+        debian:gtk3-dev)                       echo "libgtk-3-dev" ;;
+        fedora:gtk3-dev)                       echo "gtk3-devel" ;;
+        suse:gtk3-dev)                         echo "gtk3-devel" ;;
+
+        arch:liblzma-dev)                      echo "xz" ;;
+        debian:liblzma-dev)                    echo "liblzma-dev" ;;
+        fedora:liblzma-dev)                    echo "xz-devel" ;;
+        suse:liblzma-dev)                      echo "xz-devel" ;;
+
+        arch:libstdc++-dev)                    echo "gcc" ;;
+        debian:libstdc++-dev)                  echo "libstdc++-12-dev" ;;
+        fedora:libstdc++-dev)                  echo "libstdc++-devel" ;;
+        suse:libstdc++-dev)                    echo "libstdc++-devel" ;;
+
+        arch:pkg-config)                       echo "pkgconf" ;;
+        debian:pkg-config)                     echo "pkg-config" ;;
+        fedora:pkg-config)                     echo "pkgconf-pkg-config" ;;
+        suse:pkg-config)                       echo "pkgconf" ;;
+
+        arch:mesa-utils)                       echo "mesa-utils" ;;
+        debian:mesa-utils)                     echo "mesa-utils" ;;
+        fedora:mesa-utils)                     echo "egl-utils glx-utils" ;;
+        suse:mesa-utils)                       echo "Mesa-demo-egl" ;;
+
         *)                                     echo "${name}" ;;
     esac
 }

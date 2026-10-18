@@ -31,11 +31,16 @@ echo "Latest stable Flutter version: $STABLE_VERSION"
 FLUTTER_TARBALL="$HOME/Projects/flutter_linux_${STABLE_VERSION}-stable.tar.xz"
 
 # ==============================================================================
-# 2. INSTALL SYSTEM PACKAGES (android tools, build deps, JDKs)
+# 2. INSTALL SYSTEM PACKAGES (build deps, JDKs, linux desktop toolchain)
 # ==============================================================================
 echo "Installing system packages..."
-# System packages already installed
-# "$UTIL" -i android-tools clang llvm lld cmake ninja openjdk-devel
+# NOTE: intentionally NOT installing the distro 'android-tools' package. It
+# ships its own adb/fastboot which then collides with the SDK's platform-tools
+# adb ("Multiple adb binaries found" in flutter doctor). We use the SDK's
+# platform-tools exclusively. Physical devices may need USB udev rules (the
+# SDK does not ship them) - see the note at the end of this script.
+"$UTIL" -i clang llvm lld cmake ninja openjdk-devel \
+    gtk3-dev liblzma-dev libstdc++-dev pkg-config mesa-utils
 
 # ==============================================================================
 # 2b. ANDROID SDK (standalone command-line tools)
@@ -161,13 +166,17 @@ else
 fi
 
 # ==============================================================================
-# 7. VALIDATE
+# 6a. PICK A JDK (used by the shell config below and by gradle/AGP)
 # ==============================================================================
-echo "Validating..."
-
-# Pick a JDK gradle/AGP are happy with (minimum 17)
+# Preferred order (minimum 17):
+#  1. android studio bundled JBR relocated to /opt/jbr-21 (SELinux-safe)
+#  2. android studio bundled JBR in place
+#  3. distro java-21/17
+#  4. distro java-latest / java-25
 JAVA_HOME_CANDIDATE=""
 for j in \
+    "${JBR_DST}" \
+    "$HOME/Android/android-studio/jbr" \
     "/usr/lib/jvm/java-21-openjdk" \
     "/usr/lib/jvm/java-17-openjdk" \
     "/usr/lib/jvm/java-latest-openjdk" \
@@ -178,8 +187,65 @@ for j in \
     fi
 done
 if [[ -z "${JAVA_HOME_CANDIDATE}" ]]; then
-    JAVA_HOME_CANDIDATE="$(dirname "$(dirname "$(readlink -f "$(command -v java 2>/dev/null)")")")" 2>/dev/null || true
+    java_bin="$(command -v java 2>/dev/null || true)"
+    if [[ -n "${java_bin}" ]]; then
+        JAVA_HOME_CANDIDATE="$(dirname "$(dirname "$(readlink -f "${java_bin}")")")"
+    fi
 fi
+
+# ==============================================================================
+# 6b. PERMANENT PATHS & ENV VARS (BASH)
+# ==============================================================================
+BASHRC="$HOME/.bashrc"
+echo "updating $BASHRC..."
+
+append_bashrc() {
+    grep -qF "$1" "$BASHRC" 2>/dev/null || echo "$1" >> "$BASHRC"
+}
+
+append_bashrc '# Flutter & Android environment setup'
+append_bashrc 'export ANDROID_HOME="$HOME/Android/Sdk"'
+append_bashrc 'export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/$(ls $ANDROID_HOME/ndk 2>/dev/null | tail -n 1)"'
+if [[ -n "${JAVA_HOME_CANDIDATE}" ]]; then
+    append_bashrc "export JAVA_HOME=\"${JAVA_HOME_CANDIDATE}\""
+fi
+# Skip Flutter's cloud-metadata bot probe. On networks that silently drop
+# packets to unreachable IPs (like many home routers), the probe to
+# 169.254.169.254 hangs and stalls every flutter command.
+append_bashrc 'export BOT=false'
+append_bashrc 'export PATH="$HOME/Projects/flutter/bin:$HOME/.cargo/bin:$ANDROID_HOME/platform-tools:$PATH"'
+
+# ==============================================================================
+# 6c. PERMANENT PATHS & ENV VARS (FISH)
+# ==============================================================================
+FISH_CONFIG="$HOME/.config/fish/config.fish"
+echo "updating $FISH_CONFIG..."
+mkdir -p "$(dirname "$FISH_CONFIG")"
+touch "$FISH_CONFIG"
+
+append_fish() {
+    grep -qF "$1" "$FISH_CONFIG" 2>/dev/null || echo "$1" >> "$FISH_CONFIG"
+}
+
+append_fish ''
+append_fish '# Flutter & Android environment setup'
+append_fish 'fish_add_path $HOME/Projects/flutter/bin'
+append_fish 'fish_add_path $HOME/.cargo/bin'
+append_fish 'fish_add_path $HOME/.local/bin'
+append_fish 'fish_add_path $HOME/Android/Sdk/platform-tools'
+append_fish 'set -gx ANDROID_HOME $HOME/Android/Sdk'
+append_fish 'set -l ndk_dirs $ANDROID_HOME/ndk/*'
+append_fish 'if test -n "$ndk_dirs"; set -gx ANDROID_NDK_HOME $ndk_dirs[-1]; end'
+if [[ -n "${JAVA_HOME_CANDIDATE}" ]]; then
+    append_fish "set -gx JAVA_HOME ${JAVA_HOME_CANDIDATE}"
+fi
+# Skip Flutter's cloud-metadata bot probe (see bash note above).
+append_fish 'set -gx BOT false'
+
+# ==============================================================================
+# 7. VALIDATE
+# ==============================================================================
+echo "Validating..."
 
 export PATH="$FLUTTER_DIR/bin:$HOME/.cargo/bin:$ANDROID_SDK/platform-tools:$PATH"
 export ANDROID_HOME="$HOME/Android/Sdk"
@@ -190,6 +256,9 @@ fi
 
 export ANDROID_HOME="$ANDROID_SDK"
 export ANDROID_NDK_HOME="$ANDROID_NDK_HOME"
+
+# Skip the cloud-metadata bot probe that hangs on some networks.
+export BOT=false
 
 echo "Adopting Flutter environment variables..."
 
@@ -207,3 +276,9 @@ echo "Flutter version: $STABLE_VERSION"
 echo "Android SDK: $ANDROID_SDK"
 echo "JAVA_HOME: $JAVA_HOME_CANDIDATE"
 echo "=========================================="
+echo ""
+echo "note: for a physical phone over USB, the SDK platform-tools do not ship"
+echo "udev rules. if 'adb devices' shows 'no permissions', add a rule such as:"
+echo "  /etc/udev/rules.d/51-android.rules:"
+echo "  SUBSYSTEM==\"usb\", ATTR{idVendor}==\"<vendor>\", MODE=\"0660\", GROUP=\"plugdev\""
+echo "then: sudo udevadm control --reload && sudo udevadm trigger"
