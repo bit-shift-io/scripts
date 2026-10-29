@@ -269,4 +269,69 @@ cat > "$OPENCODE_DIR/opencode-auto-continue.jsonc" << 'ENDEOF2'
 ENDEOF2
 
 echo "OpenCode configuration complete."
+
+# === OpenCode startup service ===
+# V2 service mode registers this foreground server for normal TUI discovery,
+# so systemd and terminal clients share one server rather than competing ones.
+OPENCODE_BIN="$(command -v opencode)"
+mkdir -p "$HOME/.config/systemd/user"
+
+# Read and confirm before stopping anything. Blank preserves the current (or
+# automatically generated) password; never store the secret in the unit file.
+while true; do
+    if ! IFS= read -rsp "OpenCode password (blank keeps current/generated password): " OPENCODE_PASSWORD_INPUT; then
+        echo "ERROR: Could not read OpenCode password; service setup cancelled." >&2
+        exit 1
+    fi
+    echo >&2
+    [[ -z "$OPENCODE_PASSWORD_INPUT" ]] && break
+    if ! IFS= read -rsp "Confirm OpenCode password: " OPENCODE_PASSWORD_CONFIRM; then
+        echo "ERROR: Could not confirm OpenCode password; service setup cancelled." >&2
+        exit 1
+    fi
+    echo >&2
+    [[ "$OPENCODE_PASSWORD_INPUT" == "$OPENCODE_PASSWORD_CONFIRM" ]] && break
+    unset OPENCODE_PASSWORD_INPUT OPENCODE_PASSWORD_CONFIRM
+    echo "Passwords do not match. Please try again." >&2
+done
+
+# Stop supervision before changing settings (each service set stops the old
+# background server). This also migrates an automatically started V2 daemon.
+systemctl --user stop opencode.service 2>/dev/null || true
+"$OPENCODE_BIN" service set hostname 0.0.0.0
+"$OPENCODE_BIN" service set port 49374
+"$OPENCODE_BIN" service unset disabled
+
+if [[ -n "$OPENCODE_PASSWORD_INPUT" ]]; then
+    "$OPENCODE_BIN" service set password "$OPENCODE_PASSWORD_INPUT" > /dev/null
+fi
+unset OPENCODE_PASSWORD_INPUT OPENCODE_PASSWORD_CONFIRM
+
+# Escape systemd specifiers in the resolved executable path.
+OPENCODE_EXEC="${OPENCODE_BIN//%/%%}"
+cat > "$HOME/.config/systemd/user/opencode.service" << EOL
+[Unit]
+Description=OpenCode shared API and web service
+After=network.target
+
+[Service]
+Type=simple
+ExecStart="$OPENCODE_EXEC" serve --service
+WorkingDirectory=%h
+Environment="PATH=%h/.local/bin:%h/.opencode/bin:%h/.cargo/bin:/usr/local/bin:/usr/bin:/bin"
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target
+EOL
+
+systemctl --user daemon-reload
+loginctl enable-linger "$USER"
+systemctl --user enable --now opencode.service
+
+echo "OpenCode web UI: http://<LAN-IP>:49374 (allow TCP 49374 on your LAN firewall if needed)."
+echo "Authentication username: opencode. The configured password is stored by OpenCode, not in the unit file."
+echo "If your browser requires pairing, run: opencode pair --url http://<LAN-IP>:49374"
+echo "Open the generated one-time link on that device. Do not expose this port to the internet."
 echo "Complete"
