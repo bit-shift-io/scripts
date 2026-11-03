@@ -68,10 +68,15 @@ else
     systemctl --user stop folio.service 2>/dev/null || true
     "$UTIL" -b https://github.com/bit-shift-io/folio.git folio
 
+    # Same graphical-session wiring as krust/opencode below: a default.target
+    # unit is started before Plasma imports WAYLAND_DISPLAY/DISPLAY/XAUTHORITY
+    # into the systemd user manager, so folio would inherit an environment with
+    # no Wayland/X11 access.
     tee "$HOME/.config/systemd/user/folio.service" > /dev/null << EOL
 [Unit]
 Description=folio Service
-After=network.target
+PartOf=graphical-session.target
+After=graphical-session.target
 
 [Service]
 Type=simple
@@ -81,11 +86,15 @@ Restart=always
 RestartSec=3
 
 [Install]
-WantedBy=default.target
+WantedBy=graphical-session.target
 EOL
 
     systemctl --user daemon-reload
-    systemctl --user enable --now folio.service
+    # reenable, not enable: WantedBy moved off default.target, so the stale
+    # default.target.wants symlink must be dropped or it would still be pulled
+    # in early and keep the empty environment.
+    systemctl --user reenable folio.service
+    systemctl --user start folio.service
 
     # Install krust next (slowest build due to WASM)
     echo "=== Processing krust ==="
@@ -102,10 +111,20 @@ EOL
     # Create and enable krust systemd user service
     mkdir -p "$HOME/.config/systemd/user"
 
+    # Wired to graphical-session.target, not default.target. krust spawns the
+    # shell PTY and portable-pty copies krust's *own* environment into it
+    # verbatim, so the PTY only ever sees what krust was started with.
+    # XDG_RUNTIME_DIR/DBUS_SESSION_BUS_ADDRESS exist from the moment the systemd
+    # user manager starts, but WAYLAND_DISPLAY/DISPLAY/XAUTHORITY/
+    # XDG_SESSION_TYPE are imported into that manager by the desktop session
+    # (Plasma) a moment later. A default.target unit starts before that import,
+    # so every terminal it spawns is blind to Wayland/X11. Grit already uses
+    # this wiring for exactly this reason.
     tee "$HOME/.config/systemd/user/krust.service" > /dev/null << EOL
 [Unit]
 Description=krust Web Terminal Service
-After=network.target
+PartOf=graphical-session.target
+After=graphical-session.target
 
 [Service]
 Type=simple
@@ -115,11 +134,15 @@ Restart=always
 RestartSec=3
 
 [Install]
-WantedBy=default.target
+WantedBy=graphical-session.target
 EOL
 
     systemctl --user daemon-reload
-    systemctl --user enable --now krust.service
+    # reenable, not enable: WantedBy moved off default.target, so the stale
+    # default.target.wants symlink has to be dropped or the unit would still be
+    # pulled in early on the next login and keep the empty environment.
+    systemctl --user reenable krust.service
+    systemctl --user start krust.service
 
     # Fail loudly if krust never comes up, instead of printing "Complete" over
     # a service that is crash-looping on a port an orphan still holds.
@@ -309,10 +332,15 @@ unset OPENCODE_PASSWORD_INPUT OPENCODE_PASSWORD_CONFIRM
 
 # Escape systemd specifiers in the resolved executable path.
 OPENCODE_EXEC="${OPENCODE_BIN//%/%%}"
+# The agent's tool subprocesses are forked by *this* server, not by the krust
+# PTY (the TUI just talks to the shared V2 service), so it needs the same
+# graphical-session wiring as krust/grit. Otherwise the tools it spawns inherit
+# an environment with no WAYLAND_DISPLAY/DISPLAY and cannot open a GUI.
 cat > "$HOME/.config/systemd/user/opencode.service" << EOL
 [Unit]
 Description=OpenCode shared API and web service
-After=network.target
+PartOf=graphical-session.target
+After=graphical-session.target
 
 [Service]
 Type=simple
@@ -323,12 +351,16 @@ Restart=on-failure
 RestartSec=3
 
 [Install]
-WantedBy=default.target
+WantedBy=graphical-session.target
 EOL
 
 systemctl --user daemon-reload
 loginctl enable-linger "$USER"
-systemctl --user enable --now opencode.service
+# reenable, not enable: WantedBy moved off default.target, so the stale
+# default.target.wants symlink must be dropped or the unit would still start
+# before the desktop session has imported WAYLAND_DISPLAY and friends.
+systemctl --user reenable opencode.service
+systemctl --user start opencode.service
 
 echo "OpenCode web UI: http://<LAN-IP>:49374 (allow TCP 49374 on your LAN firewall if needed)."
 echo "Authentication username: opencode. The configured password is stored by OpenCode, not in the unit file."
