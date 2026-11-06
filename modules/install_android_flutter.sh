@@ -265,6 +265,47 @@ if [[ -n "${JAVA_HOME_CANDIDATE}" ]]; then
 fi
 
 # ==============================================================================
+# 6d. SYSTEMD USER ENVIRONMENT (for services like grit that launch builds)
+# ==============================================================================
+# ~/.config/environment.d/*.conf is read by the systemd --user manager at session
+# start and inherited by every user service - including grit, which launches the
+# build scripts from a systemd unit and so never sources a shell rc. Values are
+# literal KEY=VALUE (systemd Environment= syntax), not shell. environment.d is
+# only read when the manager starts, so we also push the values into the running
+# manager now; a fresh login makes it permanent.
+if command -v systemctl > /dev/null 2>&1 && systemctl --user show-environment > /dev/null 2>&1; then
+    ENV_D="$HOME/.config/environment.d"
+    ENV_FILE="${ENV_D}/10-android.conf"
+    echo "updating $ENV_FILE..."
+    mkdir -p "${ENV_D}"
+    NDK_HOME=""
+    if [[ -d "${ANDROID_SDK}/ndk" ]]; then
+        NDK_HOME="${ANDROID_SDK}/ndk/$(ls "${ANDROID_SDK}/ndk" 2>/dev/null | tail -n 1)"
+    fi
+    {
+        echo '# Android / Flutter / JDK environment for systemd user services (e.g. grit).'
+        echo '# Managed by install_android_flutter.sh.'
+        echo "ANDROID_HOME=${ANDROID_SDK}"
+        if [[ -n "${NDK_HOME}" ]]; then
+            echo "ANDROID_NDK_HOME=${NDK_HOME}"
+        fi
+        if [[ -n "${JAVA_HOME_CANDIDATE}" ]]; then
+            echo "JAVA_HOME=${JAVA_HOME_CANDIDATE}"
+        fi
+    } > "${ENV_FILE}"
+
+    # Make the values visible to the already-running user manager (best effort).
+    export ANDROID_HOME="${ANDROID_SDK}"
+    if [[ -n "${NDK_HOME}" ]]; then
+        export ANDROID_NDK_HOME="${NDK_HOME}"
+    fi
+    if [[ -n "${JAVA_HOME_CANDIDATE}" ]]; then
+        export JAVA_HOME="${JAVA_HOME_CANDIDATE}"
+    fi
+    systemctl --user import-environment JAVA_HOME ANDROID_HOME ANDROID_NDK_HOME 2>/dev/null || true
+fi
+
+# ==============================================================================
 # 7. VALIDATE
 # ==============================================================================
 echo "Validating..."
