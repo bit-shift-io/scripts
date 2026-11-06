@@ -266,7 +266,7 @@ cat > "$OPENCODE_DIR/opencode.jsonc" << 'ENDEOF'
     "bash": {
       "*": "allow",
       "*data*": "allow",
-      "git commit*": "deny",
+      "git commit*": "allow",
       "git push*": "deny"
     }
   },
