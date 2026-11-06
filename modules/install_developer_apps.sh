@@ -22,9 +22,14 @@ source "$(dirname "${BASH_SOURCE[0]}")/../util.sh"
 #chsh -s "$(command -v fish)" # dont use this, it breaks all scripts!
 chsh -s "$(command -v bash)"
 
-# Configure fish shell
-mkdir -p ~/.config/fish
-tee ~/.config/fish/config.fish > /dev/null << EOL
+# Configure fish shell via a dedicated conf.d drop-in instead of overwriting
+# config.fish. `tee`-ing config.fish wholesale wipes settings other installers
+# add (e.g. JAVA_HOME/ANDROID_HOME from install_android_flutter.sh), which then
+# breaks Gradle builds. fish sources conf.d/*.fish automatically.
+FISH_CONFD="$HOME/.config/fish/conf.d"
+mkdir -p "$FISH_CONFD"
+cat > "$FISH_CONFD/developer.fish" << 'EOL'
+# Developer shell setup (managed by install_developer_apps.sh)
 # Add user bin directories to PATH (Fish modern syntax)
 fish_add_path ~/.local/bin ~/.opencode/bin
 

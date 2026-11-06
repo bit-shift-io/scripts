@@ -168,11 +168,22 @@ fi
 # ==============================================================================
 # 6a. PICK A JDK (used by the shell config below and by gradle/AGP)
 # ==============================================================================
+# Gradle/AGP need a *full* JDK, not a JRE: the Java toolchain must provide the
+# JAVA_COMPILER capability (i.e. bin/javac). Fedora's `java-25-openjdk` package
+# is headless/JRE-only, and when JAVA_HOME is unset Gradle auto-selects the JVM
+# on PATH and then fails with:
+#   Toolchain installation '/usr/lib/jvm/java-25-openjdk' does not provide the
+#   required capabilities: [JAVA_COMPILER]
+# So every candidate is validated with bin/javac, never just bin/java.
+is_jdk() {
+    [[ -x "$1/bin/java" && -x "$1/bin/javac" ]]
+}
+
 # Preferred order (minimum 17):
 #  1. android studio bundled JBR relocated to /opt/jbr-21 (SELinux-safe)
 #  2. android studio bundled JBR in place
 #  3. distro java-21/17
-#  4. distro java-latest / java-25
+#  4. distro java-latest / java-25 (only if it is a real JDK with javac)
 JAVA_HOME_CANDIDATE=""
 for j in \
     "${JBR_DST}" \
@@ -181,16 +192,20 @@ for j in \
     "/usr/lib/jvm/java-17-openjdk" \
     "/usr/lib/jvm/java-latest-openjdk" \
     "/usr/lib/jvm/java-25-openjdk"; do
-    if [[ -x "${j}/bin/java" ]]; then
+    if is_jdk "${j}"; then
         JAVA_HOME_CANDIDATE="${j}"
         break
     fi
 done
 if [[ -z "${JAVA_HOME_CANDIDATE}" ]]; then
-    java_bin="$(command -v java 2>/dev/null || true)"
-    if [[ -n "${java_bin}" ]]; then
-        JAVA_HOME_CANDIDATE="$(dirname "$(dirname "$(readlink -f "${java_bin}")")")"
+    # Fall back to what javac resolves to (javac first - it implies a JDK).
+    jdk_bin="$(command -v javac 2>/dev/null || command -v java 2>/dev/null || true)"
+    if [[ -n "${jdk_bin}" ]]; then
+        JAVA_HOME_CANDIDATE="$(dirname "$(dirname "$(readlink -f "${jdk_bin}")")")"
     fi
+fi
+if [[ -n "${JAVA_HOME_CANDIDATE}" ]] && ! is_jdk "${JAVA_HOME_CANDIDATE}"; then
+    echo "WARNING: ${JAVA_HOME_CANDIDATE} has no javac (JRE only); Gradle builds will fail." >&2
 fi
 
 # ==============================================================================
@@ -218,29 +233,36 @@ append_bashrc 'export PATH="$HOME/Projects/flutter/bin:$HOME/.cargo/bin:$ANDROID
 # ==============================================================================
 # 6c. PERMANENT PATHS & ENV VARS (FISH)
 # ==============================================================================
-FISH_CONFIG="$HOME/.config/fish/config.fish"
-echo "updating $FISH_CONFIG..."
-mkdir -p "$(dirname "$FISH_CONFIG")"
-touch "$FISH_CONFIG"
+# Write a dedicated drop-in instead of appending to config.fish. Other scripts
+# (e.g. install_developer_apps.sh) overwrite ~/.config/fish/config.fish wholesale
+# with `tee`, which previously wiped JAVA_HOME/ANDROID_HOME. Every Gradle build
+# then fell back to the distro's JRE-only java-25 and failed on JAVA_COMPILER.
+# fish sources conf.d/*.fish automatically, so this survives those rewrites.
+FISH_CONFD="$HOME/.config/fish/conf.d"
+FISH_DROPIN="${FISH_CONFD}/flutter.fish"
+echo "updating $FISH_DROPIN..."
+mkdir -p "${FISH_CONFD}"
 
-append_fish() {
-    grep -qF "$1" "$FISH_CONFIG" 2>/dev/null || echo "$1" >> "$FISH_CONFIG"
-}
-
-append_fish ''
-append_fish '# Flutter & Android environment setup'
-append_fish 'fish_add_path $HOME/Projects/flutter/bin'
-append_fish 'fish_add_path $HOME/.cargo/bin'
-append_fish 'fish_add_path $HOME/.local/bin'
-append_fish 'fish_add_path $HOME/Android/Sdk/platform-tools'
-append_fish 'set -gx ANDROID_HOME $HOME/Android/Sdk'
-append_fish 'set -l ndk_dirs $ANDROID_HOME/ndk/*'
-append_fish 'if test -n "$ndk_dirs"; set -gx ANDROID_NDK_HOME $ndk_dirs[-1]; end'
-if [[ -n "${JAVA_HOME_CANDIDATE}" ]]; then
-    append_fish "set -gx JAVA_HOME ${JAVA_HOME_CANDIDATE}"
-fi
+cat > "${FISH_DROPIN}" <<'EOF'
+# Flutter & Android environment setup (managed by install_android_flutter.sh)
+fish_add_path $HOME/Projects/flutter/bin
+fish_add_path $HOME/.cargo/bin
+fish_add_path $HOME/.local/bin
+fish_add_path $HOME/Android/Sdk/platform-tools
+set -gx ANDROID_HOME $HOME/Android/Sdk
+if test -d $ANDROID_HOME/ndk
+    for NDK_DIR in $ANDROID_HOME/ndk/*
+        set -gx ANDROID_NDK_HOME $NDK_DIR
+    end
+end
 # Skip Flutter's cloud-metadata bot probe (see bash note above).
-append_fish 'set -gx BOT false'
+set -gx BOT false
+EOF
+# JAVA_HOME must be a JDK (with javac); append it after the quoted heredoc so
+# the candidate path is expanded by bash while fish variables stay literal.
+if [[ -n "${JAVA_HOME_CANDIDATE}" ]]; then
+    echo "set -gx JAVA_HOME ${JAVA_HOME_CANDIDATE}" >> "${FISH_DROPIN}"
+fi
 
 # ==============================================================================
 # 7. VALIDATE
