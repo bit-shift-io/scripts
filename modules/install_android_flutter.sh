@@ -176,7 +176,7 @@ fi
 #   required capabilities: [JAVA_COMPILER]
 # So every candidate is validated with bin/javac, never just bin/java.
 is_jdk() {
-    [[ -x "$1/bin/java" && -x "$1/bin/javac" ]]
+    [[ -n "${1:-}" && -x "$1/bin/java" && -x "$1/bin/javac" ]]
 }
 
 # Preferred order (minimum 17):
