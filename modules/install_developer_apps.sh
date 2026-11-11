@@ -276,25 +276,12 @@ cat > "$OPENCODE_DIR/opencode.jsonc" << 'ENDEOF'
     }
   },
   "plugin": [
-    "opencode-auto-continue@https://github.com/developing-today/opencode-auto-continue/archive/refs/tags/latest.tar.gz",
     "./plugins/network-watchdog.js",
     "superpowers@git+https://github.com/obra/superpowers.git"
   ]
 }
 ENDEOF
 
-# Write auto-continue config to global config directory
-cat > "$OPENCODE_DIR/opencode-auto-continue.jsonc" << 'ENDEOF2'
-{
-  "enabled": true,
-  // Wait 10 seconds after an error state before reconnecting
-  "delayMs": 10000,
-  // 0 enables infinite consecutive retries
-  "maxConsecutive": 0,
-  // Minimum delay between auto-continue attempts
-  "throttleMs": 5000
-}
-ENDEOF2
 
 echo "OpenCode configuration complete."
 
