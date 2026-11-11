@@ -26,6 +26,27 @@ sudo tee /etc/udev/rules.d/99-mm-nrf-blacklist.rules > /dev/null << 'EOL'
 ENV{NRF_CDC_ACM}=="1", ENV{ID_MM_CANDIDATE}="0", ENV{ID_MM_DEVICE_IGNORE}="1"
 EOL
 
+# Raspberry Pi Debug Probe / Pico UART (CDC ACM, 2e8a:000c)
+sudo tee /etc/udev/rules.d/72-rpi-debug-probe.rules > /dev/null << 'EOL'
+ACTION!="add|change", GOTO="rpi_probe_end"
+SUBSYSTEM=="tty", SUBSYSTEMS=="usb", ATTRS{idVendor}=="2e8a", ATTRS{idProduct}=="000c", MODE="0666", SYMLINK+="ttyPICO", ENV{ID_MM_DEVICE_IGNORE}="1"
+LABEL="rpi_probe_end"
+EOL
+
 # load new udev rules
 sudo udevadm control --reload
 sudo udevadm trigger
+
+# apply immediately to a probe that is already connected
+for dev in /dev/ttyACM*; do
+	[ -e "$dev" ] || continue
+	if udevadm info -q property -n "$dev" 2>/dev/null | grep -qx 'ID_VENDOR_ID=2e8a'; then
+		sudo chmod 666 "$dev"
+	fi
+done
+
+# verify
+ls -l /dev/ttyACM0 2>/dev/null || echo "No /dev/ttyACM0 present"
+ls -l /dev/ttyPICO 2>/dev/null || echo "No /dev/ttyPICO symlink; replug the probe to create it"
+
+echo "Done!"
