@@ -272,7 +272,7 @@ cat > "$OPENCODE_DIR/opencode.jsonc" << 'ENDEOF'
       "*": "allow",
       "*data*": "allow",
       "git commit*": "allow",
-      "git push*": "deny"
+      "git push*": "allow"
     }
   },
   "plugin": [
